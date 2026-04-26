@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
 import { useAuth } from '@/lib/auth-context';
+import Sidebar from '@/components/layout/Sidebar';
 
 interface AuditEntry {
   id: string;
@@ -47,19 +47,9 @@ export default function AuditLog() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f4f9f4]">
-      <header className="bg-[#2d6a2d] text-white px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <span className="text-2xl">📗</span>
-          <div>
-            <h1 className="font-bold text-lg">VFE</h1>
-            <p className="text-xs text-green-200">El Libro Verde de los Medicamentos</p>
-          </div>
-        </div>
-        <Link href="/dashboard" className="text-green-200 text-sm hover:text-white">← Dashboard</Link>
-      </header>
-
-      <main className="max-w-5xl mx-auto px-6 py-8">
+    <div className="min-h-screen bg-[#f4f9f4] flex">
+      <Sidebar />
+      <main className="flex-1 ml-64 px-8 py-8">
         <h2 className="text-xl font-bold text-[#2d6a2d] mb-6">Audit Log — Registro de cambios</h2>
 
         <div className="bg-white rounded-xl border border-green-100 shadow-sm overflow-hidden">
