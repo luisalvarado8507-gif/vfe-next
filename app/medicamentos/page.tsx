@@ -24,20 +24,21 @@ function BaseDatosContent() {
   const [cursor, setCursor] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(false);
   const [buscando, setBuscando] = useState(false);
-  const { getToken, loading: authLoading } = useAuth();
+  const { getToken, user, loading: authLoading } = useAuth();
   const searchParams = useSearchParams();
   const capitulo = searchParams.get('capitulo');
   const capNombre = capitulo ? CAPITULOS.find(c => c.id === capitulo)?.name : null;
 
-  const cargar = async (reset = false) => {
+  const cargar = useCallback(async (reset = false) => {
     setLoading(true);
     try {
       const token = await getToken();
+      if (!token) return;
       const params = new URLSearchParams({ limit: '50' });
       if (!reset && cursor) params.set('cursor', cursor);
       if (capitulo) params.set('capitulo', capitulo);
       const res = await fetch(`/api/medicamentos?${params}`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {}
+        headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();
       if (reset) {
@@ -52,7 +53,7 @@ function BaseDatosContent() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [capitulo, cursor, getToken]);
 
   const buscar = useCallback(async (q: string) => {
     if (!q.trim()) {
@@ -62,10 +63,11 @@ function BaseDatosContent() {
     setBuscando(true);
     try {
       const token = await getToken();
+      if (!token) return;
       const params = new URLSearchParams({ q });
       if (capitulo) params.set('capitulo', capitulo);
       const res = await fetch(`/api/busqueda?${params}`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {}
+        headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();
       setMedicamentos(data.medicamentos || []);
@@ -75,20 +77,19 @@ function BaseDatosContent() {
     } finally {
       setBuscando(false);
     }
-  }, [capitulo, getToken]);
+  }, [capitulo, getToken, cargar]);
 
   useEffect(() => {
-    if (authLoading) return;
+    if (authLoading || !user) return;
     cargar(true);
     setBusqueda('');
-  }, [authLoading, capitulo]);
+  }, [authLoading, user, capitulo]);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (!authLoading) buscar(busqueda);
-    }, 400);
+    if (authLoading || !user) return;
+    const timer = setTimeout(() => buscar(busqueda), 400);
     return () => clearTimeout(timer);
-  }, [busqueda, authLoading, buscar]);
+  }, [busqueda, authLoading, user]);
 
   const estadoColor = (estado: string) => {
     switch(estado) {
