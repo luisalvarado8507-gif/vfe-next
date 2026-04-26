@@ -71,6 +71,7 @@ export default function MedicamentoDetalle() {
             med.estado === 'autorizado' ? 'bg-green-100 text-green-700' :
             med.estado === 'suspendido' ? 'bg-yellow-100 text-yellow-700' :
             med.estado === 'retirado' ? 'bg-red-100 text-red-700' :
+            med.estado === 'arcsa_pendiente' ? 'bg-orange-100 text-orange-700' :
             'bg-gray-100 text-gray-600'
           }`}>
             {String(med.estado || 'pendiente')}
