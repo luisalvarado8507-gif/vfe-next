@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth-context';
+import Sidebar from '@/components/layout/Sidebar';
 
 interface Medicamento {
   id: string;
@@ -19,7 +20,7 @@ export default function BaseDatos() {
   const [busqueda, setBusqueda] = useState('');
   const [cursor, setCursor] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(false);
-  const { getToken } = useAuth();
+  const { getToken, loading: authLoading } = useAuth();
 
   const cargar = async (reset = false) => {
     setLoading(true);
@@ -45,7 +46,10 @@ export default function BaseDatos() {
     }
   };
 
-  useEffect(() => { cargar(true); }, []);
+  useEffect(() => {
+    if (authLoading) return;
+    cargar(true);
+  }, [authLoading]);
 
   const filtrados = medicamentos.filter(m =>
     m.vtm?.toLowerCase().includes(busqueda.toLowerCase()) ||
@@ -63,30 +67,18 @@ export default function BaseDatos() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f4f9f4]">
-      <header className="bg-[#2d6a2d] text-white px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <span className="text-2xl">📗</span>
-          <div>
-            <h1 className="font-bold text-lg">VFE</h1>
-            <p className="text-xs text-green-200">El Libro Verde de los Medicamentos</p>
-          </div>
-        </div>
-        <div className="flex gap-3">
-          <Link href="/medicamentos/nuevo"
-            className="bg-white text-[#2d6a2d] px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-50 transition">
-            + Nuevo
-          </Link>
-          <Link href="/dashboard" className="text-green-200 text-sm hover:text-white py-2">
-            ← Dashboard
-          </Link>
-        </div>
-      </header>
-
-      <main className="max-w-6xl mx-auto px-6 py-8">
+    <div className="min-h-screen bg-[#f4f9f4] flex">
+      <Sidebar />
+      <main className="flex-1 ml-64 px-8 py-8">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-bold text-[#2d6a2d]">Base de datos</h2>
-          <span className="text-sm text-gray-500">{filtrados.length} medicamentos</span>
+          <div className="flex items-center gap-4">
+            <span className="text-sm text-gray-500">{filtrados.length} medicamentos</span>
+            <Link href="/medicamentos/nuevo"
+              className="bg-[#2d6a2d] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-[#235223] transition">
+              + Nuevo
+            </Link>
+          </div>
         </div>
 
         <input
