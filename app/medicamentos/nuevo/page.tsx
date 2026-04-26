@@ -45,7 +45,7 @@ export default function NuevoMedicamento() {
         alert('Error: ' + result.error);
       }
     } catch(e) {
-      alert('Error: ' + e.message);
+      alert('Error de conexion');
     } finally {
       setSaving(false);
     }
