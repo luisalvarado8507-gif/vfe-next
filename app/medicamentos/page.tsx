@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth-context';
@@ -23,6 +23,7 @@ function BaseDatosContent() {
   const [busqueda, setBusqueda] = useState('');
   const [cursor, setCursor] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(false);
+  const [buscando, setBuscando] = useState(false);
   const { getToken, loading: authLoading } = useAuth();
   const searchParams = useSearchParams();
   const capitulo = searchParams.get('capitulo');
@@ -53,16 +54,41 @@ function BaseDatosContent() {
     }
   };
 
+  const buscar = useCallback(async (q: string) => {
+    if (!q.trim()) {
+      cargar(true);
+      return;
+    }
+    setBuscando(true);
+    try {
+      const token = await getToken();
+      const params = new URLSearchParams({ q });
+      if (capitulo) params.set('capitulo', capitulo);
+      const res = await fetch(`/api/busqueda?${params}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+      });
+      const data = await res.json();
+      setMedicamentos(data.medicamentos || []);
+      setHasMore(false);
+    } catch {
+      console.error('Error buscando');
+    } finally {
+      setBuscando(false);
+    }
+  }, [capitulo, getToken]);
+
   useEffect(() => {
     if (authLoading) return;
     cargar(true);
+    setBusqueda('');
   }, [authLoading, capitulo]);
 
-  const filtrados = medicamentos.filter(m =>
-    m.vtm?.toLowerCase().includes(busqueda.toLowerCase()) ||
-    m.laboratorio?.toLowerCase().includes(busqueda.toLowerCase()) ||
-    m.ff?.toLowerCase().includes(busqueda.toLowerCase())
-  );
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (!authLoading) buscar(busqueda);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [busqueda, authLoading, buscar]);
 
   const estadoColor = (estado: string) => {
     switch(estado) {
@@ -89,7 +115,7 @@ function BaseDatosContent() {
             )}
           </div>
           <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-500">{filtrados.length} medicamentos</span>
+            <span className="text-sm text-gray-500">{medicamentos.length} medicamentos</span>
             <Link href="/medicamentos/nuevo"
               className="bg-[#2d6a2d] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-[#235223] transition">
               + Nuevo
@@ -97,11 +123,16 @@ function BaseDatosContent() {
           </div>
         </div>
 
-        <input
-          className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm mb-6 focus:outline-none focus:border-[#2d6a2d]"
-          placeholder="Buscar por DCI, laboratorio, forma farmacéutica..."
-          value={busqueda}
-          onChange={e => setBusqueda(e.target.value)} />
+        <div className="relative mb-6">
+          <input
+            className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-[#2d6a2d]"
+            placeholder="Buscar por DCI, laboratorio, forma farmacéutica, código ATC..."
+            value={busqueda}
+            onChange={e => setBusqueda(e.target.value)} />
+          {buscando && (
+            <span className="absolute right-3 top-2.5 text-xs text-gray-400">Buscando...</span>
+          )}
+        </div>
 
         <div className="bg-white rounded-xl border border-green-100 shadow-sm overflow-hidden">
           <table className="w-full text-sm">
@@ -116,11 +147,11 @@ function BaseDatosContent() {
               </tr>
             </thead>
             <tbody>
-              {loading && medicamentos.length === 0 ? (
+              {loading || buscando ? (
                 <tr><td colSpan={6} className="text-center py-12 text-gray-400">Cargando...</td></tr>
-              ) : filtrados.length === 0 ? (
+              ) : medicamentos.length === 0 ? (
                 <tr><td colSpan={6} className="text-center py-12 text-gray-400">No hay medicamentos</td></tr>
-              ) : filtrados.map((m, i) => (
+              ) : medicamentos.map((m, i) => (
                 <tr key={m.docId || m.id} className={`border-b border-gray-50 hover:bg-green-50 transition ${i % 2 === 0 ? '' : 'bg-gray-50/30'}`}>
                   <td className="px-4 py-3 font-medium text-gray-800">{m.vtm}</td>
                   <td className="px-4 py-3 text-gray-600">{m.laboratorio}</td>
@@ -142,7 +173,7 @@ function BaseDatosContent() {
             </tbody>
           </table>
 
-          {hasMore && (
+          {hasMore && !busqueda && (
             <div className="p-4 text-center border-t border-gray-100">
               <button onClick={() => cargar(false)}
                 className="text-[#2d6a2d] text-sm font-medium hover:underline">
