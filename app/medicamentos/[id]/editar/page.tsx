@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth-context';
+import Sidebar from '@/components/layout/Sidebar';
 import TabIdentificacion from '../../nuevo/components/TabIdentificacion';
 import TabPresentacion from '../../nuevo/components/TabPresentacion';
 import TabRegistro from '../../nuevo/components/TabRegistro';
@@ -82,27 +83,18 @@ export default function EditarMedicamento() {
   };
 
   if (loading) return (
-    <div className="min-h-screen bg-[#f4f9f4] flex items-center justify-center">
-      <p className="text-gray-400">Cargando...</p>
+    <div className="min-h-screen bg-[#f4f9f4] flex">
+      <Sidebar />
+      <main className="flex-1 ml-64 flex items-center justify-center">
+        <p className="text-gray-400">Cargando...</p>
+      </main>
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-[#f4f9f4]">
-      <header className="bg-[#2d6a2d] text-white px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <span className="text-2xl">📗</span>
-          <div>
-            <h1 className="font-bold text-lg">VFE</h1>
-            <p className="text-xs text-green-200">El Libro Verde de los Medicamentos</p>
-          </div>
-        </div>
-        <Link href={`/medicamentos/${id}`} className="text-green-200 text-sm hover:text-white">
-          ← Cancelar
-        </Link>
-      </header>
-
-      <main className="max-w-5xl mx-auto px-6 py-8">
+    <div className="min-h-screen bg-[#f4f9f4] flex">
+      <Sidebar />
+      <main className="flex-1 ml-64 px-8 py-8">
         <h2 className="text-xl font-bold text-[#2d6a2d] mb-2">Editar medicamento</h2>
         <p className="text-sm text-gray-500 mb-6 capitalize">{data.vtm || ''} · {data.laboratorio || ''}</p>
 
