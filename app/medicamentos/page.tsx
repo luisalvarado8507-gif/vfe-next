@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth-context';
 import Sidebar from '@/components/layout/Sidebar';
@@ -22,14 +22,18 @@ function BaseDatosContent() {
   const [loading, setLoading] = useState(true);
   const [busqueda, setBusqueda] = useState('');
   const { getToken, user, loading: authLoading } = useAuth();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const capitulo = searchParams.get('capitulo');
   const capNombre = capitulo ? CAPITULOS.find(c => c.id === capitulo)?.name : null;
 
   useEffect(() => {
-    if (authLoading || !user) return;
+    if (authLoading) return;
+    if (!user) {
+      router.push('/login');
+      return;
+    }
     const cargar = async () => {
-      setLoading(true);
       try {
         const token = await getToken();
         if (!token) return;
@@ -40,32 +44,27 @@ function BaseDatosContent() {
         });
         const data = await res.json();
         setTodos(data.medicamentos || []);
-      } catch {
-        console.error('Error');
+      } catch(e) {
+        console.error(e);
       } finally {
         setLoading(false);
       }
     };
-    setBusqueda('');
     cargar();
   }, [authLoading, user, capitulo]);
 
   const filtrados = busqueda.trim()
     ? todos.filter(m =>
         m.vtm?.toLowerCase().includes(busqueda.toLowerCase()) ||
-        m.laboratorio?.toLowerCase().includes(busqueda.toLowerCase()) ||
-        m.ff?.toLowerCase().includes(busqueda.toLowerCase())
+        m.laboratorio?.toLowerCase().includes(busqueda.toLowerCase())
       )
     : todos;
 
-  const estadoColor = (estado: string) => {
-    switch(estado) {
-      case 'autorizado': return 'bg-green-100 text-green-700';
-      case 'suspendido': return 'bg-yellow-100 text-yellow-700';
-      case 'retirado': return 'bg-red-100 text-red-700';
-      default: return 'bg-gray-100 text-gray-600';
-    }
-  };
+  if (authLoading) return (
+    <div className="min-h-screen bg-[#f4f9f4] flex items-center justify-center">
+      <p className="text-gray-400">Iniciando sesión...</p>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-[#f4f9f4] flex">
@@ -75,7 +74,7 @@ function BaseDatosContent() {
           <div>
             <h2 className="text-xl font-bold text-[#2d6a2d]">{capNombre || 'Base de datos'}</h2>
             {capNombre && (
-              <Link href="/medicamentos" className="text-xs text-gray-400 hover:text-[#2d6a2d]">← Ver todos</Link>
+              <Link href="/medicamentos" className="text-xs text-gray-400">← Ver todos</Link>
             )}
           </div>
           <div className="flex items-center gap-4">
@@ -89,7 +88,7 @@ function BaseDatosContent() {
 
         <input
           className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm mb-6 focus:outline-none focus:border-[#2d6a2d]"
-          placeholder="Buscar por DCI, laboratorio, forma farmacéutica..."
+          placeholder="Buscar por DCI, laboratorio..."
           value={busqueda}
           onChange={e => setBusqueda(e.target.value)} />
 
@@ -117,7 +116,7 @@ function BaseDatosContent() {
                   <td className="px-4 py-3 text-gray-600">{m.ff}</td>
                   <td className="px-4 py-3 text-gray-600">{m.conc}</td>
                   <td className="px-4 py-3">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${estadoColor(m.estado)}`}>
+                    <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
                       {m.estado || 'pendiente'}
                     </span>
                   </td>
@@ -137,7 +136,7 @@ function BaseDatosContent() {
 
 export default function BaseDatos() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-[#f4f9f4] flex items-center justify-center text-gray-400">Cargando...</div>}>
+    <Suspense fallback={<div className="flex items-center justify-center h-screen text-gray-400">Cargando...</div>}>
       <BaseDatosContent />
     </Suspense>
   );
