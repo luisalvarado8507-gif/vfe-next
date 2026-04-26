@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth-context';
@@ -21,21 +21,20 @@ function BaseDatosContent() {
   const [medicamentos, setMedicamentos] = useState<Medicamento[]>([]);
   const [loading, setLoading] = useState(true);
   const [busqueda, setBusqueda] = useState('');
-  const [cursor, setCursor] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(false);
-  const [buscando, setBuscando] = useState(false);
+  const cursorRef = useRef<string | null>(null);
   const { getToken, user, loading: authLoading } = useAuth();
   const searchParams = useSearchParams();
   const capitulo = searchParams.get('capitulo');
   const capNombre = capitulo ? CAPITULOS.find(c => c.id === capitulo)?.name : null;
 
-  const cargar = useCallback(async (reset = false) => {
+  const cargar = async (reset = false) => {
     setLoading(true);
     try {
       const token = await getToken();
-      if (!token) return;
+      if (!token) { setLoading(false); return; }
       const params = new URLSearchParams({ limit: '50' });
-      if (!reset && cursor) params.set('cursor', cursor);
+      if (!reset && cursorRef.current) params.set('cursor', cursorRef.current);
       if (capitulo) params.set('capitulo', capitulo);
       const res = await fetch(`/api/medicamentos?${params}`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -43,53 +42,50 @@ function BaseDatosContent() {
       const data = await res.json();
       if (reset) {
         setMedicamentos(data.medicamentos || []);
+        cursorRef.current = null;
       } else {
         setMedicamentos(prev => [...prev, ...(data.medicamentos || [])]);
       }
-      setCursor(data.nextCursor);
+      cursorRef.current = data.nextCursor || null;
       setHasMore(!!data.nextCursor);
     } catch {
       console.error('Error cargando');
     } finally {
       setLoading(false);
     }
-  }, [capitulo, cursor, getToken]);
-
-  const buscar = useCallback(async (q: string) => {
-    if (!q.trim()) {
-      cargar(true);
-      return;
-    }
-    setBuscando(true);
-    try {
-      const token = await getToken();
-      if (!token) return;
-      const params = new URLSearchParams({ q });
-      if (capitulo) params.set('capitulo', capitulo);
-      const res = await fetch(`/api/busqueda?${params}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      const data = await res.json();
-      setMedicamentos(data.medicamentos || []);
-      setHasMore(false);
-    } catch {
-      console.error('Error buscando');
-    } finally {
-      setBuscando(false);
-    }
-  }, [capitulo, getToken, cargar]);
+  };
 
   useEffect(() => {
     if (authLoading || !user) return;
-    cargar(true);
+    cursorRef.current = null;
     setBusqueda('');
+    cargar(true);
   }, [authLoading, user, capitulo]);
 
   useEffect(() => {
     if (authLoading || !user) return;
-    const timer = setTimeout(() => buscar(busqueda), 400);
+    if (!busqueda.trim()) {
+      cargar(true);
+      return;
+    }
+    const timer = setTimeout(async () => {
+      try {
+        const token = await getToken();
+        if (!token) return;
+        const params = new URLSearchParams({ q: busqueda });
+        if (capitulo) params.set('capitulo', capitulo);
+        const res = await fetch(`/api/busqueda?${params}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const data = await res.json();
+        setMedicamentos(data.medicamentos || []);
+        setHasMore(false);
+      } catch {
+        console.error('Error buscando');
+      }
+    }, 400);
     return () => clearTimeout(timer);
-  }, [busqueda, authLoading, user]);
+  }, [busqueda]);
 
   const estadoColor = (estado: string) => {
     switch(estado) {
@@ -106,13 +102,9 @@ function BaseDatosContent() {
       <main className="flex-1 ml-64 px-8 py-8">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-xl font-bold text-[#2d6a2d]">
-              {capNombre || 'Base de datos'}
-            </h2>
+            <h2 className="text-xl font-bold text-[#2d6a2d]">{capNombre || 'Base de datos'}</h2>
             {capNombre && (
-              <Link href="/medicamentos" className="text-xs text-gray-400 hover:text-[#2d6a2d]">
-                ← Ver todos
-              </Link>
+              <Link href="/medicamentos" className="text-xs text-gray-400 hover:text-[#2d6a2d]">← Ver todos</Link>
             )}
           </div>
           <div className="flex items-center gap-4">
@@ -124,16 +116,11 @@ function BaseDatosContent() {
           </div>
         </div>
 
-        <div className="relative mb-6">
-          <input
-            className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-[#2d6a2d]"
-            placeholder="Buscar por DCI, laboratorio, forma farmacéutica, código ATC..."
-            value={busqueda}
-            onChange={e => setBusqueda(e.target.value)} />
-          {buscando && (
-            <span className="absolute right-3 top-2.5 text-xs text-gray-400">Buscando...</span>
-          )}
-        </div>
+        <input
+          className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm mb-6 focus:outline-none focus:border-[#2d6a2d]"
+          placeholder="Buscar por DCI, laboratorio, forma farmacéutica, código ATC..."
+          value={busqueda}
+          onChange={e => setBusqueda(e.target.value)} />
 
         <div className="bg-white rounded-xl border border-green-100 shadow-sm overflow-hidden">
           <table className="w-full text-sm">
@@ -148,7 +135,7 @@ function BaseDatosContent() {
               </tr>
             </thead>
             <tbody>
-              {loading || buscando ? (
+              {loading ? (
                 <tr><td colSpan={6} className="text-center py-12 text-gray-400">Cargando...</td></tr>
               ) : medicamentos.length === 0 ? (
                 <tr><td colSpan={6} className="text-center py-12 text-gray-400">No hay medicamentos</td></tr>
@@ -165,15 +152,12 @@ function BaseDatosContent() {
                   </td>
                   <td className="px-4 py-3">
                     <Link href={`/medicamentos/${m.docId || m.id}`}
-                      className="text-[#2d6a2d] text-xs font-medium hover:underline">
-                      Ver →
-                    </Link>
+                      className="text-[#2d6a2d] text-xs font-medium hover:underline">Ver →</Link>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
-
           {hasMore && !busqueda && (
             <div className="p-4 text-center border-t border-gray-100">
               <button onClick={() => cargar(false)}
