@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
 
   try {
     const { searchParams } = new URL(req.url);
-    const limit = parseInt(searchParams.get('limit') || '50');
+    const limit = parseInt(searchParams.get('limit') || '200');
     const cursor = searchParams.get('cursor');
     const capitulo = searchParams.get('capitulo');
 
