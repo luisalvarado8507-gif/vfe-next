@@ -1,5 +1,5 @@
 'use client';
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { auth } from './firebase';
 import { onAuthStateChanged, signInWithEmailAndPassword, signOut, User } from 'firebase/auth';
 
@@ -26,8 +26,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const unsub = onAuthStateChanged(auth, async (u) => {
       setUser(u);
       if (u) {
-        const token = await u.getIdTokenResult(true);
-        setIsEditor(token.claims.editor === true);
+        try {
+          const token = await u.getIdTokenResult(true);
+          setIsEditor(token.claims.editor === true);
+        } catch {
+          setIsEditor(false);
+        }
       } else {
         setIsEditor(false);
       }
@@ -36,21 +40,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return unsub;
   }, []);
 
-  const login = async (email: string, password: string) => {
+  const login = useCallback(async (email: string, password: string) => {
     const cred = await signInWithEmailAndPassword(auth, email, password);
     const token = await cred.user.getIdTokenResult(true);
     setIsEditor(token.claims.editor === true);
-  };
+  }, []);
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     await signOut(auth);
     setIsEditor(false);
-  };
+  }, []);
 
-  const getToken = async () => {
+  const getToken = useCallback(async () => {
     if (!user) return null;
     return user.getIdToken();
-  };
+  }, [user]);
 
   return (
     <AuthContext.Provider value={{ user, isEditor, loading, login, logout, getToken }}>
