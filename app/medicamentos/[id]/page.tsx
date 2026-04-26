@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth-context';
+import Sidebar from '@/components/layout/Sidebar';
 
 export default function MedicamentoDetalle() {
   const { id } = useParams();
@@ -16,7 +17,7 @@ export default function MedicamentoDetalle() {
       try {
         const token = await getToken();
         const res = await fetch(`/api/medicamentos/${id}`, {
-          headers: token ? { Authorization: `Bearer ${token}` } : {}
+          headers: { Authorization: `Bearer ${token}` }
         });
         const data = await res.json();
         setMed(data.medicamento || null);
@@ -29,19 +30,6 @@ export default function MedicamentoDetalle() {
     cargar();
   }, [id, authLoading]);
 
-  if (loading) return (
-    <div className="min-h-screen bg-[#f4f9f4] flex items-center justify-center">
-      <p className="text-gray-400">Cargando...</p>
-    </div>
-  );
-
-  if (!med) return (
-    <div className="min-h-screen bg-[#f4f9f4] flex items-center justify-center flex-col gap-4">
-      <p className="text-gray-400">Medicamento no encontrado</p>
-      <Link href="/medicamentos" className="text-[#2d6a2d] text-sm hover:underline">← Volver</Link>
-    </div>
-  );
-
   const campo = (label: string, valor: unknown) => valor ? (
     <div className="py-2 border-b border-gray-50 last:border-0">
       <span className="text-xs font-semibold text-gray-400 uppercase tracking-wide">{label}</span>
@@ -49,20 +37,29 @@ export default function MedicamentoDetalle() {
     </div>
   ) : null;
 
-  return (
-    <div className="min-h-screen bg-[#f4f9f4]">
-      <header className="bg-[#2d6a2d] text-white px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <span className="text-2xl">📗</span>
-          <div>
-            <h1 className="font-bold text-lg">VFE</h1>
-            <p className="text-xs text-green-200">El Libro Verde de los Medicamentos</p>
-          </div>
-        </div>
-        <Link href="/medicamentos" className="text-green-200 text-sm hover:text-white">← Base de datos</Link>
-      </header>
+  if (loading) return (
+    <div className="min-h-screen bg-[#f4f9f4] flex">
+      <Sidebar />
+      <main className="flex-1 ml-64 flex items-center justify-center">
+        <p className="text-gray-400">Cargando...</p>
+      </main>
+    </div>
+  );
 
-      <main className="max-w-4xl mx-auto px-6 py-8">
+  if (!med) return (
+    <div className="min-h-screen bg-[#f4f9f4] flex">
+      <Sidebar />
+      <main className="flex-1 ml-64 flex items-center justify-center flex-col gap-4">
+        <p className="text-gray-400">Medicamento no encontrado</p>
+        <Link href="/medicamentos" className="text-[#2d6a2d] text-sm hover:underline">← Volver</Link>
+      </main>
+    </div>
+  );
+
+  return (
+    <div className="min-h-screen bg-[#f4f9f4] flex">
+      <Sidebar />
+      <main className="flex-1 ml-64 px-8 py-8">
         <div className="flex items-start justify-between mb-6">
           <div>
             <h2 className="text-2xl font-bold text-[#2d6a2d] capitalize">{String(med.vtm || '')}</h2>
