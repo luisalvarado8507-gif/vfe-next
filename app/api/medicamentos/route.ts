@@ -26,10 +26,9 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const limit = parseInt(searchParams.get('limit') || '50');
     const cursor = searchParams.get('cursor');
+    const capitulo = searchParams.get('capitulo');
 
-    let query = adminDb.collection('medicamentos')
-      .orderBy('vtm')
-      .limit(limit);
+    let query = adminDb.collection('medicamentos').orderBy('vtm').limit(limit);
 
     if (cursor) {
       const cursorDoc = await adminDb.collection('medicamentos').doc(cursor).get();
@@ -37,7 +36,7 @@ export async function GET(req: NextRequest) {
     }
 
     const snap = await query.get();
-    const medicamentos = snap.docs
+    let medicamentos = snap.docs
       .filter(doc => doc.data().estado !== 'eliminado')
       .map(doc => ({
         docId: doc.id,
@@ -47,7 +46,13 @@ export async function GET(req: NextRequest) {
         ff: doc.data().data?.ff || '',
         conc: doc.data().data?.conc || '',
         estado: doc.data().estado || 'pendiente',
+        chapId: doc.data().data?.chapId || '',
       }));
+
+    // Filtrar por capítulo si se especifica
+    if (capitulo) {
+      medicamentos = medicamentos.filter(m => m.chapId === capitulo);
+    }
 
     const lastDoc = snap.docs[snap.docs.length - 1];
 

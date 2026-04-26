@@ -1,8 +1,11 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth-context';
 import Sidebar from '@/components/layout/Sidebar';
+import { CAPITULOS } from '@/lib/capitulos';
+import { Suspense } from 'react';
 
 interface Medicamento {
   id: string;
@@ -14,13 +17,16 @@ interface Medicamento {
   estado: string;
 }
 
-export default function BaseDatos() {
+function BaseDatosContent() {
   const [medicamentos, setMedicamentos] = useState<Medicamento[]>([]);
   const [loading, setLoading] = useState(true);
   const [busqueda, setBusqueda] = useState('');
   const [cursor, setCursor] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(false);
   const { getToken, loading: authLoading } = useAuth();
+  const searchParams = useSearchParams();
+  const capitulo = searchParams.get('capitulo');
+  const capNombre = capitulo ? CAPITULOS.find(c => c.id === capitulo)?.name : null;
 
   const cargar = async (reset = false) => {
     setLoading(true);
@@ -28,6 +34,7 @@ export default function BaseDatos() {
       const token = await getToken();
       const params = new URLSearchParams({ limit: '50' });
       if (!reset && cursor) params.set('cursor', cursor);
+      if (capitulo) params.set('capitulo', capitulo);
       const res = await fetch(`/api/medicamentos?${params}`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {}
       });
@@ -49,7 +56,7 @@ export default function BaseDatos() {
   useEffect(() => {
     if (authLoading) return;
     cargar(true);
-  }, [authLoading]);
+  }, [authLoading, capitulo]);
 
   const filtrados = medicamentos.filter(m =>
     m.vtm?.toLowerCase().includes(busqueda.toLowerCase()) ||
@@ -71,7 +78,16 @@ export default function BaseDatos() {
       <Sidebar />
       <main className="flex-1 ml-64 px-8 py-8">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-[#2d6a2d]">Base de datos</h2>
+          <div>
+            <h2 className="text-xl font-bold text-[#2d6a2d]">
+              {capNombre || 'Base de datos'}
+            </h2>
+            {capNombre && (
+              <Link href="/medicamentos" className="text-xs text-gray-400 hover:text-[#2d6a2d]">
+                ← Ver todos
+              </Link>
+            )}
+          </div>
           <div className="flex items-center gap-4">
             <span className="text-sm text-gray-500">{filtrados.length} medicamentos</span>
             <Link href="/medicamentos/nuevo"
@@ -137,5 +153,13 @@ export default function BaseDatos() {
         </div>
       </main>
     </div>
+  );
+}
+
+export default function BaseDatos() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#f4f9f4] flex items-center justify-center text-gray-400">Cargando...</div>}>
+      <BaseDatosContent />
+    </Suspense>
   );
 }
