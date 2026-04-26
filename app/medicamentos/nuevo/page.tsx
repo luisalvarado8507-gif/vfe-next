@@ -11,7 +11,7 @@ const TABS = ['Identificacion', 'Presentacion', 'Registro', 'Clinica'];
 
 export default function NuevoMedicamento() {
   const [tab, setTab] = useState(0);
-  const [data, setData] = useState({});
+  const [data, setData] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const { getToken, isEditor } = useAuth();
 
