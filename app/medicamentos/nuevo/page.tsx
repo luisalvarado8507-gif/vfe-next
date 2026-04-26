@@ -15,7 +15,7 @@ export default function NuevoMedicamento() {
   const [saving, setSaving] = useState(false);
   const { getToken, isEditor } = useAuth();
 
-  const handleChange = (field, value) => {
+  const handleChange = (field: string, value: string) => {
     setData(prev => ({ ...prev, [field]: value }));
   };
 
