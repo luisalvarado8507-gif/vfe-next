@@ -10,13 +10,45 @@ async function verificarAuth(req: NextRequest) {
 export async function GET(req: NextRequest) {
   const user = await verificarAuth(req);
   if (!user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+  
   try {
     const { searchParams } = new URL(req.url);
     const q = searchParams.get('q')?.toLowerCase().trim() || '';
     const capitulo = searchParams.get('capitulo');
+
     if (!q && !capitulo) return NextResponse.json({ medicamentos: [], total: 0 });
-    const snap = await adminDb.collection('medicamentos').orderBy('vtm').limit(1000).get();
-    const medicamentos = snap.docs
+
+    let results: FirebaseFirestore.QueryDocumentSnapshot[] = [];
+
+    if (q) {
+      // Búsqueda por prefijo en vtm
+      const snapVtm = await adminDb.collection('medicamentos')
+        .where('vtm', '>=', q)
+        .where('vtm', '<=', q + '\uf8ff')
+        .limit(100)
+        .get();
+      results = [...snapVtm.docs];
+
+      // Búsqueda por prefijo en laboratorio
+      const snapLab = await adminDb.collection('medicamentos')
+        .where('laboratorio', '>=', q)
+        .where('laboratorio', '<=', q + '\uf8ff')
+        .limit(50)
+        .get();
+      
+      // Combinar sin duplicados
+      const ids = new Set(results.map(d => d.id));
+      snapLab.docs.forEach(d => { if (!ids.has(d.id)) results.push(d); });
+    } else {
+      // Solo filtro por capítulo
+      const snap = await adminDb.collection('medicamentos')
+        .where('data.chapId', '==', capitulo)
+        .limit(200)
+        .get();
+      results = snap.docs;
+    }
+
+    const medicamentos = results
       .filter(doc => doc.data().estado !== 'eliminado')
       .map(doc => ({
         docId: doc.id,
@@ -30,15 +62,10 @@ export async function GET(req: NextRequest) {
         nombre: doc.data().data?.nombre || doc.data().amp || '',
       }))
       .filter(m => {
-        const matchCap = capitulo ? m.chapId === capitulo : true;
-        const matchQ = q ? (
-          m.vtm.toLowerCase().includes(q) ||
-          m.laboratorio.toLowerCase().includes(q) ||
-          m.ff.toLowerCase().includes(q) ||
-          m.nombre.toLowerCase().includes(q)
-        ) : true;
-        return matchCap && matchQ;
+        if (capitulo && q) return m.chapId === capitulo;
+        return true;
       });
+
     return NextResponse.json({ medicamentos, total: medicamentos.length });
   } catch(e) {
     console.error('Error búsqueda:', e);
