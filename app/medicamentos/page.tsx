@@ -63,6 +63,8 @@ function BaseDatosContent() {
     }
   };
 
+  // busqueda en API
+  // busqueda en API
   const filtrados = busqueda.trim()
     ? medicamentos.filter(m =>
         m.vtm?.toLowerCase().includes(busqueda.toLowerCase()) ||
