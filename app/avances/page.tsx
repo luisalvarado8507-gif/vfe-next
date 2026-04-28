@@ -65,7 +65,7 @@ export default function Avances() {
                 { label: 'Autorizados', value: stats.autorizados, color: 'text-green-600' },
               ].map((s, i) => (
                 <div key={i} className="bg-white rounded-xl p-5 shadow-sm border border-green-100 text-center">
-                  <p className={`text-3xl font-bold ${s.color}`}>{s.value.toLocaleString('es-EC')}</p>
+                  <p className={`text-3xl font-bold ${s.color}`}>{(s.value ?? 0).toLocaleString('es-EC')}</p>
                   <p className="text-xs text-gray-500 mt-1">{s.label}</p>
                 </div>
               ))}
@@ -84,7 +84,7 @@ export default function Avances() {
                       style={{ width: `${stats.total > 0 ? (s.count / stats.total * 100).toFixed(1) : 0}%` }} />
                   </div>
                   <span className={`text-xs font-bold ${s.textColor} w-20 text-right`}>
-                    {s.count.toLocaleString('es-EC')} ({stats.total > 0 ? (s.count / stats.total * 100).toFixed(1) : 0}%)
+                    {(s.count ?? 0).toLocaleString('es-EC')} ({stats.total > 0 ? (s.count / stats.total * 100).toFixed(1) : 0}%)
                   </span>
                 </div>
               ))}
