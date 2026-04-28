@@ -1,4 +1,5 @@
 'use client';
+import AtcAutocomplete from '@/components/ui/AtcAutocomplete';
 
 export default function TabIdentificacion({ data, onChange }: { data: Record<string, string>; onChange: (f: string, v: string) => void }) {
   return (
@@ -23,7 +24,10 @@ export default function TabIdentificacion({ data, onChange }: { data: Record<str
             placeholder="Ej. 50 mg" value={data.conc || ''} onChange={e => onChange('conc', e.target.value)} />
         </div>
         <div className="col-span-2">
-          <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Forma farmacéutica EDQM / ISO 11239 <span className="text-red-500">*</span></label>
+          <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+            Forma farmacéutica <span className="text-red-500">*</span>
+            <span className="ml-1 text-purple-500 font-normal normal-case">EDQM / ISO 11239</span>
+          </label>
           <select className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#2d6a2d]"
             value={data.ff || ''} onChange={e => onChange('ff', e.target.value)}>
             <option value="">— Selecciona forma farmacéutica (EDQM) —</option>
@@ -78,11 +82,24 @@ export default function TabIdentificacion({ data, onChange }: { data: Record<str
             </optgroup>
           </select>
         </div>
-        <div>
-          <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Código ATC</label>
-          <input className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:border-[#2d6a2d]"
-            placeholder="Ej. C07AB03" value={data.atc || ''} onChange={e => onChange('atc', e.target.value.toUpperCase())} />
+
+        <div className="col-span-2">
+          <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+            Código ATC
+            <span className="ml-1 text-green-600 font-normal normal-case">— escribe código o nombre del principio activo</span>
+          </label>
+          <AtcAutocomplete
+            value={data.atc || ''}
+            onChange={(code) => onChange('atc', code)}
+            placeholder="Ej. C07AB03 o atenolol..."
+          />
+          {data.atc && (
+            <p className="text-xs text-purple-600 mt-1 font-mono">
+              ✓ {data.atc}
+            </p>
+          )}
         </div>
+
         <div>
           <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">¿Es genérico?</label>
           <select className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#2d6a2d]"
