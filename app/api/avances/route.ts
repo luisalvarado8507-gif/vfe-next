@@ -12,43 +12,40 @@ export async function GET(req: NextRequest) {
   if (!user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
 
   try {
-    let allDocs: FirebaseFirestore.QueryDocumentSnapshot[] = [];
-    let lastDoc: FirebaseFirestore.QueryDocumentSnapshot | null = null;
+    const col = adminDb.collection('medicamentos');
 
-    while (true) {
-      let query = adminDb.collection('medicamentos').limit(500);
-      if (lastDoc) query = query.startAfter(lastDoc);
-      const snap = await query.get();
-      allDocs = allDocs.concat(snap.docs);
-      if (snap.docs.length < 500) break;
-      lastDoc = snap.docs[snap.docs.length - 1];
-    }
+    // Contar usando aggregation queries (instantáneo)
+    const [total, autorizados, arcsa, genericos, cnmb] = await Promise.all([
+      col.count().get(),
+      col.where('estado', '==', 'autorizado').count().get(),
+      col.where('estado', '==', 'arcsa_pendiente').count().get(),
+      col.where('data.generico', '==', 'Sí').count().get(),
+      col.where('data.cnmb', '==', 'Sí').count().get(),
+    ]);
 
-    const activos = allDocs.filter(d => d.data().estado !== 'eliminado');
-
-    const pas = new Set(activos.map(d => d.data().data?.vtm || d.data().vtm).filter(Boolean)).size;
-    const genericos = activos.filter(d => d.data().data?.generico === 'Sí').length;
-    const cnmb = activos.filter(d => d.data().data?.cnmb === 'Sí').length;
-    const autorizados = activos.filter(d => d.data().estado === 'autorizado').length;
-    const arcsa_pendiente = activos.filter(d => d.data().estado === 'arcsa_pendiente').length;
-
+    // Para capítulos — cargar solo los campos necesarios
+    const capSnap = await col.select('data.chapId').get();
     const porCapitulo: Record<string, number> = {};
-    activos.forEach(d => {
+    capSnap.docs.forEach(d => {
       const chapId = d.data().data?.chapId || '';
       if (chapId) porCapitulo[chapId] = (porCapitulo[chapId] || 0) + 1;
     });
 
+    // Principios activos únicos
+    const vtmSnap = await col.select('vtm').get();
+    const pas = new Set(vtmSnap.docs.map(d => d.data().vtm).filter(Boolean)).size;
+
     return NextResponse.json({
-      total: activos.length,
+      total: total.data().count,
       principiosActivos: pas,
-      genericos,
-      cnmb,
-      autorizados,
-      arcsa_pendiente,
+      genericos: genericos.data().count,
+      cnmb: cnmb.data().count,
+      autorizados: autorizados.data().count,
+      arcsa_pendiente: arcsa.data().count,
       porCapitulo,
     });
   } catch(e) {
     console.error('Error avances:', e);
-    return NextResponse.json({ error: 'Error' }, { status: 500 });
+    return NextResponse.json({ error: String(e) }, { status: 500 });
   }
 }
