@@ -41,7 +41,7 @@ export default function Avances() {
     cargar();
   }, [authLoading, user]);
 
-  const maxCap = stats ? Math.max(...Object.values(stats.porCapitulo), 1) : 1;
+  const maxCap = stats?.porCapitulo ? Math.max(...Object.values(stats.porCapitulo), 1) : 1;
 
   return (
     <div className="min-h-screen bg-[#f4f9f4] flex">
