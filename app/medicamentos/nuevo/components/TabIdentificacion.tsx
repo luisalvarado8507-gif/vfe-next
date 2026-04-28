@@ -1,7 +1,38 @@
 'use client';
+import { useEffect, useState } from 'react';
 import AtcAutocomplete from '@/components/ui/AtcAutocomplete';
+import { getSnomedVTM, getSnomedFF, computeVMP, computeVMPP } from '@/lib/snomed-db';
 
 export default function TabIdentificacion({ data, onChange }: { data: Record<string, string>; onChange: (f: string, v: string) => void }) {
+  const [snomedVTM, setSnomedVTM] = useState<{code: string; term: string} | null>(null);
+  const [snomedFF, setSnomedFF] = useState<{code: string; term: string} | null>(null);
+
+  useEffect(() => {
+    if (data.vtm) {
+      const s = getSnomedVTM(data.vtm);
+      setSnomedVTM(s);
+      if (s && !data.snomed_vtm_code) {
+        onChange('snomed_vtm_code', s.code);
+        onChange('snomed_vtm_term', s.term);
+      }
+    }
+  }, [data.vtm]);
+
+  useEffect(() => {
+    if (data.ff) {
+      const s = getSnomedFF(data.ff);
+      setSnomedFF(s);
+    }
+    // Auto-generar VMP y VMPP
+    if (data.vtm && data.ff && data.conc) {
+      const vmp = computeVMP(data.vtm, data.ff, data.conc);
+      onChange('vmp', vmp);
+      if (data.units && data.upres) {
+        onChange('vmpp', computeVMPP(vmp, data.units, data.upres));
+      }
+    }
+  }, [data.ff, data.vtm, data.conc]);
+
   return (
     <div className="space-y-6">
       <div className="border-l-4 border-[#2d6a2d] pl-4 bg-green-50 py-2 rounded-r-lg">
@@ -9,20 +40,34 @@ export default function TabIdentificacion({ data, onChange }: { data: Record<str
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div className="col-span-2">
-          <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">DCI / VTM <span className="text-red-500">*</span></label>
+          <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+            DCI / VTM <span className="text-red-500">*</span>
+            <span className="ml-1 text-gray-400 font-normal normal-case">Denominación Común Internacional</span>
+          </label>
           <input className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#2d6a2d]"
-            placeholder="Ej. atenolol" value={data.vtm || ''} onChange={e => onChange('vtm', e.target.value)} />
+            placeholder="Ej. atenolol" value={data.vtm || ''} 
+            onChange={e => onChange('vtm', e.target.value.toLowerCase())} />
+          {snomedVTM && (
+            <div className="mt-1 flex items-center gap-2">
+              <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded font-mono">VTM</span>
+              <span className="text-xs font-mono text-purple-600">{snomedVTM.code}</span>
+              <span className="text-xs text-purple-500">— {snomedVTM.term}</span>
+            </div>
+          )}
         </div>
+
         <div>
           <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Laboratorio <span className="text-red-500">*</span></label>
           <input className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#2d6a2d]"
             placeholder="Ej. Pfizer" value={data.laboratorio || ''} onChange={e => onChange('laboratorio', e.target.value)} />
         </div>
+
         <div>
           <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Concentración <span className="text-red-500">*</span></label>
           <input className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#2d6a2d]"
             placeholder="Ej. 50 mg" value={data.conc || ''} onChange={e => onChange('conc', e.target.value)} />
         </div>
+
         <div className="col-span-2">
           <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
             Forma farmacéutica <span className="text-red-500">*</span>
@@ -54,14 +99,14 @@ export default function TabIdentificacion({ data, onChange }: { data: Record<str
             </optgroup>
             <optgroup label="Parenterales">
               <option value="solución inyectable">Solución inyectable (Solution for injection)</option>
-              <option value="polvo para solución inyectable">Polvo para solución inyectable (Powder for solution for injection)</option>
+              <option value="polvo para solución inyectable">Polvo para solución inyectable</option>
               <option value="suspensión inyectable">Suspensión inyectable (Suspension for injection)</option>
-              <option value="solución para perfusión">Solución para perfusión / infusión IV (Solution for infusion)</option>
+              <option value="solución para perfusión">Solución para perfusión / infusión IV</option>
             </optgroup>
             <optgroup label="Inhalados">
               <option value="solución para inhalación en envase a presión">Inhalador presurizado — solución</option>
               <option value="polvo para inhalación">Polvo para inhalación (Inhalation powder)</option>
-              <option value="solución para nebulización">Solución para nebulización (Nebulisation solution)</option>
+              <option value="solución para nebulización">Solución para nebulización</option>
             </optgroup>
             <optgroup label="Tópicos">
               <option value="crema">Crema (Cream)</option>
@@ -72,16 +117,30 @@ export default function TabIdentificacion({ data, onChange }: { data: Record<str
             </optgroup>
             <optgroup label="Oftálmicos / Óticos / Nasales">
               <option value="colirio en solución">Colirio, solución (Eye drops, solution)</option>
-              <option value="gotas óticas, solución">Gotas óticas, solución (Ear drops, solution)</option>
-              <option value="spray nasal, solución">Spray nasal, solución (Nasal spray, solution)</option>
+              <option value="gotas óticas, solución">Gotas óticas, solución</option>
+              <option value="spray nasal, solución">Spray nasal, solución</option>
             </optgroup>
             <optgroup label="Rectales / Vaginales">
               <option value="supositorio">Supositorio (Suppository)</option>
               <option value="óvulo vaginal">Óvulo vaginal (Pessary)</option>
-              <option value="crema vaginal">Crema vaginal (Vaginal cream)</option>
+              <option value="crema vaginal">Crema vaginal</option>
             </optgroup>
           </select>
+          {snomedFF && (
+            <div className="mt-1 flex items-center gap-2">
+              <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded font-mono">FF</span>
+              <span className="text-xs font-mono text-blue-600">{snomedFF.code}</span>
+              <span className="text-xs text-blue-500">— {snomedFF.term}</span>
+            </div>
+          )}
         </div>
+
+        {data.vmp && (
+          <div className="col-span-2 bg-purple-50 border border-purple-200 rounded-lg px-4 py-3">
+            <p className="text-xs font-semibold text-purple-600 uppercase tracking-wide mb-1">VMP generado automáticamente</p>
+            <p className="text-sm font-mono text-purple-800">{data.vmp}</p>
+          </div>
+        )}
 
         <div className="col-span-2">
           <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
@@ -91,12 +150,9 @@ export default function TabIdentificacion({ data, onChange }: { data: Record<str
           <AtcAutocomplete
             value={data.atc || ''}
             onChange={(code) => onChange('atc', code)}
-            placeholder="Ej. C07AB03 o atenolol..."
-          />
+            placeholder="Ej. C07AB03 o atenolol..." />
           {data.atc && (
-            <p className="text-xs text-purple-600 mt-1 font-mono">
-              ✓ {data.atc}
-            </p>
+            <p className="text-xs text-purple-600 mt-1 font-mono">✓ {data.atc}</p>
           )}
         </div>
 
