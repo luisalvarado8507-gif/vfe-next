@@ -50,6 +50,10 @@ export default function Sidebar() {
           className="flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs text-green-100 hover:bg-green-700 transition">
           ➕ Nuevo medicamento
         </Link>
+        <Link href="/avances"
+          className="flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs text-green-100 hover:bg-green-700 transition">
+          📊 Panel de avances
+        </Link>
         <Link href="/audit"
           className="flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs text-green-100 hover:bg-green-700 transition">
           🔍 Audit log
@@ -62,3 +66,4 @@ export default function Sidebar() {
     </aside>
   );
 }
+// ya actualizado
