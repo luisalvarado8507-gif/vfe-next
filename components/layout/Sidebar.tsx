@@ -60,6 +60,10 @@ export default function Sidebar() {
         </Link>
         <Link href="/audit"
           className="flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs text-green-100 hover:bg-green-700 transition">
+          📦 Importar / Exportar
+        </Link>
+        <Link href="/audit"
+          className="flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs text-green-100 hover:bg-green-700 transition">
           🔍 Audit log
         </Link>
         <button onClick={handleLogout}
