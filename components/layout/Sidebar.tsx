@@ -46,13 +46,17 @@ export default function Sidebar() {
           className="flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs text-green-100 hover:bg-green-700 transition">
           📋 Base de datos
         </Link>
-        <Link href="/medicamentos/nuevo"
+        <Link href="/arbol"
           className="flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs text-green-100 hover:bg-green-700 transition">
-          ➕ Nuevo medicamento
+          🌳 Árbol de medicamentos
         </Link>
         <Link href="/avances"
           className="flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs text-green-100 hover:bg-green-700 transition">
           📊 Panel de avances
+        </Link>
+        <Link href="/medicamentos/nuevo"
+          className="flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs text-green-100 hover:bg-green-700 transition">
+          ➕ Nuevo medicamento
         </Link>
         <Link href="/audit"
           className="flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs text-green-100 hover:bg-green-700 transition">
@@ -66,4 +70,3 @@ export default function Sidebar() {
     </aside>
   );
 }
-// ya actualizado
