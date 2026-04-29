@@ -1,5 +1,4 @@
 'use client';
-import { CAPITULOS } from '@/lib/capitulos';
 
 interface Props {
   data: Record<string, string>;
@@ -110,18 +109,40 @@ export default function TabIdentificacion({ data, onChange }: Props) {
         </div>
 
         <div>
-          <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">CUM — Código Único de Medicamentos</label>
-          <input className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:border-[#2d6a2d]"
-            placeholder="Ej. 20132640" value={data.cumCodigo || ''} onChange={e => onChange('cumCodigo', e.target.value)} />
-        </div>
-        <div>
-          <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Capítulo terapéutico <span className="text-red-500">*</span></label>
+          <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+            Forma farmacéutica EDMQ
+            <span className="ml-1 text-green-600 font-normal normal-case">Ecuador</span>
+          </label>
           <select className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#2d6a2d]"
-            value={data.chapId || ''} onChange={e => onChange('chapId', e.target.value)}>
-            <option value="">— Selecciona capítulo —</option>
-            {CAPITULOS.map(cap => (
-              <option key={cap.id} value={cap.id}>{cap.id.replace('c','')}. {cap.name}</option>
-            ))}
+            value={data.ffEdmq || ''}
+            onChange={e => onChange('ffEdmq', e.target.value)}>
+            <option value="">— Selecciona —</option>
+            <option>tableta</option>
+            <option>tableta recubierta</option>
+            <option>tableta efervescente</option>
+            <option>tableta masticable</option>
+            <option>tableta sublingual</option>
+            <option>tableta de liberación prolongada</option>
+            <option>cápsula</option>
+            <option>cápsula blanda</option>
+            <option>ampolla bebible</option>
+            <option>frasco ampolla</option>
+            <option>solución</option>
+            <option>suspensión</option>
+            <option>jarabe</option>
+            <option>gotas</option>
+            <option>crema</option>
+            <option>ungüento</option>
+            <option>gel</option>
+            <option>loción</option>
+            <option>colirio</option>
+            <option>óvulo</option>
+            <option>supositorio</option>
+            <option>parche</option>
+            <option>spray</option>
+            <option>polvo</option>
+            <option>granulado</option>
+            <option>sobre</option>
           </select>
         </div>
 
