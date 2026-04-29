@@ -1,4 +1,5 @@
 'use client';
+import { CAPITULOS } from '@/lib/capitulos';
 
 interface Props {
   data: Record<string, string>;
@@ -112,6 +113,16 @@ export default function TabIdentificacion({ data, onChange }: Props) {
           <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">CUM — Código Único de Medicamentos</label>
           <input className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:border-[#2d6a2d]"
             placeholder="Ej. 20132640" value={data.cumCodigo || ''} onChange={e => onChange('cumCodigo', e.target.value)} />
+        </div>
+        <div>
+          <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Capítulo terapéutico <span className="text-red-500">*</span></label>
+          <select className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#2d6a2d]"
+            value={data.chapId || ''} onChange={e => onChange('chapId', e.target.value)}>
+            <option value="">— Selecciona capítulo —</option>
+            {CAPITULOS.map(cap => (
+              <option key={cap.id} value={cap.id}>{cap.id.replace('c','')}. {cap.name}</option>
+            ))}
+          </select>
         </div>
 
         <div>
