@@ -1,80 +1,56 @@
 'use client';
-import { useEffect, useState } from 'react';
-import AtcAutocomplete from '@/components/ui/AtcAutocomplete';
-import { getSnomedVTM, getSnomedFF, computeVMP, computeVMPP } from '@/lib/snomed-db';
 
-export default function TabIdentificacion({ data, onChange }: { data: Record<string, string>; onChange: (f: string, v: string) => void }) {
-  const [snomedVTM, setSnomedVTM] = useState<{code: string; term: string} | null>(null);
-  const [snomedFF, setSnomedFF] = useState<{code: string; term: string} | null>(null);
+interface Props {
+  data: Record<string, string>;
+  onChange: (field: string, value: string) => void;
+}
 
-  useEffect(() => {
-    if (data.vtm) {
-      const s = getSnomedVTM(data.vtm);
-      setSnomedVTM(s);
-      if (s && !data.snomed_vtm_code) {
-        onChange('snomed_vtm_code', s.code);
-        onChange('snomed_vtm_term', s.term);
-      }
-    }
-  }, [data.vtm]);
-
-  useEffect(() => {
-    if (data.ff) {
-      const s = getSnomedFF(data.ff);
-      setSnomedFF(s);
-    }
-    // Auto-generar VMP y VMPP
-    if (data.vtm && data.ff && data.conc) {
-      const vmp = computeVMP(data.vtm, data.ff, data.conc);
-      onChange('vmp', vmp);
-      if (data.units && data.upres) {
-        onChange('vmpp', computeVMPP(vmp, data.units, data.upres));
-      }
-    }
-  }, [data.ff, data.vtm, data.conc]);
-
+export default function TabIdentificacion({ data, onChange }: Props) {
   return (
     <div className="space-y-6">
       <div className="border-l-4 border-[#2d6a2d] pl-4 bg-green-50 py-2 rounded-r-lg">
         <h3 className="font-semibold text-[#2d6a2d] text-sm">Identificación del medicamento</h3>
       </div>
+
       <div className="grid grid-cols-2 gap-4">
         <div className="col-span-2">
           <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
-            DCI / VTM <span className="text-red-500">*</span>
-            <span className="ml-1 text-gray-400 font-normal normal-case">Denominación Común Internacional</span>
+            Denominación Común Internacional (DCI / VTM) <span className="text-red-500">*</span>
           </label>
           <input className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#2d6a2d]"
-            placeholder="Ej. atenolol" value={data.vtm || ''} 
-            onChange={e => onChange('vtm', e.target.value.toLowerCase())} />
-          {snomedVTM && (
-            <div className="mt-1 flex items-center gap-2">
-              <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded font-mono">VTM</span>
-              <span className="text-xs font-mono text-purple-600">{snomedVTM.code}</span>
-              <span className="text-xs text-purple-500">— {snomedVTM.term}</span>
-            </div>
-          )}
+            placeholder="Ej. atenolol"
+            value={data.vtm || ''}
+            onChange={e => onChange('vtm', e.target.value)} />
         </div>
 
         <div>
-          <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Laboratorio <span className="text-red-500">*</span></label>
-          <input className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#2d6a2d]"
-            placeholder="Ej. Pfizer" value={data.laboratorio || ''} onChange={e => onChange('laboratorio', e.target.value)} />
-        </div>
-
-        <div>
-          <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Concentración <span className="text-red-500">*</span></label>
-          <input className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#2d6a2d]"
-            placeholder="Ej. 50 mg" value={data.conc || ''} onChange={e => onChange('conc', e.target.value)} />
-        </div>
-
-        <div className="col-span-2">
           <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
-            Forma farmacéutica <span className="text-red-500">*</span>
-            <span className="ml-1 text-purple-500 font-normal normal-case">EDQM / ISO 11239</span>
+            Laboratorio <span className="text-red-500">*</span>
+          </label>
+          <input className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#2d6a2d]"
+            placeholder="Ej. Pfizer"
+            value={data.laboratorio || ''}
+            onChange={e => onChange('laboratorio', e.target.value)} />
+        </div>
+
+        <div>
+          <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+            Concentración <span className="text-red-500">*</span>
+          </label>
+          <input className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#2d6a2d]"
+            placeholder="Ej. 50 mg"
+            value={data.conc || ''}
+            onChange={e => onChange('conc', e.target.value)} />
+        </div>
+
+        <div>
+          <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+            Forma farmacéutica EDQM <span className="text-red-500">*</span>
+            <span className="ml-1 text-purple-500 font-normal normal-case">Estándar internacional</span>
           </label>
           <select className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#2d6a2d]"
-            value={data.ff || ''} onChange={e => onChange('ff', e.target.value)}>
+            value={data.ff || ''}
+            onChange={e => onChange('ff', e.target.value)}>
             <option value="">— Selecciona forma farmacéutica (EDQM) —</option>
             <optgroup label="Sólidos orales">
               <option value="comprimido">Comprimido (Tablet)</option>
@@ -99,85 +75,120 @@ export default function TabIdentificacion({ data, onChange }: { data: Record<str
             </optgroup>
             <optgroup label="Parenterales">
               <option value="solución inyectable">Solución inyectable (Solution for injection)</option>
-              <option value="polvo para solución inyectable">Polvo para solución inyectable</option>
+              <option value="polvo para solución inyectable">Polvo para solución inyectable (Powder for solution for injection)</option>
               <option value="suspensión inyectable">Suspensión inyectable (Suspension for injection)</option>
-              <option value="solución para perfusión">Solución para perfusión / infusión IV</option>
+              <option value="solución para perfusión">Solución para perfusión / infusión IV (Solution for infusion)</option>
+              <option value="concentrado para solución para perfusión">Concentrado para solución para perfusión</option>
             </optgroup>
             <optgroup label="Inhalados">
-              <option value="solución para inhalación en envase a presión">Inhalador presurizado — solución</option>
+              <option value="solución para inhalación en envase a presión">Inhalador presurizado — solución (Pressurised inhalation, solution)</option>
+              <option value="suspensión para inhalación en envase a presión">Inhalador presurizado — suspensión</option>
               <option value="polvo para inhalación">Polvo para inhalación (Inhalation powder)</option>
-              <option value="solución para nebulización">Solución para nebulización</option>
+              <option value="solución para nebulización">Solución para nebulización (Nebulisation solution)</option>
             </optgroup>
             <optgroup label="Tópicos">
               <option value="crema">Crema (Cream)</option>
               <option value="pomada">Pomada (Ointment)</option>
-              <option value="gel">Gel</option>
+              <option value="gel">Gel (Gel)</option>
               <option value="loción">Loción (Lotion)</option>
               <option value="parche transdérmico">Parche transdérmico (Transdermal patch)</option>
             </optgroup>
             <optgroup label="Oftálmicos / Óticos / Nasales">
               <option value="colirio en solución">Colirio, solución (Eye drops, solution)</option>
-              <option value="gotas óticas, solución">Gotas óticas, solución</option>
-              <option value="spray nasal, solución">Spray nasal, solución</option>
+              <option value="colirio en suspensión">Colirio, suspensión (Eye drops, suspension)</option>
+              <option value="gotas óticas, solución">Gotas óticas, solución (Ear drops, solution)</option>
+              <option value="gotas nasales, solución">Gotas nasales, solución (Nasal drops, solution)</option>
+              <option value="spray nasal, solución">Spray nasal, solución (Nasal spray, solution)</option>
             </optgroup>
             <optgroup label="Rectales / Vaginales">
               <option value="supositorio">Supositorio (Suppository)</option>
               <option value="óvulo vaginal">Óvulo vaginal (Pessary)</option>
-              <option value="crema vaginal">Crema vaginal</option>
+              <option value="crema vaginal">Crema vaginal (Vaginal cream)</option>
             </optgroup>
           </select>
-          {snomedFF && (
-            <div className="mt-1 flex items-center gap-2">
-              <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded font-mono">FF</span>
-              <span className="text-xs font-mono text-blue-600">{snomedFF.code}</span>
-              <span className="text-xs text-blue-500">— {snomedFF.term}</span>
-            </div>
-          )}
-        </div>
-
-        {data.vmp && (
-          <div className="col-span-2 bg-purple-50 border border-purple-200 rounded-lg px-4 py-3">
-            <p className="text-xs font-semibold text-purple-600 uppercase tracking-wide mb-1">VMP generado automáticamente</p>
-            <p className="text-sm font-mono text-purple-800">{data.vmp}</p>
-          </div>
-        )}
-
-        <div className="col-span-2">
-          <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
-            Código ATC
-            <span className="ml-1 text-green-600 font-normal normal-case">— escribe código o nombre del principio activo</span>
-          </label>
-          <AtcAutocomplete
-            value={data.atc || ''}
-            onChange={(code) => onChange('atc', code)}
-            placeholder="Ej. C07AB03 o atenolol..." />
-          {data.atc && (
-            <p className="text-xs text-purple-600 mt-1 font-mono">✓ {data.atc}</p>
-          )}
         </div>
 
         <div>
-          <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">¿Es genérico?</label>
+          <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+            Forma farmacéutica EDMQ
+            <span className="ml-1 text-green-600 font-normal normal-case">Ecuador</span>
+          </label>
           <select className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#2d6a2d]"
-            value={data.generico || ''} onChange={e => onChange('generico', e.target.value)}>
+            value={data.ffEdmq || ''}
+            onChange={e => onChange('ffEdmq', e.target.value)}>
+            <option value="">— Selecciona —</option>
+            <option>tableta</option>
+            <option>tableta recubierta</option>
+            <option>tableta efervescente</option>
+            <option>tableta masticable</option>
+            <option>tableta sublingual</option>
+            <option>tableta de liberación prolongada</option>
+            <option>cápsula</option>
+            <option>cápsula blanda</option>
+            <option>ampolla bebible</option>
+            <option>frasco ampolla</option>
+            <option>solución</option>
+            <option>suspensión</option>
+            <option>jarabe</option>
+            <option>gotas</option>
+            <option>crema</option>
+            <option>ungüento</option>
+            <option>gel</option>
+            <option>loción</option>
+            <option>colirio</option>
+            <option>óvulo</option>
+            <option>supositorio</option>
+            <option>parche</option>
+            <option>spray</option>
+            <option>polvo</option>
+            <option>granulado</option>
+            <option>sobre</option>
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+            Código ATC
+          </label>
+          <input className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#2d6a2d] font-mono"
+            placeholder="Ej. C07AB03"
+            value={data.atc || ''}
+            onChange={e => onChange('atc', e.target.value.toUpperCase())} />
+        </div>
+
+        <div>
+          <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+            ¿Es genérico?
+          </label>
+          <select className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#2d6a2d]"
+            value={data.generico || ''}
+            onChange={e => onChange('generico', e.target.value)}>
             <option value="">— Selecciona —</option>
             <option value="Sí">Sí — Medicamento genérico</option>
             <option value="No">No — Medicamento de marca</option>
           </select>
         </div>
+
         <div>
-          <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">CNMB</label>
+          <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+            CNMB
+          </label>
           <select className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#2d6a2d]"
-            value={data.cnmb || ''} onChange={e => onChange('cnmb', e.target.value)}>
+            value={data.cnmb || ''}
+            onChange={e => onChange('cnmb', e.target.value)}>
             <option value="">— Selecciona —</option>
             <option value="Sí">Sí — Pertenece al CNMB</option>
             <option value="No">No — No pertenece al CNMB</option>
           </select>
         </div>
+
         <div>
-          <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Estado regulatorio</label>
+          <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+            Estado regulatorio
+          </label>
           <select className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#2d6a2d]"
-            value={data.estado || 'pendiente'} onChange={e => onChange('estado', e.target.value)}>
+            value={data.estado || 'pendiente'}
+            onChange={e => onChange('estado', e.target.value)}>
             <option value="pendiente">Pendiente de revisión</option>
             <option value="autorizado">Autorizado</option>
             <option value="suspendido">Suspendido</option>
