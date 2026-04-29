@@ -1,5 +1,6 @@
 'use client';
 import { CAPITULOS } from '@/lib/capitulos';
+import SPMSTable from '@/components/ui/SPMSTable';
 
 interface Props {
   data: Record<string, string>;
@@ -174,6 +175,7 @@ export default function TabIdentificacion({ data, onChange }: Props) {
             <option value="retirado">Retirado del mercado</option>
           </select>
         </div>
+        <SPMSTable data={data} />
       </div>
     </div>
   );
