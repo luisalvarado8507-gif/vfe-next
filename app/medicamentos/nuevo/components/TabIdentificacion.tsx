@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { CAPITULOS } from '@/lib/capitulos';
+import { getSubcaps } from '@/lib/capitulos-tree';
 import AtcAutocomplete from '@/components/ui/AtcAutocomplete';
 import { getSnomedVTM, getSnomedFF } from '@/lib/snomed-db';
 
@@ -136,13 +137,25 @@ export default function TabIdentificacion({ data, onChange }: { data: Record<str
         <div>
           <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Capitulo terapeutico <span className="text-red-500">*</span></label>
           <select className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#2d6a2d]"
-            value={data.chapId || ''} onChange={e => onChange('chapId', e.target.value)}>
+            value={data.chapId || ''} onChange={e => { onChange('chapId', e.target.value); onChange('subId', ''); }}>
             <option value="">— Selecciona capitulo —</option>
             {CAPITULOS.map(cap => (
               <option key={cap.id} value={cap.id}>{cap.id.replace('c','')}. {cap.name}</option>
             ))}
           </select>
         </div>
+        {data.chapId && getSubcaps(data.chapId).length > 0 && (
+          <div>
+            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Subcapitulo terapeutico</label>
+            <select className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#2d6a2d]"
+              value={data.subId || ''} onChange={e => onChange('subId', e.target.value)}>
+              <option value="">— Selecciona subcapitulo —</option>
+              {getSubcaps(data.chapId).map(sub => (
+                <option key={sub.id} value={sub.id}>{sub.name}</option>
+              ))}
+            </select>
+          </div>
+        )}
         <div>
           <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Es generico?</label>
           <select className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#2d6a2d]"
