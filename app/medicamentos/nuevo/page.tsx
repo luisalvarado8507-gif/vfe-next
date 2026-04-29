@@ -7,6 +7,7 @@ import TabIdentificacion from './components/TabIdentificacion';
 import TabPresentacion from './components/TabPresentacion';
 import TabRegistro from './components/TabRegistro';
 import TabClinica from './components/TabClinica';
+import SPMSTable from '@/components/ui/SPMSTable';
 
 const TABS = ['🧬 Identificación', '💊 Presentación', '📋 Registro', '🩺 Clínica'];
 
@@ -77,6 +78,8 @@ export default function NuevoMedicamento() {
           {tab === 2 && <TabRegistro data={data} onChange={handleChange} />}
           {tab === 3 && <TabClinica data={data} onChange={handleChange} />}
         </div>
+
+        <SPMSTable data={data} />
 
         <div className="flex gap-3 mt-6">
           <button onClick={handleGuardar} disabled={saving}
