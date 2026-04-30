@@ -48,6 +48,10 @@ export default function NuevoMedicamentoForm({ initialData, editId }: { initialD
   const [tab, setTab] = useState(0);
 
   const [tipoPA, setTipoPA] = useState<'mono' | 'combo'>('mono');
+  const [comboPAs, setComboPAs] = useState([
+    { vtm: '', conc: '', unit: 'mg' },
+    { vtm: '', conc: '', unit: 'mg' },
+  ]);
   const [vtm, setVtm] = useState(initialData?.vtm || '');
   const [conc, setConc] = useState(initialData?.conc || '');
   const [concUnit, setConcUnit] = useState(initialData?.concUnit || 'mg');
@@ -69,13 +73,20 @@ export default function NuevoMedicamentoForm({ initialData, editId }: { initialD
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
-  useEffect(() => { setSnomedVTM(vtm ? getSnomedVTM(vtm) : null); }, [vtm]);
+  useEffect(() => { 
+    const v = tipoPA === 'mono' ? vtm : comboPAs[0]?.vtm || '';
+    setSnomedVTM(v ? getSnomedVTM(v) : null); 
+  }, [vtm, tipoPA, comboPAs]);
   useEffect(() => { setSnomedFF(ff ? getSnomedFF(ff) : null); }, [ff]);
 
   const ffShort = ff.split('(')[0].trim();
-  const concLabel = conc ? `${conc} ${concUnit}` : '';
-  const vmpLabel = vtm && ff && concLabel ? `${vtm} ${concLabel} ${ffShort}` : '';
+  const vtmLabel = tipoPA === 'mono' ? vtm : comboPAs.filter(p=>p.vtm).map(p=>p.vtm).join(' + ');
+  const concLabel = tipoPA === 'mono'
+    ? (conc ? `${conc} ${concUnit}` : '')
+    : comboPAs.filter(p=>p.vtm).map(p=>p.conc ? `${p.conc} ${p.unit}` : '').join(' + ');
+  const vmpLabel = vtmLabel && ff && concLabel ? `${vtmLabel} ${concLabel} ${ffShort}` : '';
   const ampLabel = vmpLabel && lab ? (nombre ? `${nombre} ${concLabel} ${ffShort} (${lab})` : `${vmpLabel} (${lab})`) : '';
+  const vtmForSnomed = tipoPA === 'mono' ? vtm : comboPAs[0]?.vtm || '';
   const vmppLabel = vmpLabel && units ? `${vmpLabel}, ${envase || ''} ${units}`.trim() : '';
   const amppLabel = ampLabel && units ? `${ampLabel}, ${envase || ''} ${units}`.trim() : '';
 
@@ -153,7 +164,59 @@ export default function NuevoMedicamentoForm({ initialData, editId }: { initialD
               </div>
             </div>
 
-            {/* Principio activo + Concentración */}
+
+            {/* COMBO: selector cantidad + campos */}
+            {tipoPA === 'combo' && (
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                  <label style={lbl}>PRINCIPIOS ACTIVOS DE LA COMBINACIÓN <span style={{ color: 'red' }}>*</span></label>
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    {[2,3,4].map(n => (
+                      <button key={n} type="button"
+                        onClick={() => setComboPAs(Array.from({ length: n }, (_, i) => comboPAs[i] || { vtm: '', conc: '', unit: 'mg' }))}
+                        style={{ padding: '4px 12px', borderRadius: 6, fontSize: 12, fontWeight: 600, cursor: 'pointer',
+                          border: '1.5px solid var(--bdr)',
+                          background: comboPAs.length === n ? 'var(--blue, #2563EB)' : 'var(--bg2)',
+                          color: comboPAs.length === n ? '#fff' : 'var(--tx)',
+                        }}>
+                        {n} principios activos
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                {comboPAs.map((pa, i) => (
+                  <div key={i} style={{ border: '1.5px solid var(--bdr)', borderRadius: 8, padding: '14px', marginBottom: 8, background: 'var(--bg3)' }}>
+                    <div style={{ display: 'inline-block', fontSize: 11, fontWeight: 700, color: '#fff', background: 'var(--green)', padding: '2px 10px', borderRadius: 20, marginBottom: 10 }}>PA {i+1}</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                      <div>
+                        <label style={lbl}>PRINCIPIO ACTIVO {i+1} <span style={{ color: 'red' }}>*</span></label>
+                        <input style={inp} placeholder={'Ej. ' + (i===0?'Enalapril':'Hidroclorotiazida')}
+                          value={pa.vtm}
+                          onChange={e => { const n=[...comboPAs]; n[i]={...n[i],vtm:e.target.value.toLowerCase()}; setComboPAs(n); }} />
+                      </div>
+                      <div>
+                        <label style={lbl}>CONCENTRACIÓN {i+1} <span style={{ color: 'red' }}>*</span></label>
+                        <div style={{ display: 'flex', gap: 8 }}>
+                          <input style={{ ...inp, flex: 1 }} placeholder={'Ej. ' + (i===0?'10 mg':'12.5 mg')}
+                            value={pa.conc}
+                            onChange={e => { const n=[...comboPAs]; n[i]={...n[i],conc:e.target.value}; setComboPAs(n); }} />
+                          <select style={{ ...inp, width: 90 }} value={pa.unit}
+                            onChange={e => { const n=[...comboPAs]; n[i]={...n[i],unit:e.target.value}; setComboPAs(n); }}>
+                            {UCUM_UNITS.map(u => <option key={u}>{u}</option>)}
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                    {i < comboPAs.length - 1 && (
+                      <div style={{ textAlign: 'center', marginTop: 8, fontSize: 20, color: 'var(--green)', fontWeight: 700 }}>+</div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* MONO: principio activo + concentración */}
+            {tipoPA === 'mono' && (
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
               <div>
                 <label style={lbl}>PRINCIPIO ACTIVO / DCI <span style={{ color: 'red' }}>*</span></label>
@@ -175,6 +238,8 @@ export default function NuevoMedicamentoForm({ initialData, editId }: { initialD
                 <p style={{ fontSize: 11, color: 'var(--tx4)', marginTop: 3 }}>ISO 11240 · UCUM — usa punto decimal (Ej: 2.5 no 2,5)</p>
               </div>
             </div>
+
+            )}
 
             {/* Laboratorio + FF */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
@@ -255,7 +320,7 @@ export default function NuevoMedicamentoForm({ initialData, editId }: { initialD
                 </thead>
                 <tbody>
                   {[
-                    { nivel: 'VTM', desc: 'Entidad Terapéutica Virtual', valor: vtm, color: 'var(--gdp)' },
+                    { nivel: 'VTM', desc: 'Entidad Terapéutica Virtual', valor: vtmLabel, color: 'var(--gdp)' },
                     { nivel: 'VMP', desc: 'Producto Medicinal Virtual', valor: vmpLabel, color: 'var(--gd, #2DB010)' },
                     { nivel: 'AMP', desc: 'Producto Medicinal Real (marca)', valor: ampLabel, hint: 'Requiere nombre comercial y laboratorio', color: 'var(--blue)' },
                     { nivel: 'VMPP', desc: 'Paquete Medicinal Virtual', valor: vmppLabel, hint: 'Requiere unidades y tipo de envase', color: 'var(--gd, #2DB010)' },
