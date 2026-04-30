@@ -49,32 +49,33 @@ function BaseDatosContent() {
   const capitulo = searchParams.get('capitulo');
   const capNombre = capitulo ? CAPITULOS.find(c => c.id === capitulo)?.name : null;
 
-  // Carga un lote y acumula
-  const cargarLote = useCallback(async (cursorActual: string | null, acumular: boolean) => {
+  // Carga todos los medicamentos en lotes de 500
+  const cargarTodos = useCallback(async () => {
+    setLoading(true);
     setCargando(true);
     try {
       const token = await getToken();
       if (!token) return;
-      const params = new URLSearchParams({ limit: '500' });
-      if (cursorActual) params.set('cursor', cursorActual);
-      if (capitulo) params.set('capitulo', capitulo);
-      const res = await fetch(`/api/medicamentos?${params}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      const data = await res.json();
-      const meds: Medicamento[] = data.medicamentos || [];
-      if (acumular) {
-        setTodos(prev => [...prev, ...meds]);
-      } else {
-        setTodos(meds);
+      let cursorActual: string | null = null;
+      let acumulado: Medicamento[] = [];
+      let intentos = 0;
+      while (intentos < 50) { // max 50 lotes = 25.000 registros
+        intentos++;
+        const params = new URLSearchParams({ limit: '500' });
+        if (cursorActual) params.set('cursor', cursorActual);
+        if (capitulo) params.set('capitulo', capitulo);
+        const res = await fetch(`/api/medicamentos?${params}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const data = await res.json();
+        const meds: Medicamento[] = data.medicamentos || [];
+        acumulado = [...acumulado, ...meds];
+        setTodos([...acumulado]); // actualizar UI progresivamente
+        setLoading(false);
+        cursorActual = data.nextCursor || null;
+        if (!cursorActual) break; // no hay más
       }
-      const next = data.nextCursor || null;
-      setCursor(next);
-      setHayMas(!!next);
-      // Si hay más, seguir cargando automáticamente
-      if (next) {
-        cargarLote(next, true);
-      }
+      setHayMas(false);
     } catch(e) { console.error(e); }
     finally { setCargando(false); setLoading(false); }
   }, [getToken, capitulo]);
@@ -87,8 +88,7 @@ function BaseDatosContent() {
     setHayMas(true);
     setBusqueda('');
     setPagina(1);
-    setLoading(true);
-    cargarLote(null, false);
+    cargarTodos();
   }, [authLoading, user, capitulo]);
 
   // Búsqueda
