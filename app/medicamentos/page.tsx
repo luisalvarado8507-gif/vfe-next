@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth-context';
@@ -23,82 +23,110 @@ interface Medicamento {
 
 const PER_PAGE = 12;
 
+// Orden de estados: autorizados primero, arcsa_pendiente al final
+const estadoOrden = (estado: string) => {
+  if (estado === 'autorizado') return 0;
+  if (estado === 'suspendido') return 1;
+  if (estado === 'retirado') return 2;
+  if (estado === 'arcsa_pendiente') return 4;
+  return 3;
+};
+
 function BaseDatosContent() {
-  const [medicamentos, setMedicamentos] = useState<Medicamento[]>([]);
+  const [todos, setTodos] = useState<Medicamento[]>([]);
   const [loading, setLoading] = useState(true);
+  const [cargando, setCargando] = useState(false);
   const [buscando, setBuscando] = useState(false);
   const [busqueda, setBusqueda] = useState('');
   const [filtroEstado, setFiltroEstado] = useState('todos');
   const [filtroGenerico, setFiltroGenerico] = useState('todos');
   const [pagina, setPagina] = useState(1);
-  const [nextCursor, setNextCursor] = useState<string | null>(null);
-  const [allLoaded, setAllLoaded] = useState<Medicamento[]>([]);
+  const [cursor, setCursor] = useState<string | null>(null);
+  const [hayMas, setHayMas] = useState(true);
   const { getToken, user, isEditor, loading: authLoading } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   const capitulo = searchParams.get('capitulo');
   const capNombre = capitulo ? CAPITULOS.find(c => c.id === capitulo)?.name : null;
 
-  useEffect(() => {
-    if (authLoading) return;
-    if (!user) { router.push('/login'); return; }
-    cargar();
-    setBusqueda('');
-    setPagina(1);
-  }, [authLoading, user, capitulo]);
-
-  useEffect(() => {
-    if (authLoading || !user) return;
-    if (!busqueda.trim()) { setPagina(1); return; }
-    const timer = setTimeout(() => buscarEnAPI(busqueda), 400);
-    return () => clearTimeout(timer);
-  }, [busqueda]);
-
-  const cargar = async () => {
-    setLoading(true);
+  // Carga un lote y acumula
+  const cargarLote = useCallback(async (cursorActual: string | null, acumular: boolean) => {
+    setCargando(true);
     try {
       const token = await getToken();
       if (!token) return;
       const params = new URLSearchParams({ limit: '500' });
+      if (cursorActual) params.set('cursor', cursorActual);
       if (capitulo) params.set('capitulo', capitulo);
       const res = await fetch(`/api/medicamentos?${params}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();
-      const meds = data.medicamentos || [];
-      setMedicamentos(meds);
-      setAllLoaded(meds);
-      setNextCursor(data.nextCursor || null);
+      const meds: Medicamento[] = data.medicamentos || [];
+      if (acumular) {
+        setTodos(prev => [...prev, ...meds]);
+      } else {
+        setTodos(meds);
+      }
+      const next = data.nextCursor || null;
+      setCursor(next);
+      setHayMas(!!next);
+      // Si hay más, seguir cargando automáticamente
+      if (next) {
+        cargarLote(next, true);
+      }
     } catch(e) { console.error(e); }
-    finally { setLoading(false); }
-  };
+    finally { setCargando(false); setLoading(false); }
+  }, [getToken, capitulo]);
 
-  const buscarEnAPI = async (q: string) => {
-    setBuscando(true);
-    try {
-      const token = await getToken();
-      if (!token) return;
-      const params = new URLSearchParams({ q });
-      if (capitulo) params.set('capitulo', capitulo);
-      const res = await fetch(`/api/busqueda?${params}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      const data = await res.json();
-      setMedicamentos(data.medicamentos || []);
-      setPagina(1);
-    } catch(e) { console.error(e); }
-    finally { setBuscando(false); }
-  };
+  useEffect(() => {
+    if (authLoading) return;
+    if (!user) { router.push('/login'); return; }
+    setTodos([]);
+    setCursor(null);
+    setHayMas(true);
+    setBusqueda('');
+    setPagina(1);
+    setLoading(true);
+    cargarLote(null, false);
+  }, [authLoading, user, capitulo]);
+
+  // Búsqueda
+  const [busquedaResults, setBusquedaResults] = useState<Medicamento[] | null>(null);
+  useEffect(() => {
+    if (!busqueda.trim()) { setBusquedaResults(null); setPagina(1); return; }
+    const timer = setTimeout(async () => {
+      setBuscando(true);
+      try {
+        const token = await getToken();
+        if (!token) return;
+        const res = await fetch(`/api/busqueda?q=${encodeURIComponent(busqueda)}${capitulo ? `&capitulo=${capitulo}` : ''}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const data = await res.json();
+        setBusquedaResults(data.medicamentos || []);
+        setPagina(1);
+      } catch(e) { console.error(e); }
+      finally { setBuscando(false); }
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [busqueda]);
+
+  // Fuente de datos: búsqueda o todos
+  const fuente = busquedaResults ?? todos;
+
+  // Ordenar: autorizados primero, arcsa_pendiente al final
+  const ordenados = [...fuente].sort((a, b) => estadoOrden(a.estado) - estadoOrden(b.estado));
 
   // Filtros
-  const filtrados = medicamentos.filter(m => {
+  const filtrados = ordenados.filter(m => {
     if (filtroEstado !== 'todos' && m.estado !== filtroEstado) return false;
     if (filtroGenerico === 'si' && m.generico !== 'Sí') return false;
     if (filtroGenerico === 'no' && m.generico !== 'No') return false;
     return true;
   });
 
-  const totalPags = Math.ceil(filtrados.length / PER_PAGE);
+  const totalPags = Math.max(1, Math.ceil(filtrados.length / PER_PAGE));
   const paginados = filtrados.slice((pagina - 1) * PER_PAGE, pagina * PER_PAGE);
 
   const estadoDot = (estado: string) => {
@@ -114,14 +142,17 @@ function BaseDatosContent() {
     if (estado === 'arcsa_pendiente') return 'ARCSA - No revisado';
     return estado || 'pendiente';
   };
+  const estadoBg = (estado: string) => {
+    switch(estado) {
+      case 'autorizado': return '#dcfce7';
+      case 'suspendido': return '#fef9c3';
+      case 'retirado': return '#fee2e2';
+      case 'arcsa_pendiente': return '#ffedd5';
+      default: return '#f3f4f6';
+    }
+  };
 
   const limpiarFiltros = () => { setFiltroEstado('todos'); setFiltroGenerico('todos'); setBusqueda(''); setPagina(1); };
-
-  if (authLoading) return (
-    <div style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center' }}>
-      <p style={{ color:'var(--tx4)' }}>Cargando...</p>
-    </div>
-  );
 
   const btnFiltro = (activo: boolean): React.CSSProperties => ({
     padding: '4px 12px', borderRadius: 6, fontSize: 12.5, fontWeight: 600, cursor: 'pointer',
@@ -129,6 +160,12 @@ function BaseDatosContent() {
     background: activo ? 'var(--green)' : 'var(--bg2)',
     color: activo ? '#fff' : 'var(--tx2)',
   });
+
+  if (authLoading) return (
+    <div style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center' }}>
+      <p style={{ color:'var(--tx4)' }}>Cargando...</p>
+    </div>
+  );
 
   return (
     <div style={{ minHeight:'100vh', background:'var(--bg)', display:'flex', fontFamily:'var(--sans)' }}>
@@ -152,7 +189,7 @@ function BaseDatosContent() {
         {/* Buscador */}
         <div style={{ position:'relative', marginBottom:16 }}>
           <input
-            style={{ width:'100%', border:'1.5px solid var(--bdr)', borderRadius:10, padding:'11px 16px', fontSize:14, outline:'none', background:'var(--bg2)', boxShadow:'var(--shm)', fontFamily:'var(--sans)', color:'var(--tx)' }}
+            style={{ width:'100%', border:'1.5px solid var(--bdr)', borderRadius:10, padding:'11px 16px', fontSize:14, outline:'none', background:'var(--bg2)', boxShadow:'var(--shm)', fontFamily:'var(--sans)', color:'var(--tx)', boxSizing:'border-box' }}
             placeholder="Buscar medicamento, principio activo, laboratorio, código ATC…"
             value={busqueda}
             onChange={e => { setBusqueda(e.target.value); setPagina(1); }} />
@@ -160,10 +197,10 @@ function BaseDatosContent() {
         </div>
 
         {/* Filtros */}
-        <div style={{ display:'flex', alignItems:'center', gap:16, marginBottom:16, flexWrap:'wrap' }}>
+        <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:16, flexWrap:'wrap' }}>
           <div style={{ display:'flex', alignItems:'center', gap:6 }}>
             <span style={{ fontSize:12, fontWeight:600, color:'var(--tx3)' }}>ESTADO:</span>
-            {[['todos','Todos'],['autorizado','Autorizado'],['suspendido','Suspendido'],['retirado','Retirado'],['arcsa_pendiente','ARCSA Pendiente']].map(([val,lbl]) => (
+            {[['todos','Todos'],['autorizado','Autorizado'],['suspendido','Suspendido'],['retirado','Retirado']].map(([val,lbl]) => (
               <button key={val} onClick={() => { setFiltroEstado(val); setPagina(1); }} style={btnFiltro(filtroEstado===val)}>{lbl}</button>
             ))}
           </div>
@@ -182,7 +219,10 @@ function BaseDatosContent() {
         <div style={{ background:'#fff', borderRadius:12, border:'1.5px solid var(--bdr)', overflow:'hidden', boxShadow:'var(--sh)' }}>
           <div style={{ padding:'12px 16px', borderBottom:'1.5px solid var(--bdr)', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
             <span style={{ fontSize:13, fontWeight:700, color:'var(--tx)' }}>Medicamentos</span>
-            <span style={{ fontSize:12, color:'var(--tx3)', fontFamily:'var(--mono)' }}>{filtrados.length} registros</span>
+            <span style={{ fontSize:12, color:'var(--tx3)', fontFamily:'var(--mono)' }}>
+              {filtrados.length} registros
+              {cargando && <span style={{ color:'var(--green)', marginLeft:8 }}>· cargando más...</span>}
+            </span>
           </div>
           <div style={{ overflowX:'auto' }}>
             <table style={{ width:'100%', borderCollapse:'collapse', fontSize:13 }}>
@@ -194,27 +234,26 @@ function BaseDatosContent() {
                 </tr>
               </thead>
               <tbody>
-                {loading || buscando ? (
-                  <tr><td colSpan={7} style={{ textAlign:'center', padding:48, color:'var(--tx4)' }}>Cargando...</td></tr>
+                {loading ? (
+                  <tr><td colSpan={7} style={{ textAlign:'center', padding:48, color:'var(--tx4)' }}>Cargando medicamentos...</td></tr>
                 ) : paginados.length === 0 ? (
                   <tr><td colSpan={7} style={{ textAlign:'center', padding:48, color:'var(--tx4)' }}>No hay medicamentos</td></tr>
                 ) : paginados.map((m, i) => {
                   const id = m.docId || m.id;
                   const amp = m.amp || m.nombre || '';
-                  const vmp = m.vmp || '';
                   return (
                     <tr key={id} style={{ borderBottom:'1px solid var(--bdr)', background: i%2===0 ? '#fff' : 'var(--bg3)' }}>
                       <td style={{ padding:'10px 14px', fontWeight:700, color:'var(--tx)' }}>{m.vtm}</td>
-                      <td style={{ padding:'10px 14px', color:'var(--tx2)', maxWidth:240 }}>
+                      <td style={{ padding:'10px 14px', color:'var(--tx2)', maxWidth:220 }}>
                         <div style={{ fontWeight:500 }}>{amp || <span style={{ color:'var(--tx4)', fontStyle:'italic', fontSize:11 }}>—</span>}</div>
                         {m.conc && <span style={{ fontSize:11, color:'var(--tx3)', fontFamily:'var(--mono)' }}>{m.conc}</span>}
                       </td>
                       <td style={{ padding:'10px 14px', color:'var(--tx2)' }}>{m.laboratorio}</td>
-                      <td style={{ padding:'10px 14px', color:'var(--tx3)', fontSize:12, fontFamily:'var(--mono)', maxWidth:200 }}>
-                        <span style={{ color:'var(--green)' }}>{vmp || '—'}</span>
+                      <td style={{ padding:'10px 14px', fontSize:12, fontFamily:'var(--mono)', maxWidth:180 }}>
+                        <span style={{ color:'var(--green)' }}>{m.vmp || '—'}</span>
                       </td>
                       <td style={{ padding:'10px 14px' }}>
-                        <span style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'3px 10px', borderRadius:20, fontSize:11.5, fontWeight:600, background: m.estado==='autorizado' ? '#dcfce7' : m.estado==='arcsa_pendiente' ? '#ffedd5' : '#fee2e2', color: estadoDot(m.estado) }}>
+                        <span style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'3px 10px', borderRadius:20, fontSize:11.5, fontWeight:600, background:estadoBg(m.estado), color:estadoDot(m.estado) }}>
                           <span style={{ width:6, height:6, borderRadius:'50%', background:estadoDot(m.estado), flexShrink:0 }}></span>
                           {estadoLabel(m.estado)}
                         </span>
@@ -232,7 +271,7 @@ function BaseDatosContent() {
                           </Link>
                           {isEditor && (
                             <Link href={`/medicamentos/${id}/editar`}
-                              style={{ padding:'3px 10px', borderRadius:6, fontSize:12, fontWeight:600, border:'1.5px solid var(--bdr)', color:'var(--blue)', background:'var(--bg2)', textDecoration:'none' }}>
+                              style={{ padding:'3px 10px', borderRadius:6, fontSize:12, fontWeight:600, border:'1.5px solid var(--bdr)', color:'var(--blue,#2563EB)', background:'var(--bg2)', textDecoration:'none' }}>
                               Editar
                             </Link>
                           )}
@@ -250,13 +289,18 @@ function BaseDatosContent() {
             <div style={{ padding:'12px 16px', borderTop:'1.5px solid var(--bdr)', display:'flex', alignItems:'center', justifyContent:'center', gap:4, flexWrap:'wrap' }}>
               <span style={{ fontSize:12, color:'var(--tx3)', marginRight:8 }}>Pág.</span>
               {Array.from({ length: Math.min(totalPags, 20) }, (_, i) => i+1).map(p => (
-                <button key={p} onClick={() => setPagina(p)}
+                <button key={p} onClick={() => { setPagina(p); window.scrollTo(0,0); }}
                   style={{ width:30, height:30, borderRadius:6, border:'1.5px solid var(--bdr)', fontSize:12.5, fontWeight:600, cursor:'pointer',
                     background: pagina===p ? 'var(--green)' : 'var(--bg2)',
                     color: pagina===p ? '#fff' : 'var(--tx2)',
                   }}>{p}</button>
               ))}
-              {totalPags > 20 && <span style={{ fontSize:12, color:'var(--tx3)' }}>· {totalPags}</span>}
+              {totalPags > 20 && (
+                <>
+                  <span style={{ fontSize:12, color:'var(--tx3)' }}>···</span>
+                  <span style={{ fontSize:12, color:'var(--tx3)' }}>{totalPags}</span>
+                </>
+              )}
             </div>
           )}
         </div>
