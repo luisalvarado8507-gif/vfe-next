@@ -47,6 +47,11 @@ export async function GET(req: NextRequest) {
         conc: doc.data().data?.conc || '',
         estado: doc.data().estado || 'pendiente',
         chapId: doc.data().data?.chapId || '',
+        hasPrices: sed -n '35,55p' ~/vfe-next/app/api/medicamentos/route.ts(doc.data().data?.farmPrices && Object.values(doc.data().data.farmPrices).some((v: any) => v > 0)),
+        amp: doc.data().data?.amp || doc.data().amp || '',
+        vmp: doc.data().data?.vmp || doc.data().vmp || '',
+        generico: doc.data().data?.generico || '',
+        nombre: doc.data().data?.nombre || '',
       }));
 
     // Filtrar por capítulo si se especifica

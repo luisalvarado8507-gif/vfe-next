@@ -116,11 +116,10 @@ function BaseDatosContent() {
   const fuente = busquedaResults ?? todos;
 
   // Ordenar: autorizados primero, arcsa_pendiente al final
-  const tienePrecios = (m: Medicamento) => (m as any).farmPrices ? 1 : 0;
-const ordenados = [...fuente].sort((a, b) => {
+  const ordenados = [...fuente].sort((a, b) => {
     const est = estadoOrden(a.estado) - estadoOrden(b.estado);
     if (est !== 0) return est;
-    return tienePrecios(b) - tienePrecios(a);
+    return ((b as any).hasPrices ? 1 : 0) - ((a as any).hasPrices ? 1 : 0);
   });
 
   // Filtros
