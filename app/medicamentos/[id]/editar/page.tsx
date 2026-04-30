@@ -86,7 +86,7 @@ export default function EditarMedicamento() {
   if (loading) return (
     <div className="min-h-screen bg-[#f4f9f4] flex">
       <Sidebar />
-      <main className="flex-1 ml-64 flex items-center justify-center">
+      <main className="flex-1 ml-0" style={{ marginLeft: "280px" }} flex items-center justify-center">
         <p className="text-gray-400">Cargando...</p>
       </main>
     </div>
@@ -95,7 +95,7 @@ export default function EditarMedicamento() {
   return (
     <div className="min-h-screen bg-[#f4f9f4] flex">
       <Sidebar />
-      <main className="flex-1 ml-64 px-8 py-8">
+      <main className="flex-1 ml-0" style={{ marginLeft: "280px" }} px-8 py-8">
         <h2 className="text-xl font-bold text-[#2d6a2d] mb-2">Editar medicamento</h2>
         <p className="text-sm text-gray-500 mb-6 capitalize">{data.vtm || ''} · {data.laboratorio || ''}</p>
 
