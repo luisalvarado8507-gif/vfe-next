@@ -52,7 +52,7 @@ export default function EditarMedicamento() {
     setData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleGuardar = async (marcarRevisado = false) => {
+  const handleGuardar = async (marcarRevisado: boolean = false) => {
     if (!isEditor) {
       alert('No tienes permisos de editor');
       return;
@@ -116,7 +116,7 @@ export default function EditarMedicamento() {
         </div>
 
         <div className="flex gap-3 mt-6">
-          <button onClick={handleGuardar} disabled={saving}
+          <button onClick={() => handleGuardar(false)} disabled={saving}
             className="bg-[#2d6a2d] text-white px-6 py-2 rounded-lg font-medium hover:bg-[#235223] transition disabled:opacity-50">
             {saving ? 'Guardando...' : 'Guardar cambios'}
           </button>
