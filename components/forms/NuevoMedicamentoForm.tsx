@@ -92,6 +92,14 @@ export default function NuevoMedicamentoForm({ initialData, editId }: { initialD
   const [cnmbCodigo, setCnmbCodigo] = useState(initialData?.cnmbCodigo || '');
   const [pmc, setPmc] = useState(initialData?.pmc || '');
   const [rsObs, setRsObs] = useState(initialData?.rsObs || '');
+  // Clínica
+  const SECCIONES_CLINICAS = ['Generalidades','Rol del medicamento','Embarazo y lactancia','Interacciones','Precauciones','Indicaciones','Contraindicaciones','Efectos adversos','Dosificación','Farmacocinética'];
+  const [secActivas, setSecActivas] = useState<string[]>(['Generalidades','Rol del medicamento']);
+  const [clin, setClin] = useState<Record<string,string>>({});
+  const setClinField = (key: string, val: string) => setClin(prev => ({ ...prev, [key]: val }));
+  const toggleSec = (s: string) => setSecActivas(prev => prev.includes(s) ? prev.filter(x=>x!==s) : [...prev,s]);
+  const [interacciones, setInteracciones] = useState<Array<{farmaco:string;gravedad:string;efecto:string}>>([]);
+  const addInteraccion = () => setInteracciones(prev => [...prev, { farmaco:'', gravedad:'', efecto:'' }]);
   const [farmPrecios, setFarmPrecios] = useState({ farmaprecios: '', fybeca: '', medicity: '', cruzazul: '', pharmacys: '' });
   const calcMediana = (fp: Record<string,string>) => {
     const vals = Object.values(fp).map(Number).filter(v => v > 0);
@@ -640,8 +648,216 @@ export default function NuevoMedicamentoForm({ initialData, editId }: { initialD
         {/* TAB 3: CLÍNICA */}
         {tab === 3 && (
           <div>
-            <div style={{ ...sec, marginTop: 0 }}>Información Clínica</div>
-            <p style={{ fontSize: 13, color: 'var(--tx3)', marginBottom: 16 }}>Las secciones clínicas estarán disponibles próximamente.</p>
+            {/* Selector de secciones */}
+            <div style={{ ...sec, marginTop: 0 }}>Secciones clínicas <span style={{ fontSize:10,fontWeight:600,fontFamily:'var(--mono)',background:'rgba(26,107,8,.1)',color:'var(--gdp)',padding:'2px 8px',borderRadius:20 }}>SELECCIONA LAS QUE APLICAN</span></div>
+            <div style={{ display:'flex', flexWrap:'wrap', gap:8, marginBottom:20 }}>
+              {SECCIONES_CLINICAS.map(s => (
+                <button key={s} type="button" onClick={() => toggleSec(s)}
+                  style={{ padding:'6px 14px', borderRadius:20, fontSize:12.5, fontWeight:600, cursor:'pointer', border:'none',
+                    background: secActivas.includes(s) ? 'var(--green)' : 'var(--bg3)',
+                    color: secActivas.includes(s) ? '#fff' : 'var(--tx2)',
+                  }}>{s}</button>
+              ))}
+            </div>
+
+            {/* GENERALIDADES */}
+            {secActivas.includes('Generalidades') && (
+              <div style={{ border:'1.5px solid var(--bdr)', borderRadius:8, padding:16, marginBottom:12 }}>
+                <div style={{ fontSize:12, fontWeight:700, color:'var(--gdp)', marginBottom:10 }}>📋 GENERALIDADES / MECANISMO DE ACCIÓN</div>
+                <textarea style={{ ...inp, minHeight:90, resize:'vertical' }}
+                  placeholder="Ej. Bloqueador de los canales de calcio tipo dihidropiridina. Inhibe la entrada de calcio en células musculares lisas vasculares y cardíacas, produciendo vasodilatación arteriolar."
+                  value={clin['generalidades']||''} onChange={e=>setClinField('generalidades',e.target.value)} />
+              </div>
+            )}
+
+            {/* ROL DEL MEDICAMENTO */}
+            {secActivas.includes('Rol del medicamento') && (
+              <div style={{ border:'1.5px solid var(--bdr)', borderRadius:8, padding:16, marginBottom:12 }}>
+                <div style={{ fontSize:12, fontWeight:700, color:'var(--gdp)', marginBottom:10 }}>💊 ROL DEL MEDICAMENTO</div>
+                <textarea style={{ ...inp, minHeight:90, resize:'vertical' }}
+                  placeholder="Ej. Primera línea en hipertensión y angina estable. Especialmente indicado en adultos mayores y pacientes con angina vasospástica."
+                  value={clin['rol']||''} onChange={e=>setClinField('rol',e.target.value)} />
+              </div>
+            )}
+
+            {/* EMBARAZO Y LACTANCIA */}
+            {secActivas.includes('Embarazo y lactancia') && (
+              <div style={{ border:'1.5px solid var(--bdr)', borderRadius:8, padding:16, marginBottom:12 }}>
+                <div style={{ fontSize:12, fontWeight:700, color:'var(--gdp)', marginBottom:10 }}>🤰 EMBARAZO Y LACTANCIA</div>
+                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:12 }}>
+                  <div>
+                    <label style={lbl}>CATEGORÍA FDA / EMA</label>
+                    <select style={inp} value={clin['embarazo_cat']||''} onChange={e=>setClinField('embarazo_cat',e.target.value)}>
+                      <option value="">— Selecciona —</option>
+                      {['A','B','C','D','X','N/A — Contraindicado','Usar con precaución'].map(o=><option key={o}>{o}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label style={lbl}>EMBARAZO</label>
+                    <textarea style={{ ...inp, minHeight:70, resize:'vertical' }}
+                      placeholder="Ej. Contraindicado en el 1er trimestre."
+                      value={clin['embarazo']||''} onChange={e=>setClinField('embarazo',e.target.value)} />
+                  </div>
+                </div>
+                <div>
+                  <label style={lbl}>LACTANCIA</label>
+                  <textarea style={{ ...inp, minHeight:70, resize:'vertical' }}
+                    placeholder="Ej. Se excreta en leche materna. Evitar o suspender lactancia."
+                    value={clin['lactancia']||''} onChange={e=>setClinField('lactancia',e.target.value)} />
+                </div>
+              </div>
+            )}
+
+            {/* INTERACCIONES */}
+            {secActivas.includes('Interacciones') && (
+              <div style={{ border:'1.5px solid var(--bdr)', borderRadius:8, padding:16, marginBottom:12 }}>
+                <div style={{ fontSize:12, fontWeight:700, color:'var(--gdp)', marginBottom:10 }}>⚡ INTERACCIONES MEDICAMENTOSAS</div>
+                <table style={{ width:'100%', borderCollapse:'collapse', fontSize:12.5, marginBottom:10 }}>
+                  <thead>
+                    <tr style={{ background:'var(--bg3)' }}>
+                      {['Fármaco / Grupo','Gravedad','Mecanismo / Efecto'].map(h=>(
+                        <th key={h} style={{ padding:'6px 10px', textAlign:'left', fontSize:11, fontWeight:700, color:'var(--tx3)', borderBottom:'1.5px solid var(--bdr)' }}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {interacciones.map((it,i)=>(
+                      <tr key={i} style={{ borderBottom:'1px solid var(--bdr)' }}>
+                        <td style={{ padding:'4px 6px' }}><input style={{ ...inp, padding:'5px 8px' }} placeholder="Ej. Warfarina" value={it.farmaco} onChange={e=>{const n=[...interacciones];n[i]={...n[i],farmaco:e.target.value};setInteracciones(n);}} /></td>
+                        <td style={{ padding:'4px 6px' }}>
+                          <select style={{ ...inp, padding:'5px 8px' }} value={it.gravedad} onChange={e=>{const n=[...interacciones];n[i]={...n[i],gravedad:e.target.value};setInteracciones(n);}}>
+                            <option value="">—</option>
+                            <option>Leve</option><option>Moderada</option><option>Grave</option><option>Contraindicada</option>
+                          </select>
+                        </td>
+                        <td style={{ padding:'4px 6px' }}><input style={{ ...inp, padding:'5px 8px' }} placeholder="Ej. Aumenta efecto anticoagulante" value={it.efecto} onChange={e=>{const n=[...interacciones];n[i]={...n[i],efecto:e.target.value};setInteracciones(n);}} /></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                <button type="button" onClick={addInteraccion}
+                  style={{ padding:'6px 14px', border:'1.5px solid var(--bdr)', borderRadius:8, fontSize:12.5, fontWeight:600, cursor:'pointer', background:'var(--bg2)', color:'var(--tx)' }}>
+                  + Añadir interacción
+                </button>
+                <div style={{ marginTop:12 }}>
+                  <label style={lbl}>INTERACCIONES CON ALIMENTOS / OTROS <span style={{ fontSize:10,fontWeight:400,color:'var(--tx4)',textTransform:'none',letterSpacing:0 }}>OPCIONAL</span></label>
+                  <textarea style={{ ...inp, minHeight:70, resize:'vertical' }}
+                    placeholder="Ej. Evitar jugo de pomelo (inhibe CYP3A4). Separar 2h de antiácidos."
+                    value={clin['inter_alimentos']||''} onChange={e=>setClinField('inter_alimentos',e.target.value)} />
+                </div>
+              </div>
+            )}
+
+            {/* PRECAUCIONES */}
+            {secActivas.includes('Precauciones') && (
+              <div style={{ border:'1.5px solid var(--bdr)', borderRadius:8, padding:16, marginBottom:12 }}>
+                <div style={{ fontSize:12, fontWeight:700, color:'var(--amber,#D97706)', marginBottom:10 }}>⚠️ PRECAUCIONES</div>
+                <textarea style={{ ...inp, minHeight:90, resize:'vertical' }}
+                  placeholder="Ej. Monitorizar presión arterial. Precaución en pacientes con diabetes. No suspender bruscamente."
+                  value={clin['precauciones']||''} onChange={e=>setClinField('precauciones',e.target.value)} />
+              </div>
+            )}
+
+            {/* INDICACIONES */}
+            {secActivas.includes('Indicaciones') && (
+              <div style={{ border:'1.5px solid var(--bdr)', borderRadius:8, padding:16, marginBottom:12 }}>
+                <div style={{ fontSize:12, fontWeight:700, color:'var(--green)', marginBottom:10 }}>✅ INDICACIONES</div>
+                <div style={{ marginBottom:12 }}>
+                  <label style={lbl}>INDICACIONES APROBADAS (FICHA TÉCNICA)</label>
+                  <textarea style={{ ...inp, minHeight:80, resize:'vertical' }}
+                    placeholder="Ej. Hipertensión arterial. Angina de pecho estable."
+                    value={clin['indicaciones']||''} onChange={e=>setClinField('indicaciones',e.target.value)} />
+                </div>
+                <div>
+                  <label style={lbl}>USO OFF-LABEL DOCUMENTADO <span style={{ fontSize:10,fontWeight:400,color:'var(--tx4)',textTransform:'none',letterSpacing:0 }}>OPCIONAL</span></label>
+                  <textarea style={{ ...inp, minHeight:70, resize:'vertical' }}
+                    placeholder="Ej. Profilaxis de migraña (evidencia nivel B)"
+                    value={clin['off_label']||''} onChange={e=>setClinField('off_label',e.target.value)} />
+                </div>
+              </div>
+            )}
+
+            {/* CONTRAINDICACIONES */}
+            {secActivas.includes('Contraindicaciones') && (
+              <div style={{ border:'1.5px solid var(--bdr)', borderRadius:8, padding:16, marginBottom:12 }}>
+                <div style={{ fontSize:12, fontWeight:700, color:'var(--red,#DC2626)', marginBottom:10 }}>🚫 CONTRAINDICACIONES</div>
+                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:12 }}>
+                  {[['ABSOLUTAS','ci_abs','Ej. Hipersensibilidad al fármaco. Embarazo.'],['RELATIVAS','ci_rel','Ej. Insuficiencia renal severa. Edad <12 años.'],['ADVERTENCIAS ESPECIALES','ci_adv','Ej. Monitorizar función renal al inicio del tratamiento.']].map(([lbl2,key,ph])=>(
+                    <div key={key}>
+                      <label style={lbl}>{lbl2}</label>
+                      <textarea style={{ ...inp, minHeight:80, resize:'vertical' }} placeholder={ph}
+                        value={clin[key]||''} onChange={e=>setClinField(key,e.target.value)} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* EFECTOS ADVERSOS */}
+            {secActivas.includes('Efectos adversos') && (
+              <div style={{ border:'1.5px solid var(--bdr)', borderRadius:8, padding:16, marginBottom:12 }}>
+                <div style={{ fontSize:12, fontWeight:700, color:'var(--amber,#D97706)', marginBottom:10 }}>⚠️ EFECTOS ADVERSOS</div>
+                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:12 }}>
+                  {[['MUY FRECUENTES / FRECUENTES','>1/100','ea_frec','Ej. Cefalea, mareo, tos seca.'],['POCO FRECUENTES','1/100–1/1000','ea_poco','Ej. Hipotensión, edema periférico.'],['RAROS / MUY RAROS','<1/1000','ea_raros','Ej. Angioedema, insuficiencia renal aguda.']].map(([lbl2,freq,key,ph])=>(
+                    <div key={key}>
+                      <label style={{ ...lbl, display:'flex', alignItems:'center', gap:6 }}>{lbl2} <span style={{ fontSize:9,fontWeight:400,color:'var(--tx4)',textTransform:'none' }}>{freq}</span></label>
+                      <textarea style={{ ...inp, minHeight:80, resize:'vertical' }} placeholder={ph}
+                        value={clin[key]||''} onChange={e=>setClinField(key,e.target.value)} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* DOSIFICACIÓN */}
+            {secActivas.includes('Dosificación') && (
+              <div style={{ border:'1.5px solid var(--bdr)', borderRadius:8, padding:16, marginBottom:12 }}>
+                <div style={{ fontSize:12, fontWeight:700, color:'var(--gdp)', marginBottom:10 }}>💊 DOSIFICACIÓN</div>
+                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:12, marginBottom:12 }}>
+                  {[['ADULTOS','dos_adultos','Ej. 5–10 mg/día en dosis única oral'],['PEDIÁTRICA','dos_ped','Ej. 0.1 mg/kg/día (máx. 5 mg)'],['INSUFICIENCIA RENAL','dos_renal','Ej. Reducir 50% si ClCr <30 mL/min']].map(([lbl2,key,ph])=>(
+                    <div key={key}>
+                      <label style={lbl}>{lbl2}</label>
+                      <textarea style={{ ...inp, minHeight:75, resize:'vertical' }} placeholder={ph}
+                        value={clin[key]||''} onChange={e=>setClinField(key,e.target.value)} />
+                    </div>
+                  ))}
+                </div>
+                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:12 }}>
+                  {[['INSUFICIENCIA HEPÁTICA','dos_hepat','Ej. Usar con precaución, reducir dosis'],['ADULTOS MAYORES','dos_mayor','Ej. Iniciar con mitad de dosis'],['VÍA / FRECUENCIA / DURACIÓN','dos_via','Ej. VO, 1 vez/día, máx. 12 semanas']].map(([lbl2,key,ph])=>(
+                    <div key={key}>
+                      <label style={lbl}>{lbl2}</label>
+                      <textarea style={{ ...inp, minHeight:75, resize:'vertical' }} placeholder={ph}
+                        value={clin[key]||''} onChange={e=>setClinField(key,e.target.value)} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* FARMACOCINÉTICA */}
+            {secActivas.includes('Farmacocinética') && (
+              <div style={{ border:'1.5px solid var(--bdr)', borderRadius:8, padding:16, marginBottom:12 }}>
+                <div style={{ fontSize:12, fontWeight:700, color:'var(--gdp)', marginBottom:10 }}>🔬 FARMACOCINÉTICA</div>
+                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:12, marginBottom:12 }}>
+                  {[['ABSORCIÓN / BIODISPONIBILIDAD','fk_abs','Ej. Biodisponibilidad oral 60–65%'],['DISTRIBUCIÓN / Vd / UNIÓN A PROTEÍNAS','fk_dist','Ej. Vd 21 L/kg. UP 97%.'],['METABOLISMO / ENZIMAS CYP','fk_met','Ej. Hepático, CYP3A4. Metabolito activo: normlodipino.']].map(([lbl2,key,ph])=>(
+                    <div key={key}>
+                      <label style={lbl}>{lbl2}</label>
+                      <textarea style={{ ...inp, minHeight:75, resize:'vertical' }} placeholder={ph}
+                        value={clin[key]||''} onChange={e=>setClinField(key,e.target.value)} />
+                    </div>
+                  ))}
+                </div>
+                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:12 }}>
+                  {[['SEMIVIDA (t½)','fk_t12','Ej. 35–50 h'],['EXCRECIÓN','fk_exc','Ej. Renal 60%, fecal 20–25%.'],['INICIO / PICO / DURACIÓN ACCIÓN','fk_onset','Ej. Inicio 1–2h, pico 6–12h, duración 24h.']].map(([lbl2,key,ph])=>(
+                    <div key={key}>
+                      <label style={lbl}>{lbl2}</label>
+                      <textarea style={{ ...inp, minHeight:75, resize:'vertical' }} placeholder={ph}
+                        value={clin[key]||''} onChange={e=>setClinField(key,e.target.value)} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
