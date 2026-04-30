@@ -284,25 +284,37 @@ function BaseDatosContent() {
             </table>
           </div>
 
-          {/* Paginación */}
-          {totalPags > 1 && (
-            <div style={{ padding:'12px 16px', borderTop:'1.5px solid var(--bdr)', display:'flex', alignItems:'center', justifyContent:'center', gap:4, flexWrap:'wrap' }}>
-              <span style={{ fontSize:12, color:'var(--tx3)', marginRight:8 }}>Pág.</span>
-              {Array.from({ length: Math.min(totalPags, 20) }, (_, i) => i+1).map(p => (
-                <button key={p} onClick={() => { setPagina(p); window.scrollTo(0,0); }}
-                  style={{ width:30, height:30, borderRadius:6, border:'1.5px solid var(--bdr)', fontSize:12.5, fontWeight:600, cursor:'pointer',
-                    background: pagina===p ? 'var(--green)' : 'var(--bg2)',
-                    color: pagina===p ? '#fff' : 'var(--tx2)',
-                  }}>{p}</button>
-              ))}
-              {totalPags > 20 && (
-                <>
-                  <span style={{ fontSize:12, color:'var(--tx3)' }}>···</span>
-                  <span style={{ fontSize:12, color:'var(--tx3)' }}>{totalPags}</span>
-                </>
-              )}
-            </div>
-          )}
+          {/* Paginación inteligente */}
+          {totalPags > 1 && (() => {
+            const delta = 2;
+            const pages: (number|string)[] = [];
+            pages.push(1);
+            if (pagina - delta > 2) pages.push('...');
+            for (let p = Math.max(2, pagina-delta); p <= Math.min(totalPags-1, pagina+delta); p++) pages.push(p);
+            if (pagina + delta < totalPags - 1) pages.push('...');
+            if (totalPags > 1) pages.push(totalPags);
+            return (
+              <div style={{ padding:'12px 16px', borderTop:'1.5px solid var(--bdr)', display:'flex', alignItems:'center', justifyContent:'center', gap:4, flexWrap:'wrap' }}>
+                <button onClick={() => { setPagina(p => Math.max(1,p-1)); window.scrollTo(0,0); }} disabled={pagina===1}
+                  style={{ padding:'4px 10px', borderRadius:6, border:'1.5px solid var(--bdr)', fontSize:13, fontWeight:600, cursor:'pointer', background:'var(--bg2)', color: pagina===1 ? 'var(--tx4)' : 'var(--tx2)', opacity: pagina===1?0.4:1 }}>‹</button>
+                {pages.map((p, i) => typeof p === 'string'
+                  ? <span key={'dot'+i} style={{ fontSize:13, color:'var(--tx3)', padding:'0 2px' }}>···</span>
+                  : <button key={p} onClick={() => { setPagina(p as number); window.scrollTo(0,0); }}
+                      style={{ minWidth:30, height:30, borderRadius:6, border:'1.5px solid var(--bdr)', fontSize:12.5, fontWeight:600, cursor:'pointer',
+                        background: pagina===p ? 'var(--green)' : 'var(--bg2)',
+                        color: pagina===p ? '#fff' : 'var(--tx2)',
+                        padding:'0 6px',
+                      }}>{p}</button>
+                )}
+                <button onClick={() => { setPagina(p => Math.min(totalPags,p+1)); window.scrollTo(0,0); }} disabled={pagina===totalPags}
+                  style={{ padding:'4px 10px', borderRadius:6, border:'1.5px solid var(--bdr)', fontSize:13, fontWeight:600, cursor:'pointer', background:'var(--bg2)', color: pagina===totalPags ? 'var(--tx4)' : 'var(--tx2)', opacity: pagina===totalPags?0.4:1 }}>›</button>
+                <span style={{ fontSize:12, color:'var(--tx3)', marginLeft:8 }}>Pág. {pagina} de {totalPags}</span>
+                <input type='number' min={1} max={totalPags} value={pagina}
+                  onChange={e => { const v=parseInt(e.target.value); if(v>=1&&v<=totalPags){setPagina(v);window.scrollTo(0,0);}}}
+                  style={{ width:60, border:'1.5px solid var(--bdr)', borderRadius:6, padding:'3px 8px', fontSize:12.5, textAlign:'center', outline:'none', marginLeft:4 }} />
+              </div>
+            );
+          })()}
         </div>
       </main>
     </div>
