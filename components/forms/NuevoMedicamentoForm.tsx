@@ -73,6 +73,25 @@ export default function NuevoMedicamentoForm({ initialData, editId }: { initialD
   const [volUnit, setVolUnit] = useState(initialData?.volUnit || 'mL');
   const [iso11238Forma, setIso11238Forma] = useState(initialData?.iso11238Forma || '');
   const [iso11238Estado, setIso11238Estado] = useState(initialData?.iso11238Estado || '');
+  // Registro tab fields
+  const [rsTitular, setRsTitular] = useState(initialData?.rsTitular || '');
+  const [rsTipo, setRsTipo] = useState(initialData?.rsTipo || '');
+  const [rsFecha, setRsFecha] = useState(initialData?.rsFecha || '');
+  const [rsVence, setRsVence] = useState(initialData?.rsVence || '');
+  const [rsPais, setRsPais] = useState(initialData?.rsPais || 'Ecuador');
+  const [rsCondicion, setRsCondicion] = useState(initialData?.rsCondicion || '');
+  const [rsProc, setRsProc] = useState(initialData?.rsProc || '');
+  const [rsFabricante, setRsFabricante] = useState(initialData?.rsFabricante || '');
+  const [rsPaisFab, setRsPaisFab] = useState(initialData?.rsPaisFab || '');
+  const [rsImportador, setRsImportador] = useState(initialData?.rsImportador || '');
+  const [phpidL1, setPhpidL1] = useState(initialData?.phpidL1 || '');
+  const [phpidL2, setPhpidL2] = useState(initialData?.phpidL2 || '');
+  const [phpidL3, setPhpidL3] = useState(initialData?.phpidL3 || '');
+  const [phpid, setPhpid] = useState(initialData?.phpid || '');
+  const [gtin, setGtin] = useState(initialData?.gtin || '');
+  const [cnmbCodigo, setCnmbCodigo] = useState(initialData?.cnmbCodigo || '');
+  const [pmc, setPmc] = useState(initialData?.pmc || '');
+  const [rsObs, setRsObs] = useState(initialData?.rsObs || '');
   const [farmPrecios, setFarmPrecios] = useState({ farmaprecios: '', fybeca: '', medicity: '', cruzazul: '', pharmacys: '' });
   const calcMediana = (fp: Record<string,string>) => {
     const vals = Object.values(fp).map(Number).filter(v => v > 0);
@@ -487,21 +506,133 @@ export default function NuevoMedicamentoForm({ initialData, editId }: { initialD
         {/* TAB 2: REGISTRO */}
         {tab === 2 && (
           <div>
+            {/* Registro Sanitario ARCSA */}
             <div style={{ ...sec, marginTop: 0 }}>Registro Sanitario Ecuador <span style={badge('rgba(26,107,8,.15)', 'var(--gdp)')}>ARCSA / ISO 11615</span></div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16, marginBottom: 16 }}>
               <div>
-                <label style={lbl}>N° REGISTRO SANITARIO</label>
+                <label style={lbl}>N° REGISTRO SANITARIO <span style={{ color:'red' }}>*</span></label>
                 <input style={inp} placeholder="Ej. ARCSA-01-2024-123456" value={rs} onChange={e => setRs(e.target.value)} />
               </div>
               <div>
-                <label style={lbl}>ESTADO REGULATORIO</label>
+                <label style={lbl}>TITULAR DEL RS <span style={{ fontSize:10,fontWeight:400,color:'var(--tx4)',textTransform:'none',letterSpacing:0 }}>ISO 11615</span></label>
+                <input style={inp} placeholder="Ej. Pfizer Ecuador S.A." value={rsTitular} onChange={e => setRsTitular(e.target.value)} />
+              </div>
+              <div>
+                <label style={lbl}>TIPO DE RS</label>
+                <select style={inp} value={rsTipo} onChange={e => setRsTipo(e.target.value)}>
+                  <option value="">— Selecciona —</option>
+                  <option>Nuevo</option><option>Renovación</option><option>Modificación</option><option>Ampliación</option>
+                </select>
+              </div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
+              <div>
+                <label style={lbl}>FECHA DE AUTORIZACIÓN <span style={{ fontSize:10,fontWeight:400,color:'var(--tx4)',textTransform:'none',letterSpacing:0 }}>ISO 11615</span></label>
+                <input style={inp} type="date" value={rsFecha} onChange={e => setRsFecha(e.target.value)} />
+              </div>
+              <div>
+                <label style={lbl}>FECHA DE VENCIMIENTO RS <span style={{ fontSize:10,fontWeight:400,color:'var(--tx4)',textTransform:'none',letterSpacing:0 }}>ISO 11615</span></label>
+                <input style={inp} type="date" value={rsVence} onChange={e => setRsVence(e.target.value)} />
+              </div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
+              <div>
+                <label style={lbl}>ESTADO REGULATORIO <span style={{ fontSize:10,fontWeight:400,color:'var(--tx4)',textTransform:'none',letterSpacing:0 }}>ISO 11615</span></label>
                 <select style={inp} value={estado} onChange={e => setEstado(e.target.value)}>
+                  <option value="">— Selecciona —</option>
                   <option value="arcsa_pendiente">Pendiente de revisión</option>
                   <option value="autorizado">Autorizado</option>
                   <option value="suspendido">Suspendido</option>
                   <option value="retirado">Retirado del mercado</option>
                 </select>
               </div>
+              <div>
+                <label style={lbl}>PAÍS DE AUTORIZACIÓN <span style={{ fontSize:10,fontWeight:400,color:'var(--tx4)',textTransform:'none',letterSpacing:0 }}>ISO 11615</span></label>
+                <select style={inp} value={rsPais} onChange={e => setRsPais(e.target.value)}>
+                  {['Ecuador','Colombia','Perú','Bolivia','Venezuela','Argentina','Chile','Brasil','México','España','Estados Unidos','Otro'].map(p=><option key={p}>{p}</option>)}
+                </select>
+              </div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
+              <div>
+                <label style={lbl}>N° PROCEDIMIENTO <span style={{ fontSize:10,fontWeight:400,color:'var(--tx4)',textTransform:'none',letterSpacing:0 }}>ISO 11615</span></label>
+                <input style={inp} placeholder="Ej. ARCSA-2024-0123" value={rsProc} onChange={e => setRsProc(e.target.value)} />
+              </div>
+              <div>
+                <label style={lbl}>CONDICIÓN DE VENTA</label>
+                <select style={inp} value={rsCondicion} onChange={e => setRsCondicion(e.target.value)}>
+                  <option value="">— Selecciona —</option>
+                  <option>Venta libre (OTC)</option>
+                  <option>Bajo receta médica</option>
+                  <option>Bajo receta médica retenida</option>
+                  <option>Uso hospitalario</option>
+                  <option>Uso exclusivo médico</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Fabricante */}
+            <div style={{ ...sec }}>Fabricante y cadena de suministro <span style={badge('rgba(26,107,8,.15)', 'var(--gdp)')}>ISO 11615</span></div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16, marginBottom: 16 }}>
+              <div>
+                <label style={lbl}>FABRICANTE</label>
+                <input style={inp} placeholder="Ej. Pfizer Manufacturing Belgium" value={rsFabricante} onChange={e => setRsFabricante(e.target.value)} />
+              </div>
+              <div>
+                <label style={lbl}>PAÍS DE FABRICACIÓN</label>
+                <input style={inp} placeholder="Ej. Bélgica" value={rsPaisFab} onChange={e => setRsPaisFab(e.target.value)} />
+              </div>
+              <div>
+                <label style={lbl}>IMPORTADOR / DISTRIBUIDOR</label>
+                <input style={inp} placeholder="Ej. Representaciones Médicas Cia. Ltda." value={rsImportador} onChange={e => setRsImportador(e.target.value)} />
+              </div>
+            </div>
+
+            {/* PhPID */}
+            <div style={{ ...sec }}>Identificador farmacéutico global <span style={badge('rgba(37,99,235,.15)', '#2563eb')}>ISO 11616</span></div>
+            <div style={{ marginBottom: 12 }}>
+              <label style={lbl}>PhPID NIVEL 1 — Sustancia + Forma farmacéutica <span style={{ fontSize:10,fontWeight:400,color:'var(--tx4)',textTransform:'none',letterSpacing:0 }}>ISO 11616</span></label>
+              <input style={inp} placeholder="Ej. amlodipino comprimido recubierto con película" value={phpidL1} onChange={e => setPhpidL1(e.target.value)} />
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 12 }}>
+              <div>
+                <label style={lbl}>PhPID NIVEL 2 — + Concentración <span style={{ fontSize:10,fontWeight:400,color:'var(--tx4)',textTransform:'none',letterSpacing:0 }}>ISO 11616</span></label>
+                <input style={inp} placeholder="Ej. amlodipino comp. recubierto 5 mg" value={phpidL2} onChange={e => setPhpidL2(e.target.value)} />
+              </div>
+              <div>
+                <label style={lbl}>PhPID NIVEL 3 — + Unidades <span style={{ fontSize:10,fontWeight:400,color:'var(--tx4)',textTransform:'none',letterSpacing:0 }}>ISO 11616</span></label>
+                <input style={inp} placeholder="Ej. amlodipino comp. recubierto 5 mg caja 30" value={phpidL3} onChange={e => setPhpidL3(e.target.value)} />
+              </div>
+            </div>
+            <div style={{ marginBottom: 16 }}>
+              <label style={lbl}>PhPID CÓDIGO <span style={{ fontSize:10,fontWeight:400,color:'var(--tx4)',textTransform:'none',letterSpacing:0 }}>ISO 11616</span></label>
+              <input style={{ ...inp, fontFamily:'var(--mono)' }} placeholder="Ej. PhPID-C08CA01-5MG-COMP" value={phpid} onChange={e => setPhpid(e.target.value)} />
+            </div>
+
+            {/* Códigos */}
+            <div style={{ ...sec }}>Códigos e identificadores de producto</div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16, marginBottom: 16 }}>
+              <div>
+                <label style={lbl}>CÓDIGO GTIN / EAN</label>
+                <input style={{ ...inp, fontFamily:'var(--mono)' }} placeholder="Ej. 7861234567890" value={gtin} onChange={e => setGtin(e.target.value)} />
+              </div>
+              <div>
+                <label style={lbl}>CÓDIGO CNMB <span style={{ fontSize:10,fontWeight:400,color:'var(--tx4)',textTransform:'none',letterSpacing:0 }}>OPCIONAL</span></label>
+                <input style={{ ...inp, fontFamily:'var(--mono)' }} placeholder="Ej. 01.01.001" value={cnmbCodigo} onChange={e => setCnmbCodigo(e.target.value)} />
+              </div>
+              <div>
+                <label style={lbl}>PRECIO MÁXIMO AL CONSUMIDOR <span style={{ fontSize:10,fontWeight:400,color:'var(--tx4)',textTransform:'none',letterSpacing:0 }}>USD</span></label>
+                <input style={inp} type="number" placeholder="Ej. 12.50" value={pmc} onChange={e => setPmc(e.target.value)} />
+              </div>
+            </div>
+
+            {/* Observaciones */}
+            <div style={{ ...sec }}>Observaciones regulatorias</div>
+            <div style={{ marginBottom: 16 }}>
+              <label style={lbl}>OBSERVACIONES / RESTRICCIONES ESPECIALES <span style={{ fontSize:10,fontWeight:400,color:'var(--tx4)',textTransform:'none',letterSpacing:0 }}>OPCIONAL</span></label>
+              <textarea style={{ ...inp, minHeight: 90, resize: 'vertical' }}
+                placeholder="Ej. Sujeto a farmacovigilancia intensiva. No intercambiable con genéricos sin autorización médica."
+                value={rsObs} onChange={e => setRsObs(e.target.value)} />
             </div>
           </div>
         )}
