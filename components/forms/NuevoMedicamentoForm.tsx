@@ -68,6 +68,19 @@ export default function NuevoMedicamentoForm({ initialData, editId }: { initialD
   const [envase, setEnvase] = useState(initialData?.envase || '');
   const [rs, setRs] = useState(initialData?.rs || '');
   const [estado, setEstado] = useState(initialData?.estado || 'arcsa_pendiente');
+  const [upres, setUpres] = useState(initialData?.upres || '');
+  const [vol, setVol] = useState(initialData?.vol || '');
+  const [volUnit, setVolUnit] = useState(initialData?.volUnit || 'mL');
+  const [iso11238Forma, setIso11238Forma] = useState(initialData?.iso11238Forma || '');
+  const [iso11238Estado, setIso11238Estado] = useState(initialData?.iso11238Estado || '');
+  const [farmPrecios, setFarmPrecios] = useState({ farmaprecios: '', fybeca: '', medicity: '', cruzazul: '', pharmacys: '' });
+  const calcMediana = (fp: Record<string,string>) => {
+    const vals = Object.values(fp).map(Number).filter(v => v > 0);
+    if (!vals.length) return '—';
+    const sorted = [...vals].sort((a,b)=>a-b);
+    const mid = Math.floor(sorted.length/2);
+    return (sorted.length%2 ? sorted[mid] : (sorted[mid-1]+sorted[mid])/2).toFixed(2);
+  };
   const [snomedVTM, setSnomedVTM] = useState<{code:string;term:string}|null>(null);
   const [snomedFF, setSnomedFF] = useState<{code:string;term:string}|null>(null);
   const [saving, setSaving] = useState(false);
@@ -372,30 +385,104 @@ export default function NuevoMedicamentoForm({ initialData, editId }: { initialD
         )}
 
         {/* TAB 1: PRESENTACIÓN */}
-        {tab === 1 && (
+        {tab === 1 && (() => {
+          const med = calcMediana(farmPrecios);
+          const pu = med !== '—' && units ? (Number(med)/Number(units)).toFixed(4) : '—';
+          const vals = Object.values(farmPrecios).map(Number).filter(v=>v>0);
+          const rango = vals.length>=2 ? Math.min(...vals).toFixed(2)+' — '+Math.max(...vals).toFixed(2) : '—';
+          return (
           <div>
             <div style={{ ...sec, marginTop: 0 }}>Presentación y precio</div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16, marginBottom: 16 }}>
-              <div style={{ gridColumn: 'span 2' }}>
-                <label style={lbl}>NOMBRE COMERCIAL (AMP)</label>
-                <input style={inp} placeholder="Ej. Tenormin 50 mg comprimidos" value={nombre} onChange={e => setNombre(e.target.value)} />
+              <div>
+                <label style={lbl}>NOMBRE COMERCIAL</label>
+                <input style={inp} placeholder="Ej. Tenormin" value={nombre} onChange={e => setNombre(e.target.value)} />
               </div>
               <div>
-                <label style={lbl}>UNIDADES</label>
-                <input style={inp} placeholder="30" type="number" value={units} onChange={e => setUnits(e.target.value)} />
+                <label style={lbl}>UNIDADES POR PRESENTACIÓN</label>
+                <input style={inp} placeholder="Ej. 28" type="number" value={units} onChange={e => setUnits(e.target.value)} />
+              </div>
+              <div>
+                <label style={lbl}>UNIDAD DE PRESENTACIÓN <span style={{ fontSize:10,fontWeight:400,color:'var(--tx4)',textTransform:'none',letterSpacing:0 }}>ISO 11239</span></label>
+                <select style={inp} value={upres} onChange={e => setUpres(e.target.value)}>
+                  <option value="">— Selecciona —</option>
+                  <optgroup label="Sólidos orales"><option>comprimido</option><option>cápsula</option><option>gragea</option><option>polvo oral</option></optgroup>
+                  <optgroup label="Parenterales"><option>vial</option><option>ampolla</option><option>jeringa precargada</option><option>bolsa IV</option></optgroup>
+                  <optgroup label="Inhalados"><option>inhalador dosis medida</option><option>cápsula para inhalación</option></optgroup>
+                  <optgroup label="Tópicos/otros"><option>tubo</option><option>parche</option><option>supositorio</option><option>óvulo vaginal</option><option>sobre</option></optgroup>
+                </select>
               </div>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 16, marginBottom: 16 }}>
               <div>
                 <label style={lbl}>TIPO DE ENVASE</label>
                 <select style={inp} value={envase} onChange={e => setEnvase(e.target.value)}>
                   <option value="">— Selecciona —</option>
-                  {['blíster', 'frasco', 'tubo', 'vial', 'ampolla', 'jeringa precargada', 'inhalador', 'sobre', 'caja'].map(e => <option key={e}>{e}</option>)}
+                  {['blíster','frasco','tubo','vial','ampolla','jeringa precargada','pluma inyectora','inhalador','sobre','caja'].map(ev => <option key={ev}>{ev}</option>)}
+                </select>
+              </div>
+              <div>
+                <label style={lbl}>VOLUMEN TOTAL DEL ENVASE <span style={{ fontSize:10,fontWeight:400,color:'var(--tx4)',textTransform:'none',letterSpacing:0 }}>OPCIONAL</span></label>
+                <div style={{ display:'flex', gap:8, alignItems:'center' }}>
+                  <input style={{ ...inp, width:110 }} placeholder="Ej. 150" type="number" value={vol} onChange={e => setVol(e.target.value)} />
+                  <select style={{ ...inp, width:80 }} value={volUnit} onChange={e => setVolUnit(e.target.value)}>
+                    {['mL','L','g','mg','UI'].map(u => <option key={u}>{u}</option>)}
+                  </select>
+                  <span style={{ fontSize:11, color:'var(--tx3)', lineHeight:1.5 }}>Tamaño del frasco/ampolla/tubo → aparece en VMPP y AMPP.<br/><b>Nota:</b> Para jarabes escribe la concentración como <span style={{ fontFamily:'var(--mono)',color:'var(--gdp)' }}>250 mg/5 mL</span></span>
+                </div>
+              </div>
+            </div>
+            <div style={{ border:'1.5px solid var(--bdr)', borderRadius:8, padding:'14px 16px', background:'var(--bg3)', marginBottom:16 }}>
+              <div style={{ fontSize:11, fontWeight:700, color:'var(--tx3)', letterSpacing:1, marginBottom:4 }}>PRECIOS POR FARMACIA (USD)</div>
+              <div style={{ fontSize:11, color:'var(--tx4)', marginBottom:12 }}>Precio de la presentación completa · Farmaprecios solo como referencia, no entra en el cálculo</div>
+              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:12, marginBottom:12 }}>
+                {([
+                  { key:'farmaprecios', label:'FARMAPRECIOS', color:'#2563eb', note:'(solo referencia)' },
+                  { key:'fybeca', label:'FYBECA', color:'#dc2626' },
+                  { key:'medicity', label:'MEDICITY', color:'#16a34a' },
+                  { key:'cruzazul', label:'CRUZ AZUL', color:'#1d4ed8' },
+                  { key:'pharmacys', label:'PHARMACYS', color:'#ea580c' },
+                ] as const).map(ph => (
+                  <div key={ph.key}>
+                    <label style={{ ...lbl, display:'flex', alignItems:'center', gap:6 }}>
+                      <span style={{ width:8,height:8,borderRadius:'50%',background:ph.color,display:'inline-block',flexShrink:0 }}></span>
+                      {ph.label} {'note' in ph && <span style={{ fontSize:9,fontWeight:400,color:'var(--tx4)',fontStyle:'italic' }}>{ph.note}</span>}
+                    </label>
+                    <input style={inp} type="number" placeholder="—"
+                      value={farmPrecios[ph.key]}
+                      onChange={e => setFarmPrecios(prev => ({ ...prev, [ph.key]: e.target.value }))} />
+                  </div>
+                ))}
+              </div>
+              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:12 }}>
+                {[{ label:'MEDIANA — PRECIO REFERENCIAL', val:med },{ label:'PRECIO UNITARIO (mediana ÷ unidades)', val:pu },{ label:'RANGO (mín — máx)', val:rango }].map(r => (
+                  <div key={r.label}>
+                    <label style={lbl}>{r.label}</label>
+                    <div style={{ padding:'9px 12px', border:'1.5px dashed var(--bdr2)', borderRadius:8, fontSize:14, fontWeight:700, color:'var(--gdp)', background:'var(--bg2)' }}>{r.val}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div style={{ ...sec }}>Forma química y estado físico <span style={badge('rgba(26,107,8,.15)','var(--gdp)')}>ISO 11238</span></div>
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16, marginBottom:16 }}>
+              <div>
+                <label style={lbl}>FORMA QUÍMICA <span style={{ fontSize:10,fontWeight:400,color:'var(--tx4)',textTransform:'none',letterSpacing:0 }}>ISO 11238 — sal, base, éster</span></label>
+                <select style={inp} value={iso11238Forma} onChange={e => setIso11238Forma(e.target.value)}>
+                  <option value="">— Selecciona —</option>
+                  {['base','sal','éster','hidrato','anhidro','racemato','enantiómero','profármaco','complejo','otro'].map(o=><option key={o}>{o}</option>)}
+                </select>
+              </div>
+              <div>
+                <label style={lbl}>ESTADO FÍSICO <span style={{ fontSize:10,fontWeight:400,color:'var(--tx4)',textTransform:'none',letterSpacing:0 }}>ISO 11238</span></label>
+                <select style={inp} value={iso11238Estado} onChange={e => setIso11238Estado(e.target.value)}>
+                  <option value="">— Selecciona —</option>
+                  {['sólido','líquido','gas','semisólido','polvo','granulado'].map(o=><option key={o}>{o}</option>)}
                 </select>
               </div>
             </div>
           </div>
-        )}
+          );
+        })()}
 
         {/* TAB 2: REGISTRO */}
         {tab === 2 && (
