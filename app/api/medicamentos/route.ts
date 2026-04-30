@@ -28,9 +28,7 @@ export async function GET(req: NextRequest) {
     const cursor = searchParams.get('cursor');
     const capitulo = searchParams.get('capitulo');
 
-    const estadoFilter = searchParams.get('estado');
     let query = adminDb.collection('medicamentos').orderBy('vtm').limit(limit);
-    // Note: estado filter applied post-query
 
     if (cursor) {
       const cursorDoc = await adminDb.collection('medicamentos').doc(cursor).get();
@@ -39,7 +37,7 @@ export async function GET(req: NextRequest) {
 
     const snap = await query.get();
     let medicamentos = snap.docs
-      .filter(doc => { const e = doc.data().estado; if (e === 'eliminado') return false; if (estadoFilter && e !== estadoFilter) return false; return true; })
+      .filter(doc => doc.data().estado !== 'eliminado')
       .map(doc => ({
         docId: doc.id,
         id: doc.data().data?.id || doc.id,

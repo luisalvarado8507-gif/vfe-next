@@ -39,7 +39,7 @@ export default function Dashboard() {
         if (!token) return;
         const [statsRes, recentRes] = await Promise.all([
           fetch('/api/avances', { headers: { Authorization: `Bearer ${token}` } }),
-          fetch('/api/medicamentos?limit=20&estado=autorizado', { headers: { Authorization: `Bearer ${token}` } }),
+          fetch('/api/medicamentos?limit=20', { headers: { Authorization: `Bearer ${token}` } }),
         ]);
         const statsData = await statsRes.json();
         const recentData = await recentRes.json();
