@@ -143,6 +143,13 @@ export default function NuevoMedicamentoForm({ initialData, editId }: { initialD
         nombre, units, envase, rs, estado: marcarRevisado ? 'autorizado' : estado,
         vias: vias.join(', '), vmp: vmpLabel, amp: ampLabel, vmpp: vmppLabel, ampp: amppLabel,
         snomed_vtm_code: snomedVTM?.code || '', snomed_ff_code: snomedFF?.code || '',
+        upres, vol, volUnit, iso11238Forma, iso11238Estado,
+        ...farmPrecios,
+        rsTitular, rsTipo, rsFecha, rsVence, rsPais, rsCondicion, rsProc,
+        rsFabricante, rsPaisFab, rsImportador,
+        phpidL1, phpidL2, phpidL3, phpid, gtin, cnmbCodigo, pmc, rsObs,
+        clinData: clin,
+        interacciones: JSON.stringify(interacciones),
         ...(editId ? { id: editId } : {}),
       };
       const res = await fetch('/api/medicamentos', {
