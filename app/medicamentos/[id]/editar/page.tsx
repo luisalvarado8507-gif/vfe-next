@@ -52,7 +52,7 @@ export default function EditarMedicamento() {
     setData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleGuardar = async () => {
+  const handleGuardar = async (marcarRevisado = false) => {
     if (!isEditor) {
       alert('No tienes permisos de editor');
       return;
@@ -60,6 +60,7 @@ export default function EditarMedicamento() {
     setSaving(true);
     try {
       const token = await getToken();
+      if (marcarRevisado) data.estado = 'autorizado';
       const res = await fetch('/api/medicamentos', {
         method: 'PUT',
         headers: {
@@ -118,6 +119,11 @@ export default function EditarMedicamento() {
           <button onClick={handleGuardar} disabled={saving}
             className="bg-[#2d6a2d] text-white px-6 py-2 rounded-lg font-medium hover:bg-[#235223] transition disabled:opacity-50">
             {saving ? 'Guardando...' : 'Guardar cambios'}
+          </button>
+          <button onClick={() => handleGuardar(true)} disabled={saving}
+            className="px-6 py-2.5 rounded-lg text-sm font-bold text-white transition"
+            style={{ background: '#16a34a' }}>
+            {saving ? 'Guardando...' : '✓ Guardar y marcar como REVISADO'}
           </button>
           <Link href={`/medicamentos/${id}`}
             className="border border-gray-200 text-gray-600 px-6 py-2 rounded-lg font-medium hover:bg-gray-50 transition">
