@@ -14,33 +14,30 @@ export async function GET(req: NextRequest) {
   try {
     const col = adminDb.collection('medicamentos');
 
-    // Contar usando aggregation queries (instantáneo)
-    const [total, autorizados, arcsa, genericos, cnmb] = await Promise.all([
-      col.count().get(),
+    const [total, genericos, cnmb] = await Promise.all([
       col.where('estado', '==', 'autorizado').count().get(),
-      col.where('estado', '==', 'arcsa_pendiente').count().get(),
-      col.where('data.generico', '==', 'Sí').count().get(),
-      col.where('data.cnmb', '==', 'Sí').count().get(),
+      col.where('estado', '==', 'autorizado').where('data.generico', '==', 'Sí').count().get(),
+      col.where('estado', '==', 'autorizado').where('data.cnmb', '==', 'Sí').count().get(),
     ]);
 
-    // Para capítulos — cargar solo los campos necesarios
-    const capSnap = await col.select('data.chapId').get();
+    const vtmSnap = await col.where('estado', '==', 'autorizado').select('vtm').get();
+    const pas = new Set(vtmSnap.docs.map(d => d.data().vtm).filter(Boolean)).size;
+
+    const capSnap = await col.where('estado', '==', 'autorizado').select('data.chapId').get();
     const porCapitulo: Record<string, number> = {};
     capSnap.docs.forEach(d => {
       const chapId = d.data().data?.chapId || '';
       if (chapId) porCapitulo[chapId] = (porCapitulo[chapId] || 0) + 1;
     });
 
-    // Principios activos únicos
-    const vtmSnap = await col.select('vtm').get();
-    const pas = new Set(vtmSnap.docs.map(d => d.data().vtm).filter(Boolean)).size;
+    const arcsa = await col.where('estado', '==', 'arcsa_pendiente').count().get();
 
     return NextResponse.json({
       total: total.data().count,
       principiosActivos: pas,
       genericos: genericos.data().count,
       cnmb: cnmb.data().count,
-      autorizados: autorizados.data().count,
+      autorizados: total.data().count,
       arcsa_pendiente: arcsa.data().count,
       porCapitulo,
     });
