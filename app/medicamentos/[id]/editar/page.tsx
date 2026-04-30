@@ -4,20 +4,14 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth-context';
 import Sidebar from '@/components/layout/Sidebar';
-import TabIdentificacion from '../../nuevo/components/TabIdentificacion';
-import TabPresentacion from '../../nuevo/components/TabPresentacion';
-import TabRegistro from '../../nuevo/components/TabRegistro';
-import TabClinica from '../../nuevo/components/TabClinica';
-
-const TABS = ['🧬 Identificación', '💊 Presentación', '📋 Registro', '🩺 Clínica'];
+import NuevoMedicamentoForm from '@/components/forms/NuevoMedicamentoForm';
 
 export default function EditarMedicamento() {
-  const { id } = useParams();
+  const params = useParams();
+  const id = params?.id as string;
   const router = useRouter();
-  const [tab, setTab] = useState(0);
-  const [data, setData] = useState<Record<string, string>>({});
+  const [data, setData] = useState<Record<string, string> | null>(null);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
   const { getToken, isEditor, loading: authLoading } = useAuth();
 
   useEffect(() => {
@@ -33,14 +27,17 @@ export default function EditarMedicamento() {
           const med = result.medicamento;
           const flat: Record<string, string> = {};
           Object.keys(med).forEach(k => {
-            if (typeof med[k] === 'string' || typeof med[k] === 'number') {
-              flat[k] = String(med[k]);
+            const v = med[k];
+            if (v !== null && v !== undefined && typeof v !== 'object') {
+              flat[k] = String(v);
             }
           });
+          // Asegurar campo vias como string separado por coma
+          if (Array.isArray(med.vias)) flat.vias = med.vias.join(', ');
           setData(flat);
         }
       } catch {
-        console.error('Error cargando');
+        console.error('Error cargando medicamento');
       } finally {
         setLoading(false);
       }
@@ -48,88 +45,41 @@ export default function EditarMedicamento() {
     cargar();
   }, [id, authLoading]);
 
-  const handleChange = (field: string, value: string) => {
-    setData(prev => ({ ...prev, [field]: value }));
-  };
-
-  const handleGuardar = async (marcarRevisado: boolean = false) => {
-    if (!isEditor) {
-      alert('No tienes permisos de editor');
-      return;
-    }
-    setSaving(true);
-    try {
-      const token = await getToken();
-      if (marcarRevisado) data.estado = 'autorizado';
-      const res = await fetch('/api/medicamentos', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ ...data, id }),
-      });
-      const result = await res.json();
-      if (result.ok) {
-        alert('✅ Medicamento actualizado');
-        router.push(`/medicamentos/${id}`);
-      } else {
-        alert('Error: ' + result.error);
-      }
-    } catch {
-      alert('Error de conexión');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  if (loading) return (
-    <div className="min-h-screen bg-[#f4f9f4] flex">
+  if (authLoading || loading) return (
+    <div style={{ minHeight:'100vh', background:'var(--bg)', display:'flex' }}>
       <Sidebar />
-      <main style={{ marginLeft: "280px", flex:1, display:"flex", alignItems:"center", justifyContent:"center" }}>
-        <p className="text-gray-400">Cargando...</p>
+      <main style={{ flex:1, marginLeft:280, display:'flex', alignItems:'center', justifyContent:'center' }}>
+        <p style={{ color:'var(--tx4)' }}>Cargando medicamento...</p>
+      </main>
+    </div>
+  );
+
+  if (!isEditor) return (
+    <div style={{ minHeight:'100vh', background:'var(--bg)', display:'flex' }}>
+      <Sidebar />
+      <main style={{ flex:1, marginLeft:280, display:'flex', alignItems:'center', justifyContent:'center' }}>
+        <p style={{ color:'var(--red,#DC2626)' }}>No tienes permisos de editor.</p>
       </main>
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-[#f4f9f4] flex">
+    <div style={{ minHeight:'100vh', background:'var(--bg)', display:'flex', fontFamily:'var(--sans)' }}>
       <Sidebar />
-      <main style={{ marginLeft: "280px", flex:1, padding:"32px" }}>
-        <h2 className="text-xl font-bold text-[#2d6a2d] mb-2">Editar medicamento</h2>
-        <p className="text-sm text-gray-500 mb-6 capitalize">{data.vtm || ''} · {data.laboratorio || ''}</p>
-
-        <div className="flex gap-2 mb-6">
-          {TABS.map((t, i) => (
-            <button key={i} onClick={() => setTab(i)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
-                tab === i ? 'bg-[#2d6a2d] text-white' : 'bg-white text-gray-600 border border-gray-200'
-              }`}>{t}</button>
-          ))}
-        </div>
-
-        <div className="bg-white rounded-xl border border-green-100 p-6 shadow-sm min-h-64">
-          {tab === 0 && <TabIdentificacion data={data} onChange={handleChange} />}
-          {tab === 1 && <TabPresentacion data={data} onChange={handleChange} />}
-          {tab === 2 && <TabRegistro data={data} onChange={handleChange} />}
-          {tab === 3 && <TabClinica data={data} onChange={handleChange} />}
-        </div>
-
-        <div className="flex gap-3 mt-6">
-          <button onClick={() => handleGuardar(false)} disabled={saving}
-            className="bg-[#2d6a2d] text-white px-6 py-2 rounded-lg font-medium hover:bg-[#235223] transition disabled:opacity-50">
-            {saving ? 'Guardando...' : 'Guardar cambios'}
-          </button>
-          <button onClick={() => handleGuardar(true)} disabled={saving}
-            className="px-6 py-2.5 rounded-lg text-sm font-bold text-white transition"
-            style={{ background: '#16a34a' }}>
-            {saving ? 'Guardando...' : '✓ Guardar y marcar como REVISADO'}
-          </button>
+      <main style={{ flex:1, marginLeft:280, padding:'28px 32px' }}>
+        <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:20 }}>
           <Link href={`/medicamentos/${id}`}
-            className="border border-gray-200 text-gray-600 px-6 py-2 rounded-lg font-medium hover:bg-gray-50 transition">
-            Cancelar
+            style={{ display:'flex', alignItems:'center', gap:6, padding:'6px 12px', background:'var(--bg3)', border:'1.5px solid var(--bdr)', borderRadius:8, fontSize:13, fontWeight:600, color:'var(--tx2)', textDecoration:'none' }}>
+            ← Volver al medicamento
           </Link>
+          <h2 style={{ fontSize:18, fontWeight:700, color:'var(--gdp)' }}>Editar medicamento</h2>
+          {data?.vtm && (
+            <span style={{ fontSize:13, color:'var(--tx3)' }}>{data.vtm} · {data.laboratorio}</span>
+          )}
         </div>
+        {data && (
+          <NuevoMedicamentoForm initialData={data} editId={id} />
+        )}
       </main>
     </div>
   );
