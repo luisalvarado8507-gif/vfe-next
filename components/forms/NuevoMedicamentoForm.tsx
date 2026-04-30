@@ -100,7 +100,7 @@ export default function NuevoMedicamentoForm({ initialData, editId }: { initialD
   const toggleSec = (s: string) => setSecActivas(prev => prev.includes(s) ? prev.filter(x=>x!==s) : [...prev,s]);
   const [interacciones, setInteracciones] = useState<Array<{farmaco:string;gravedad:string;efecto:string}>>([]);
   const addInteraccion = () => setInteracciones(prev => [...prev, { farmaco:'', gravedad:'', efecto:'' }]);
-  const [farmPrecios, setFarmPrecios] = useState({ farmaprecios: initialData?.farmaprecios || '', fybeca: initialData?.fybeca || '', medicity: initialData?.medicity || '', cruzazul: initialData?.cruzazul || '', pharmacys: initialData?.pharmacys || '' });
+  const [farmPrecios, setFarmPrecios] = useState(() => { const fp = (initialData as any)?.farmPrices; return { farmaprecios: String(fp?.farmaprecios || initialData?.farmaprecios || ''), fybeca: String(fp?.fybeca || initialData?.fybeca || ''), medicity: String(fp?.medicity || initialData?.medicity || ''), cruzazul: String(fp?.cruzazul || initialData?.cruzazul || ''), pharmacys: String(fp?.pharmacys || initialData?.pharmacys || '') }; });
   const calcMediana = (fp: Record<string,string>) => {
     const vals = Object.values(fp).map(Number).filter(v => v > 0);
     if (!vals.length) return '—';
