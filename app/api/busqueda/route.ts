@@ -10,45 +10,36 @@ async function verificarAuth(req: NextRequest) {
 export async function GET(req: NextRequest) {
   const user = await verificarAuth(req);
   if (!user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
-  
   try {
     const { searchParams } = new URL(req.url);
     const q = searchParams.get('q')?.toLowerCase().trim() || '';
     const capitulo = searchParams.get('capitulo');
+    const estadoFilter = searchParams.get('estado');
+
+    if (estadoFilter && !q && !capitulo) {
+      const snap = await adminDb.collection('medicamentos')
+        .where('estado', '==', estadoFilter)
+        .orderBy('vtm')
+        .limit(100)
+        .get();
+      const medicamentos = snap.docs.map(doc => ({
+        docId: doc.id,
+        id: doc.data().data?.id || doc.id,
+        vtm: doc.data().data?.vtm || doc.data().vtm || '',
+        laboratorio: doc.data().data?.laboratorio || doc.data().laboratorio || '',
+        ff: doc.data().data?.ff || '',
+        conc: doc.data().data?.conc || '',
+        estado: doc.data().estado || '',
+        chapId: doc.data().data?.chapId || '',
+        nombre: doc.data().data?.nombre || doc.data().amp || '',
+      }));
+      return NextResponse.json({ medicamentos, total: medicamentos.length });
+    }
 
     if (!q && !capitulo) return NextResponse.json({ medicamentos: [], total: 0 });
 
-    let results: FirebaseFirestore.QueryDocumentSnapshot[] = [];
-
-    if (q) {
-      // Búsqueda por prefijo en vtm
-      const snapVtm = await adminDb.collection('medicamentos')
-        .where('vtm', '>=', q)
-        .where('vtm', '<=', q + '\uf8ff')
-        .limit(100)
-        .get();
-      results = [...snapVtm.docs];
-
-      // Búsqueda por prefijo en laboratorio
-      const snapLab = await adminDb.collection('medicamentos')
-        .where('laboratorio', '>=', q)
-        .where('laboratorio', '<=', q + '\uf8ff')
-        .limit(50)
-        .get();
-      
-      // Combinar sin duplicados
-      const ids = new Set(results.map(d => d.id));
-      snapLab.docs.forEach(d => { if (!ids.has(d.id)) results.push(d); });
-    } else {
-      // Solo filtro por capítulo
-      const snap = await adminDb.collection('medicamentos')
-        .where('data.chapId', '==', capitulo)
-        .limit(200)
-        .get();
-      results = snap.docs;
-    }
-
-    const medicamentos = results
+    const snap = await adminDb.collection('medicamentos').orderBy('vtm').limit(1000).get();
+    const medicamentos = snap.docs
       .filter(doc => doc.data().estado !== 'eliminado')
       .map(doc => ({
         docId: doc.id,
@@ -57,18 +48,24 @@ export async function GET(req: NextRequest) {
         laboratorio: doc.data().data?.laboratorio || doc.data().laboratorio || '',
         ff: doc.data().data?.ff || '',
         conc: doc.data().data?.conc || '',
-        estado: doc.data().estado || 'pendiente',
+        estado: doc.data().estado || '',
         chapId: doc.data().data?.chapId || '',
         nombre: doc.data().data?.nombre || doc.data().amp || '',
       }))
       .filter(m => {
-        if (capitulo && q) return m.chapId === capitulo;
-        return true;
+        if (estadoFilter && m.estado !== estadoFilter) return false;
+        const matchCap = capitulo ? m.chapId === capitulo : true;
+        const matchQ = q ? (
+          m.vtm.toLowerCase().includes(q) ||
+          m.laboratorio.toLowerCase().includes(q) ||
+          m.ff.toLowerCase().includes(q) ||
+          m.nombre.toLowerCase().includes(q)
+        ) : true;
+        return matchCap && matchQ;
       });
-
     return NextResponse.json({ medicamentos, total: medicamentos.length });
   } catch(e) {
     console.error('Error búsqueda:', e);
-    return NextResponse.json({ error: 'Error al buscar' }, { status: 500 });
+    return NextResponse.json({ error: String(e) }, { status: 500 });
   }
 }
