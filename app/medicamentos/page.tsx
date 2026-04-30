@@ -130,7 +130,7 @@ function BaseDatosContent() {
           {buscando && <span className="absolute right-3 top-3 text-xs text-gray-400">Buscando...</span>}
         </div>
 
-        <div className="bg-white rounded-xl border border-green-100 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-xl border border-green-100 shadow-sm overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-green-50 border-b border-green-100">
