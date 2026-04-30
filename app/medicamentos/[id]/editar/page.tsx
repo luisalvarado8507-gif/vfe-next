@@ -25,7 +25,7 @@ export default function EditarMedicamento() {
         const result = await res.json();
         if (result.medicamento) {
           const med = result.medicamento;
-          const flat: Record<string, string> = {};
+          const flat: Record<string, any> = {};
           Object.keys(med).forEach(k => {
             const v = med[k];
             if (v !== null && v !== undefined && typeof v !== 'object') {
@@ -34,6 +34,10 @@ export default function EditarMedicamento() {
           });
           // Asegurar campo vias como string separado por coma
           if (Array.isArray(med.vias)) flat.vias = med.vias.join(', ');
+          // Pasar farmPrices como objeto para que el formulario lo lea
+          if (med.farmPrices) flat.farmPrices = med.farmPrices;
+          // Pasar clinData
+          if (med.clinData) flat.clinData = med.clinData;
           setData(flat);
         }
       } catch {
