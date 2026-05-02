@@ -206,12 +206,13 @@ td{border:1px solid #C8E0CC;padding:5px 8px}tr:nth-child(even){background:#EBF5E
     color: activo ? '#fff' : 'var(--tx2)', transition: 'all .13s', fontFamily: 'var(--sans)',
   });
   const checkField = (key: string, checked: boolean, isSnomed = false): React.CSSProperties => ({
-    display: 'flex', alignItems: 'center', gap: 7, padding: '7px 10px',
-    border: `1.5px solid ${checked ? (isSnomed ? '#C4B5FD' : 'var(--green)') : (isSnomed ? '#EDE9FE' : 'var(--bdr)')}`,
+    display: 'flex', alignItems: 'center', gap: 6, padding: '5px 10px',
+    border: `1px solid ${checked ? (isSnomed ? '#C4B5FD' : 'var(--green)') : (isSnomed ? '#EDE9FE' : 'var(--bdr)')}`,
     borderRadius: 'var(--r)', cursor: 'pointer',
     background: checked ? (isSnomed ? '#F5F3FF' : 'var(--bg3)') : 'var(--bg2)',
-    fontSize: 12, fontWeight: 500, transition: 'all .13s',
+    fontSize: 11, fontWeight: 500, transition: 'all .13s',
     color: isSnomed ? 'var(--purple)' : 'var(--tx2)',
+    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
   });
 
   const msgStyle: React.CSSProperties = {
@@ -318,11 +319,11 @@ td{border:1px solid #C8E0CC;padding:5px 8px}tr:nth-child(even){background:#EBF5E
                     <button onClick={() => setSelectedFields(Object.fromEntries(EXPORT_FIELDS.map(f => [f.key, false])))} style={chipBtn(false)}>✗ Ninguno</button>
                   </div>
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 5 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 4 }}>
                   {EXPORT_FIELDS.map(f => (
-                    <label key={f.key} style={checkField(f.key, !!selectedFields[f.key])}>
-                      <input type="checkbox" checked={!!selectedFields[f.key]} onChange={e => setSelectedFields(p => ({ ...p, [f.key]: e.target.checked }))} style={{ accentColor: 'var(--green)' }} />
-                      {f.label}
+                    <label key={f.key} style={checkField(f.key, !!selectedFields[f.key])} title={f.label}>
+                      <input type="checkbox" checked={!!selectedFields[f.key]} onChange={e => setSelectedFields(p => ({ ...p, [f.key]: e.target.checked }))} style={{ accentColor: 'var(--green)', flexShrink: 0 }} />
+                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.label}</span>
                     </label>
                   ))}
                 </div>
@@ -337,11 +338,11 @@ td{border:1px solid #C8E0CC;padding:5px 8px}tr:nth-child(even){background:#EBF5E
                     <button onClick={() => setSelectedSnomed(Object.fromEntries(SNOMED_FIELDS.map(f => [f.key, false])))} style={{ ...chipBtn(false), color: 'var(--tx3)' }}>ninguno</button>
                   </div>
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 5 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 4 }}>
                   {SNOMED_FIELDS.map(f => (
-                    <label key={f.key} style={checkField(f.key, !!selectedSnomed[f.key], true)}>
-                      <input type="checkbox" checked={!!selectedSnomed[f.key]} onChange={e => setSelectedSnomed(p => ({ ...p, [f.key]: e.target.checked }))} style={{ accentColor: 'var(--purple)' }} />
-                      {f.label}
+                    <label key={f.key} style={checkField(f.key, !!selectedSnomed[f.key], true)} title={f.label}>
+                      <input type="checkbox" checked={!!selectedSnomed[f.key]} onChange={e => setSelectedSnomed(p => ({ ...p, [f.key]: e.target.checked }))} style={{ accentColor: 'var(--purple)', flexShrink: 0 }} />
+                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.label}</span>
                     </label>
                   ))}
                 </div>
