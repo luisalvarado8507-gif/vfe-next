@@ -1,15 +1,18 @@
 'use client';
 import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import { CHAPS } from '@/lib/capitulos-tree';
 
 export default function Sidebar() {
   const { user, logout } = useAuth();
   const router = useRouter();
-  const [openCap, setOpenCap] = useState<string | null>(null);
-  const [activeCap, setActiveCap] = useState<string | null>(null);
+  const pathname = usePathname();
+  // Detect active cap from URL e.g. /capitulos/c01
+  const capFromUrl = pathname?.match(/\/capitulos\/(c\w+)/)?.[1] || null;
+  const [openCap, setOpenCap] = useState<string | null>(capFromUrl);
+  const [activeCap, setActiveCap] = useState<string | null>(capFromUrl);
   const [activeSub, setActiveSub] = useState<string | null>(null);
 
   const handleLogout = async () => {
