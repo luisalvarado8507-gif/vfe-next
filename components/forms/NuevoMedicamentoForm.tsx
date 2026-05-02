@@ -35,11 +35,11 @@ const FF_OPTIONS = [
   { group: 'Rectales / Vaginales', items: [['supositorio','Supositorio (Suppository)'],['óvulo vaginal','Óvulo vaginal (Pessary)'],['crema vaginal','Crema vaginal']] },
 ];
 
-const TABS = ['🧬 Identificación', '💊 Presentación', '📋 Registro', '🩺 Clínica'];
+const TABS = ['Identificación', 'Presentación', 'Registro sanitario', 'Clínica'];
 
-const inp: React.CSSProperties = { border: '1.5px solid var(--bdr)', borderRadius: 8, padding: '9px 12px', background: 'var(--bg2)', fontFamily: 'var(--sans)', fontSize: 13, outline: 'none', width: '100%', color: 'var(--tx)' };
-const lbl: React.CSSProperties = { fontSize: 11, fontWeight: 700, color: 'var(--tx3)', letterSpacing: '0.8px', textTransform: 'uppercase', display: 'block', marginBottom: 4 };
-const sec: React.CSSProperties = { fontWeight: 700, fontSize: 11, color: 'var(--gdp)', margin: '20px 0 12px', padding: '8px 12px', background: 'var(--gg, #f0fced)', borderLeft: '3px solid var(--green)', borderRadius: '0 8px 8px 0', display: 'flex', alignItems: 'center', gap: 8, letterSpacing: '.3px' };
+const inp: React.CSSProperties = { border: '1.5px solid var(--bdr)', borderRadius: 'var(--r)', padding: '9px 12px', background: 'var(--bg2)', fontFamily: 'var(--sans)', fontSize: 13, outline: 'none', width: '100%', color: 'var(--tx)', transition: 'border-color .15s, box-shadow .15s' };
+const lbl: React.CSSProperties = { fontSize: 10, fontWeight: 700, color: 'var(--tx3)', letterSpacing: '1px', textTransform: 'uppercase', display: 'block', marginBottom: 4, fontFamily: 'var(--mono)' };
+const sec: React.CSSProperties = { fontWeight: 600, fontSize: 12, color: 'var(--green)', margin: '20px 0 12px', padding: '8px 14px', background: 'var(--bg3)', borderLeft: '3px solid var(--green)', borderRadius: '0 var(--r) var(--r) 0', display: 'flex', alignItems: 'center', gap: 8, letterSpacing: '.3px' };
 const badge = (bg: string, color = '#fff'): React.CSSProperties => ({ fontSize: 10, fontFamily: 'var(--mono)', background: bg, color, padding: '2px 8px', borderRadius: 20, fontWeight: 600 });
 
 export default function NuevoMedicamentoForm({ initialData, editId }: { initialData?: Record<string, string>; editId?: string }) {
@@ -251,7 +251,7 @@ export default function NuevoMedicamentoForm({ initialData, editId }: { initialD
   };
 
   return (
-    <div style={{ fontFamily: 'var(--sans)', color: 'var(--tx)' }}>
+    <div style={{ fontFamily: 'var(--sans)', color: 'var(--tx)', background: 'var(--bg)' }}>
 
       {/* TABS */}
       <div style={{ display: 'flex', borderBottom: '2px solid var(--bdr)', marginBottom: 0 }}>
