@@ -47,11 +47,22 @@ export default function NuevoMedicamentoForm({ initialData, editId }: { initialD
   const router = useRouter();
   const [tab, setTab] = useState(0);
 
-  const [tipoPA, setTipoPA] = useState<'mono' | 'combo'>('mono');
-  const [comboPAs, setComboPAs] = useState([
-    { vtm: '', conc: '', unit: 'mg' },
-    { vtm: '', conc: '', unit: 'mg' },
-  ]);
+  // Detectar combinación al cargar initialData
+  const initEsCombo = !!(initialData?.vtm && initialData.vtm.includes(' + '));
+  const initComboPAs = initEsCombo
+    ? (() => {
+        const pas = (initialData.vtm || '').split(' + ').map((p) => p.trim());
+        const concs = (initialData.conc || '').split(' + ').map((p) => p.trim());
+        return pas.map((p, i) => ({
+          vtm: p,
+          conc: concs[i] ? concs[i].replace(/[a-zA-Z]+$/, '').trim() : '',
+          unit: concs[i] ? (concs[i].match(/[a-zA-Z]+$/)?.[0] || 'mg') : 'mg',
+        }));
+      })()
+    : [{ vtm: '', conc: '', unit: 'mg' }, { vtm: '', conc: '', unit: 'mg' }];
+
+  const [tipoPA, setTipoPA] = useState<'mono' | 'combo'>(initEsCombo ? 'combo' : 'mono');
+  const [comboPAs, setComboPAs] = useState(initComboPAs);
   const [vtm, setVtm] = useState(initialData?.vtm || '');
   const [conc, setConc] = useState(initialData?.conc || '');
   const [concUnit, setConcUnit] = useState(initialData?.concUnit || 'mg');
