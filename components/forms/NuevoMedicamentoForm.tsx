@@ -98,6 +98,7 @@ export default function NuevoMedicamentoForm({ initialData, editId }: { initialD
   const [units, setUnits] = useState(initialData?.units || '');
   const [envase, setEnvase] = useState(initialData?.envase || '');
   const [rs, setRs] = useState(initialData?.rs || '');
+  const [cum, setCum] = useState(initialData?.cum || '');
   const [estado, setEstado] = useState(initialData?.estado || 'arcsa_pendiente');
   const [upres, setUpres] = useState(initialData?.upres || '');
   const [vol, setVol] = useState(initialData?.vol || '');
@@ -231,7 +232,7 @@ export default function NuevoMedicamentoForm({ initialData, editId }: { initialD
         snomed_vtm_code: snomedVTM?.code || '', snomed_ff_code: snomedFF?.code || '',
         upres, vol, volUnit, iso11238Forma, iso11238Estado,
         ...farmPrecios,
-        rsTitular, rsTipo, rsFecha, rsVence, rsPais, rsCondicion, rsProc,
+        cum, rsTitular, rsTipo, rsFecha, rsVence, rsPais, rsCondicion, rsProc,
         rsFabricante, rsPaisFab, rsImportador,
         phpidL1, phpidL2, phpidL3, phpid, gtin, cnmbCodigo, pmc, rsObs,
         clinData: clin,
@@ -664,6 +665,11 @@ export default function NuevoMedicamentoForm({ initialData, editId }: { initialD
               <div>
                 <label style={lbl}>N° REGISTRO SANITARIO <span style={{ color:'red' }}>*</span></label>
                 <input style={inp} placeholder="Ej. ARCSA-01-2024-123456" value={rs} onChange={e => setRs(e.target.value)} />
+              </div>
+              <div>
+                <label style={lbl}>CUM — CÓDIGO ÚNICO DE MEDICAMENTO <span style={{ fontSize:10,fontWeight:400,color:'var(--tx4)',textTransform:'none',letterSpacing:0 }}>ARCSA</span></label>
+                <input style={inp} placeholder="Ej. 1234567890" value={cum} onChange={e => setCum(e.target.value)} />
+                <span style={{ fontSize:10, color:'var(--tx4)', marginTop:3, display:'block' }}>Código único asignado por ARCSA</span>
               </div>
               <div>
                 <label style={lbl}>TITULAR DEL RS <span style={{ fontSize:10,fontWeight:400,color:'var(--tx4)',textTransform:'none',letterSpacing:0 }}>ISO 11615</span></label>
