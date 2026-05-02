@@ -57,18 +57,18 @@ const SNOMED_FIELDS = [
 ];
 
 const G = {
-  wrap: { minHeight: '100vh', background: '#f4f9f4', display: 'flex', fontFamily: "'Plus Jakarta Sans', sans-serif" } as React.CSSProperties,
-  main: { flex: 1, marginLeft: 280, padding: '24px 32px' } as React.CSSProperties,
-  topbar: { display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 } as React.CSSProperties,
-  card: { background: '#fff', border: '1.5px solid #D0ECC6', borderRadius: 14, padding: '20px 24px', marginBottom: 16 } as React.CSSProperties,
-  cardTitle: { fontSize: 14, fontWeight: 700, color: '#2d6a2d', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 } as React.CSSProperties,
-  cardSub: { fontSize: 12, color: '#888', marginBottom: 16 } as React.CSSProperties,
-  btn: { padding: '10px 20px', borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: 'pointer', border: 'none', transition: 'opacity .15s' } as React.CSSProperties,
-  btnGreen: { background: '#3DDB18', color: '#fff' } as React.CSSProperties,
-  btnOutline: { background: '#fff', color: '#2d6a2d', border: '1.5px solid #3DDB18' } as React.CSSProperties,
-  label: { fontSize: 10, fontWeight: 700, color: '#7aaa6a', letterSpacing: 1, fontFamily: 'monospace', textTransform: 'uppercase' as const, marginBottom: 6, display: 'block' },
-  select: { width: '100%', padding: '9px 12px', border: '1.5px solid #D0ECC6', borderRadius: 8, fontSize: 13, background: '#fff', color: '#1a3a1a', outline: 'none' } as React.CSSProperties,
-  input: { width: '100%', padding: '9px 12px', border: '1.5px solid #D0ECC6', borderRadius: 8, fontSize: 13, background: '#fff', color: '#1a3a1a', outline: 'none', boxSizing: 'border-box' as const } as React.CSSProperties,
+  wrap:      { minHeight: '100vh', background: 'var(--bg)', display: 'flex', fontFamily: 'var(--sans)' } as React.CSSProperties,
+  main:      { flex: 1, marginLeft: 272, display: 'flex', flexDirection: 'column' as const },
+  topbar:    { display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 } as React.CSSProperties,
+  card:      { background: 'var(--bg2)', border: '1.5px solid var(--bdr)', borderRadius: 'var(--rl)', padding: '20px 24px', marginBottom: 16, boxShadow: 'var(--sh)' } as React.CSSProperties,
+  cardTitle: { fontSize: 13, fontWeight: 700, color: 'var(--green)', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 } as React.CSSProperties,
+  cardSub:   { fontSize: 12, color: 'var(--tx3)', marginBottom: 16 } as React.CSSProperties,
+  btn:       { padding: '10px 20px', borderRadius: 'var(--r)', fontSize: 13, fontWeight: 700, cursor: 'pointer', border: 'none', transition: 'all .15s', fontFamily: 'var(--sans)' } as React.CSSProperties,
+  btnGreen:  { background: 'var(--green)', color: '#fff' } as React.CSSProperties,
+  btnOutline:{ background: 'var(--bg2)', color: 'var(--green)', border: '1.5px solid var(--green)' } as React.CSSProperties,
+  label:     { fontSize: 10, fontWeight: 700, color: 'var(--tx3)', letterSpacing: 1, fontFamily: 'var(--mono)', textTransform: 'uppercase' as const, marginBottom: 6, display: 'block' },
+  select:    { width: '100%', padding: '9px 12px', border: '1.5px solid var(--bdr)', borderRadius: 'var(--r)', fontSize: 13, background: 'var(--bg2)', color: 'var(--tx)', outline: 'none', fontFamily: 'var(--sans)' } as React.CSSProperties,
+  input:     { width: '100%', padding: '9px 12px', border: '1.5px solid var(--bdr)', borderRadius: 'var(--r)', fontSize: 13, background: 'var(--bg2)', color: 'var(--tx)', outline: 'none', boxSizing: 'border-box' as const, fontFamily: 'var(--sans)' } as React.CSSProperties,
 };
 
 export default function ImportarExportar() {
@@ -467,7 +467,7 @@ th,td{border:1px solid #ccc;padding:4px 8px}th{background:#2d6a2d;color:#fff}</s
         </div>
 
       </main>
-    </div>
+        </div>
   );
 }
 
