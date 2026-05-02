@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminDb, adminAuth } from '@/lib/firebase-admin';
 import { Medicamento } from '@/types/medicamento';
-import type { Query, CollectionReference } from 'firebase-admin/firestore';
+import type { Query } from 'firebase-admin/firestore';
 
 async function verificarAuth(req: NextRequest) {
   const token = req.headers.get('Authorization')?.replace('Bearer ', '');
@@ -21,22 +21,53 @@ async function verificarEditor(req: NextRequest) {
 
 function mapDoc(doc: FirebaseFirestore.QueryDocumentSnapshot) {
   const d = doc.data();
+  const data = d.data || {};
   return {
     docId: doc.id,
-    id: d.data?.id || doc.id,
-    vtm: d.data?.vtm || d.vtm || '',
-    laboratorio: d.data?.laboratorio || d.laboratorio || '',
-    ff: d.data?.ff || '',
-    conc: d.data?.conc || '',
+    id: data.id || doc.id,
+    vtm: data.vtm || d.vtm || '',
+    nombre: data.nombre || d.amp || '',
+    conc: data.conc || '',
+    ff: data.ff || '',
+    via: data.via || '',
+    vias: Array.isArray(data.vias) ? data.vias.join(', ') : (data.via || ''),
+    laboratorio: data.laboratorio || d.laboratorio || '',
+    rs: data.rs || '',
+    units: data.units || '',
+    envase: data.envase || '',
+    pu: data.pu || '',
+    pp: data.pp || '',
+    generico: data.generico || '',
+    cnmb: data.cnmb || '',
+    atc: data.atc || '',
+    atclbl: data.atclbl || '',
+    chapId: data.chapId || '',
+    subId: data.subId || '',
     estado: d.estado || 'pendiente',
-    chapId: d.data?.chapId || '',
-    hasPrices: !!(d.data?.farmPrices && Object.values(d.data.farmPrices as Record<string, number>).some((v) => v > 0)),
-    amp: d.data?.amp || d.amp || '',
-    vmp: d.data?.vmp || d.vmp || '',
-    generico: d.data?.generico || '',
-    nombre: d.data?.nombre || '',
-    vmpp: d.data?.vmpp || '',
-    ampp: d.data?.ampp || '',
+    vmp: data.vmp || d.vmp || '',
+    vmpp: data.vmpp || '',
+    amp: data.amp || d.amp || '',
+    ampp: data.ampp || '',
+    rango: data.rango || '',
+    hasPrices: !!(data.farmPrices && Object.values(data.farmPrices as Record<string, number>).some((v) => v > 0)),
+    farmPrices: data.farmPrices || {},
+    rsTitular: data.rsTitular || '',
+    rsTipo: data.rsTipo || '',
+    rsFecha: data.rsFecha || '',
+    rsVence: data.rsVence || '',
+    rsCondicion: data.rsCondicion || '',
+    rsFabricante: data.rsFabricante || '',
+    rsPaisFab: data.rsPaisFab || '',
+    rsImportador: data.rsImportador || '',
+    pmc: data.pmc || '',
+    gtin: data.gtin || '',
+    phpid: data.phpid || '',
+    phpidL1: data.phpidL1 || '',
+    phpidL2: data.phpidL2 || '',
+    phpidL3: data.phpidL3 || '',
+    esCombo: data.esCombo || false,
+    comboData: data.comboData || null,
+    clinData: data.clinData || {},
   };
 }
 
