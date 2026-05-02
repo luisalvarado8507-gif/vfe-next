@@ -25,6 +25,7 @@ export default function Dashboard() {
   const [stats, setStats] = useState<Stats>({ total: 0, principiosActivos: 0, genericos: 0, cnmb: 0 });
   const [recientes, setRecientes] = useState<RecentMed[]>([]);
   const [busqueda, setBusqueda] = useState('');
+  const [tipoB, setTipoB] = useState<'todo' | 'pa' | 'comercial' | 'atc' | 'lab'>('todo');
   const [loading, setLoading] = useState(true);
   const { getToken, user, loading: authLoading } = useAuth();
   const router = useRouter();
@@ -37,26 +38,18 @@ export default function Dashboard() {
       try {
         const token = await getToken();
         if (!token) return;
-
-        // Stats from avances API
-        const statsRes = await fetch('/api/avances', {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const [statsRes, recentRes] = await Promise.all([
+          fetch('/api/avances', { headers: { Authorization: `Bearer ${token}` } }),
+          fetch('/api/busqueda?estado=autorizado&limit=20', { headers: { Authorization: `Bearer ${token}` } }),
+        ]);
         const statsData = await statsRes.json();
-
-        // Recent: only authorized meds via busqueda API
-        const recentRes = await fetch('/api/busqueda?estado=autorizado&limit=20', {
-          headers: { Authorization: `Bearer ${token}` }
-        });
         const recentData = await recentRes.json();
-
         setStats({
           total: statsData.autorizados ?? 0,
           principiosActivos: statsData.principiosActivos ?? 0,
           genericos: statsData.genericos ?? 0,
           cnmb: statsData.cnmb ?? 0,
         });
-
         setRecientes((recentData.medicamentos || []).slice(0, 20).map((m: Record<string, string>) => ({
           docId: m.docId || m.id,
           nombre: m.nombre || m.vtm || '',
@@ -73,141 +66,241 @@ export default function Dashboard() {
 
   const handleBuscar = (e: React.FormEvent) => {
     e.preventDefault();
-    if (busqueda.trim()) router.push(`/medicamentos?q=${encodeURIComponent(busqueda)}`);
+    if (busqueda.trim()) router.push(`/medicamentos?q=${encodeURIComponent(busqueda)}&tipo=${tipoB}`);
   };
 
   const estadoBadge = (estado: string) => {
-    if (estado === 'autorizado') return { bg: '#166534', label: 'Revisado' };
-    if (estado === 'arcsa_pendiente') return { bg: '#D97706', label: 'En revisión' };
-    if (estado === 'suspendido') return { bg: '#DC2626', label: 'Suspendido' };
-    return { bg: '#6B7280', label: 'Pendiente' };
+    const map: Record<string, { bg: string; color: string; label: string }> = {
+      autorizado:      { bg: 'var(--estado-autorizado-bg)',  color: 'var(--estado-autorizado)',  label: 'Autorizado' },
+      arcsa_pendiente: { bg: 'var(--estado-pendiente-bg)',   color: 'var(--estado-pendiente)',   label: 'ARCSA pendiente' },
+      suspendido:      { bg: 'var(--estado-suspendido-bg)',  color: 'var(--estado-suspendido)',  label: 'Suspendido' },
+      retirado:        { bg: 'var(--estado-retirado-bg)',    color: 'var(--estado-retirado)',    label: 'Retirado' },
+    };
+    return map[estado] || { bg: 'var(--bg3)', color: 'var(--tx3)', label: estado };
   };
 
-  const S = {
-    app: { minHeight: '100vh', display: 'flex', background: 'var(--bg,#F5FAF3)', fontFamily: "var(--sans,'Plus Jakarta Sans',sans-serif)" } as React.CSSProperties,
-    wrap: { flex: 1, marginLeft: '280px', display: 'flex', flexDirection: 'column' as const },
-    topbar: { display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', borderBottom: '1.5px solid var(--bdr,#D0ECC6)', background: 'var(--bg2,#fff)', flexShrink: 0 } as React.CSSProperties,
-    topbarBtn: { display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', background: 'var(--bg3,#EDF7E8)', border: '1.5px solid var(--bdr,#D0ECC6)', borderRadius: '8px', fontSize: '13px', fontWeight: 600, color: 'var(--tx2,#3A5C30)', textDecoration: 'none' } as React.CSSProperties,
-    nuevoBtn: { background: 'var(--green,#3DDB18)', color: '#fff', padding: '7px 18px', borderRadius: '8px', fontSize: '13px', fontWeight: 700, textDecoration: 'none' } as React.CSSProperties,
-    main: { flex: 1, padding: '28px 36px', overflowY: 'auto' as const },
-    mono: { fontFamily: "var(--mono,'DM Mono',monospace)" },
-  };
+  const statCards = [
+    { label: 'Medicamentos', sub: 'registros autorizados', value: stats.total, accent: 'var(--green)' },
+    { label: 'Principios activos', sub: 'DCI distintos', value: stats.principiosActivos, accent: 'var(--blue)' },
+    { label: 'Genéricos', sub: 'medicamentos genéricos', value: stats.genericos, accent: 'var(--purple)' },
+    { label: 'CNMB', sub: 'medicamentos esenciales', value: stats.cnmb, accent: 'var(--amber)' },
+  ];
+
+  const tipoOpts: { key: typeof tipoB; label: string }[] = [
+    { key: 'todo',      label: 'Todo' },
+    { key: 'pa',        label: 'Principio activo' },
+    { key: 'comercial', label: 'Nombre comercial' },
+    { key: 'atc',       label: 'Código ATC' },
+    { key: 'lab',       label: 'Laboratorio' },
+  ];
 
   return (
-    <div style={S.app}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', fontFamily: 'var(--sans)' }}>
       <Sidebar />
-      <div style={S.wrap}>
+      <div style={{ flex: 1, marginLeft: '272px', display: 'flex', flexDirection: 'column' }}>
 
-        {/* TOPBAR */}
-        <div style={S.topbar}>
-          <Link href="/dashboard" style={S.topbarBtn}>🏠 Inicio</Link>
-          <span style={{ fontSize: '15px', fontWeight: 700, color: 'var(--tx,#0F2008)', marginLeft: '4px' }}>Dashboard</span>
-          <div style={{ flex: 1 }} />
-          <Link href="/medicamentos/nuevo" style={S.nuevoBtn}>+ Nuevo</Link>
-        </div>
+        {/* ── HERO BUSCADOR ── */}
+        <div style={{
+          background: 'var(--green-dark, #1B4332)',
+          padding: '32px 40px 28px',
+          position: 'relative',
+          overflow: 'hidden',
+        }}>
+          {/* Decoración fondo */}
+          <div style={{ position: 'absolute', right: -60, top: -60, width: 300, height: 300, borderRadius: '50%', background: 'rgba(255,255,255,.03)', pointerEvents: 'none' }} />
+          <div style={{ position: 'absolute', right: 80, bottom: -80, width: 200, height: 200, borderRadius: '50%', background: 'rgba(116,198,157,.06)', pointerEvents: 'none' }} />
 
-        <main style={S.main}>
-
-          {/* HEADER */}
-          <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: '22px', gap: '16px', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: '20px' }}>
             <div>
-              <div style={{ fontSize: '10px', ...S.mono, color: 'var(--tx3,#7BAD6E)', letterSpacing: '2px', marginBottom: '4px' }}>VADEMECUM FARMACOTERAPÉUTICO</div>
-              <div style={{ fontSize: '22px', fontWeight: 800, color: 'var(--tx,#0F2008)', letterSpacing: '-0.5px', lineHeight: 1 }}>
-                El Libro Verde de los Medicamentos <span style={{ color: 'var(--green,#3DDB18)' }}>®</span>
+              <div style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'rgba(255,255,255,.4)', letterSpacing: '2px', marginBottom: '6px' }}>
+                VADEMÉCUM FARMACOTERAPÉUTICO — ECUADOR
               </div>
+              <h1 style={{ fontSize: '22px', fontWeight: 700, color: '#fff', letterSpacing: '-0.3px', lineHeight: 1.2 }}>
+                El Libro Verde de los Medicamentos
+              </h1>
             </div>
-            <div style={{ fontSize: '11px', color: 'var(--tx4,#B0CFA8)', ...S.mono, textAlign: 'right', lineHeight: 1.7 }}>
-              Ecuador<br />{fecha}
+            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,.35)', fontFamily: 'var(--mono)', textAlign: 'right', lineHeight: 1.8 }}>
+              {fecha}
             </div>
           </div>
 
-          {/* BUSCADOR */}
-          <form onSubmit={handleBuscar} style={{ marginBottom: '24px' }}>
-            <div style={{ display: 'flex', borderRadius: '12px', overflow: 'hidden', border: '1.5px solid var(--bdr,#D0ECC6)', background: 'var(--bg2,#fff)', boxShadow: '0 4px 20px rgba(15,32,8,.10)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', padding: '0 16px', borderRight: '2px solid var(--bdr,#D0ECC6)' }}>
-                <svg width="17" height="17" viewBox="0 0 17 17" fill="none">
-                  <circle cx="7" cy="7" r="5.5" stroke="var(--tx3,#7BAD6E)" strokeWidth="1.8"/>
-                  <path d="M11.5 11.5L15 15" stroke="var(--tx3,#7BAD6E)" strokeWidth="1.8" strokeLinecap="round"/>
+          {/* Buscador */}
+          <form onSubmit={handleBuscar}>
+            <div style={{
+              display: 'flex',
+              background: '#fff',
+              borderRadius: 'var(--rl)',
+              overflow: 'hidden',
+              boxShadow: '0 8px 32px rgba(0,0,0,.2)',
+              marginBottom: '12px',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', padding: '0 16px', borderRight: '1.5px solid var(--bdr)' }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--tx3)" strokeWidth="2" strokeLinecap="round">
+                  <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
                 </svg>
               </div>
-              <input type="text" placeholder="Buscar medicamento, principio activo, laboratorio, código ATC…"
-                style={{ flex: 1, border: 'none', outline: 'none', fontSize: '14px', color: 'var(--tx)', padding: '13px 14px', background: 'transparent', fontFamily: 'inherit' }}
-                value={busqueda} onChange={e => setBusqueda(e.target.value)} />
-              <button type="submit" style={{ padding: '0 22px', background: 'var(--green,#3DDB18)', color: '#fff', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 700, fontFamily: 'inherit' }}>
+              <input
+                type="text"
+                value={busqueda}
+                onChange={e => setBusqueda(e.target.value)}
+                placeholder="Buscar medicamento, principio activo, laboratorio, código ATC…"
+                style={{
+                  flex: 1, border: 'none', outline: 'none',
+                  fontSize: '14px', padding: '14px 12px',
+                  background: 'transparent', color: 'var(--tx)',
+                  fontFamily: 'var(--sans)',
+                }}
+              />
+              <button type="submit" style={{
+                background: 'var(--green, #2D6A4F)', color: '#fff',
+                border: 'none', padding: '0 24px',
+                fontSize: '13px', fontWeight: 600,
+                cursor: 'pointer', fontFamily: 'var(--sans)',
+                transition: 'background .15s',
+              }}
+                onMouseEnter={e => (e.currentTarget.style.background = 'var(--green-dark, #1B4332)')}
+                onMouseLeave={e => (e.currentTarget.style.background = 'var(--green, #2D6A4F)')}>
                 Buscar
               </button>
             </div>
-          </form>
 
-          {/* STATS */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr auto', gap: '16px', marginBottom: '28px' }}>
-            {[
-              { label: 'MEDICAMENTOS', sub: 'registros totales', value: stats.total, border: 'var(--green,#3DDB18)' },
-              { label: 'PRINCIPIOS ACTIVOS', sub: 'DCI distintos', value: stats.principiosActivos, border: 'var(--blue,#2563EB)' },
-              { label: 'GENÉRICOS', sub: 'medicamentos genéricos', value: stats.genericos, border: 'var(--purple,#7C3AED)' },
-              { label: 'CNMB', sub: 'medicamentos esenciales', value: stats.cnmb, border: 'var(--amber,#D97706)' },
-            ].map(s => (
-              <div key={s.label} style={{ background: 'var(--bg2,#fff)', border: '1.5px solid var(--bdr,#D0ECC6)', borderLeft: `4px solid ${s.border}`, borderRadius: '12px', padding: '18px 20px' }}>
-                <div style={{ fontSize: '11px', ...S.mono, color: 'var(--tx3,#7BAD6E)', letterSpacing: '1px', marginBottom: '8px' }}>{s.label}</div>
-                <div style={{ fontSize: '32px', fontWeight: 800, color: 'var(--tx,#0F2008)', lineHeight: 1 }}>
+            {/* Tipo de búsqueda */}
+            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+              {tipoOpts.map(opt => (
+                <button key={opt.key} type="button" onClick={() => setTipoB(opt.key)} style={{
+                  padding: '4px 12px', borderRadius: '20px', fontSize: '11px', fontWeight: 500,
+                  cursor: 'pointer', border: 'none', transition: 'all .13s',
+                  background: tipoB === opt.key ? 'rgba(255,255,255,.2)' : 'rgba(255,255,255,.08)',
+                  color: tipoB === opt.key ? '#fff' : 'rgba(255,255,255,.6)',
+                  outline: tipoB === opt.key ? '1px solid rgba(255,255,255,.3)' : 'none',
+                }}>
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </form>
+        </div>
+
+        <main style={{ flex: 1, padding: '28px 40px', overflowY: 'auto' }}>
+
+          {/* ── STATS ── */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr) auto', gap: '14px', marginBottom: '28px', alignItems: 'stretch' }}>
+            {statCards.map(s => (
+              <div key={s.label} style={{
+                background: 'var(--bg2)', border: '1.5px solid var(--bdr)',
+                borderTop: `3px solid ${s.accent}`,
+                borderRadius: 'var(--rl)', padding: '16px 18px',
+                boxShadow: 'var(--sh)',
+              }}>
+                <div style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--tx3)', letterSpacing: '1px', marginBottom: '10px', textTransform: 'uppercase' }}>
+                  {s.label}
+                </div>
+                <div style={{ fontSize: '30px', fontWeight: 700, color: 'var(--tx)', lineHeight: 1 }}>
                   {loading ? '—' : s.value.toLocaleString('es-EC')}
                 </div>
-                <div style={{ fontSize: '11px', color: 'var(--tx3,#7BAD6E)', marginTop: '4px' }}>{s.sub}</div>
+                <div style={{ fontSize: '11px', color: 'var(--tx4)', marginTop: '5px' }}>{s.sub}</div>
               </div>
             ))}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <Link href="/medicamentos/nuevo" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 16px', background: 'var(--green,#3DDB18)', color: '#fff', borderRadius: '8px', fontSize: '13px', fontWeight: 700, textDecoration: 'none', whiteSpace: 'nowrap' }}>
-                ＋ Nuevo medicamento
+
+            {/* Acciones rápidas */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', minWidth: '180px' }}>
+              <Link href="/medicamentos/nuevo" style={{
+                display: 'flex', alignItems: 'center', gap: '8px',
+                padding: '10px 16px', background: 'var(--green, #2D6A4F)',
+                color: '#fff', borderRadius: 'var(--r)',
+                fontSize: '13px', fontWeight: 600, textDecoration: 'none',
+                transition: 'background .15s',
+              }}
+                onMouseEnter={e => (e.currentTarget.style.background = 'var(--green-dark, #1B4332)')}
+                onMouseLeave={e => (e.currentTarget.style.background = 'var(--green, #2D6A4F)')}>
+                <span style={{ fontSize: '14px' }}>＋</span> Nuevo medicamento
               </Link>
-              <Link href="/medicamentos" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '9px 16px', border: '1.5px solid var(--bdr,#D0ECC6)', color: 'var(--tx,#0F2008)', background: 'var(--bg2,#fff)', borderRadius: '8px', fontSize: '13px', fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap' }}>
-                📋 Base de datos
+              <Link href="/medicamentos" style={{
+                display: 'flex', alignItems: 'center', gap: '8px',
+                padding: '9px 16px', background: 'var(--bg2)',
+                color: 'var(--tx2)', border: '1.5px solid var(--bdr)',
+                borderRadius: 'var(--r)', fontSize: '13px', fontWeight: 500,
+                textDecoration: 'none', transition: 'all .15s',
+              }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--green)'; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--bdr)'; }}>
+                <span>⊞</span> Base de datos
               </Link>
-              <Link href="/io" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '9px 16px', border: '1.5px solid var(--bdr,#D0ECC6)', color: 'var(--tx,#0F2008)', background: 'var(--bg2,#fff)', borderRadius: '8px', fontSize: '13px', fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap' }}>
-                ⬇ Importar / Exportar
+              <Link href="/io" style={{
+                display: 'flex', alignItems: 'center', gap: '8px',
+                padding: '9px 16px', background: 'var(--bg2)',
+                color: 'var(--tx2)', border: '1.5px solid var(--bdr)',
+                borderRadius: 'var(--r)', fontSize: '13px', fontWeight: 500,
+                textDecoration: 'none', transition: 'all .15s',
+              }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--green)'; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--bdr)'; }}>
+                <span>⬇</span> Importar / Exportar
               </Link>
             </div>
           </div>
 
-          {/* REGISTROS RECIENTES */}
+          {/* ── REGISTROS RECIENTES ── */}
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
-              <div style={{ fontSize: '11px', ...S.mono, color: 'var(--tx3,#7BAD6E)', letterSpacing: '1px' }}>REGISTROS RECIENTES</div>
-              <div style={{ flex: 1, height: '1px', background: 'var(--bdr,#D0ECC6)' }} />
-              <Link href="/medicamentos" style={{ fontSize: '12px', fontWeight: 600, padding: '4px 12px', border: '1.5px solid var(--bdr,#D0ECC6)', color: 'var(--tx2,#3A5C30)', background: 'var(--bg2,#fff)', borderRadius: '8px', textDecoration: 'none' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '14px' }}>
+              <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'var(--tx3)', letterSpacing: '1.5px', textTransform: 'uppercase' }}>
+                Registros recientes
+              </span>
+              <div style={{ flex: 1, height: '1px', background: 'var(--bdr)' }} />
+              <Link href="/medicamentos" style={{
+                fontSize: '12px', fontWeight: 600,
+                padding: '4px 12px', border: '1.5px solid var(--bdr)',
+                color: 'var(--tx2)', background: 'var(--bg2)',
+                borderRadius: 'var(--r)', textDecoration: 'none',
+                transition: 'all .15s',
+              }}>
                 Ver todos →
               </Link>
             </div>
-            <div style={{ borderRadius: '12px', overflow: 'hidden', border: '1.5px solid var(--bdr,#D0ECC6)' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+
+            <div style={{ background: 'var(--bg2)', border: '1.5px solid var(--bdr)', borderRadius: 'var(--rl)', overflow: 'hidden', boxShadow: 'var(--sh)' }}>
+              <table className="med-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                 <thead>
-                  <tr style={{ background: 'var(--bg3,#EDF7E8)' }}>
-                    {['NOMBRE COMERCIAL', 'PRINCIPIO ACTIVO', 'LABORATORIO', 'ESTADO'].map(h => (
-                      <th key={h} style={{ textAlign: 'left', padding: '10px 16px', fontSize: '11px', fontWeight: 700, color: 'var(--tx3,#7BAD6E)', letterSpacing: '0.5px', ...S.mono }}>{h}</th>
+                  <tr>
+                    {['Nombre comercial', 'Principio activo', 'Concentración', 'Laboratorio', 'Estado'].map(h => (
+                      <th key={h} style={{ textAlign: 'left', padding: '10px 16px', fontSize: '10px', fontWeight: 700, color: 'var(--tx3)', letterSpacing: '0.8px', textTransform: 'uppercase', fontFamily: 'var(--mono)', background: 'var(--bg3)', borderBottom: '1.5px solid var(--bdr)' }}>
+                        {h}
+                      </th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {loading ? (
-                    <tr><td colSpan={4} style={{ textAlign: 'center', padding: '32px', color: 'var(--tx4,#B0CFA8)' }}>Cargando...</td></tr>
+                    <tr><td colSpan={5} style={{ textAlign: 'center', padding: '32px', color: 'var(--tx4)' }}>Cargando...</td></tr>
                   ) : recientes.length === 0 ? (
-                    <tr><td colSpan={4} style={{ textAlign: 'center', padding: '32px', color: 'var(--tx4,#B0CFA8)' }}>No hay medicamentos autorizados aún</td></tr>
+                    <tr><td colSpan={5} style={{ textAlign: 'center', padding: '40px', color: 'var(--tx4)' }}>
+                      <div style={{ fontSize: '24px', marginBottom: '8px' }}>💊</div>
+                      <div style={{ fontWeight: 600, marginBottom: '4px' }}>No hay medicamentos autorizados aún</div>
+                      <div style={{ fontSize: '12px' }}>Revisa y autoriza medicamentos para que aparezcan aquí</div>
+                    </td></tr>
                   ) : recientes.map((m, i) => {
                     const badge = estadoBadge(m.estado);
                     return (
-                      <tr key={m.docId} onClick={() => router.push(`/medicamentos/${m.docId}`)}
-                        style={{ background: i % 2 === 0 ? 'var(--bg2,#fff)' : 'var(--bg3,#EDF7E8)', borderTop: '1px solid var(--bdr,#D0ECC6)', cursor: 'pointer' }}
-                        onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'rgba(61,219,24,.07)'}
-                        onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = i % 2 === 0 ? 'var(--bg2,#fff)' : 'var(--bg3,#EDF7E8)'}>
-                        <td style={{ padding: '10px 16px', fontWeight: 600, color: 'var(--tx,#0F2008)', maxWidth: '320px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <tr key={m.docId}
+                        onClick={() => router.push(`/medicamentos/${m.docId}`)}
+                        style={{ cursor: 'pointer', transition: 'background .1s', background: i % 2 === 0 ? 'var(--bg2)' : 'var(--bg)' }}
+                        onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--bg3)'}
+                        onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = i % 2 === 0 ? 'var(--bg2)' : 'var(--bg)'}>
+                        <td style={{ padding: '10px 16px', fontWeight: 600, color: 'var(--tx)', maxWidth: '260px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', borderTop: '1px solid var(--bdr)' }}>
                           {m.nombre || m.vtm}
                         </td>
-                        <td style={{ padding: '10px 16px', color: 'var(--tx,#0F2008)' }}>
-                          {m.vtm} <small style={{ color: 'var(--tx3,#7BAD6E)' }}>{m.conc}</small>
+                        <td style={{ padding: '10px 16px', color: 'var(--tx2)', borderTop: '1px solid var(--bdr)' }}>
+                          {m.vtm} {m.conc && <small style={{ color: 'var(--tx3)', marginLeft: '4px' }}>{m.conc}</small>}
                         </td>
-                        <td style={{ padding: '10px 16px', color: 'var(--tx3,#7BAD6E)', fontSize: '12px' }}>{m.laboratorio}</td>
-                        <td style={{ padding: '10px 16px' }}>
-                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '12px', fontWeight: 700, padding: '3px 10px', borderRadius: '20px', background: badge.bg, color: '#fff', whiteSpace: 'nowrap' }}>
-                            • {badge.label}
+                        <td style={{ padding: '10px 16px', color: 'var(--tx3)', fontFamily: 'var(--mono)', fontSize: '12px', borderTop: '1px solid var(--bdr)' }}>
+                          {m.conc || '—'}
+                        </td>
+                        <td style={{ padding: '10px 16px', color: 'var(--tx3)', fontSize: '12px', borderTop: '1px solid var(--bdr)' }}>
+                          {m.laboratorio}
+                        </td>
+                        <td style={{ padding: '10px 16px', borderTop: '1px solid var(--bdr)' }}>
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: 600, padding: '3px 10px', borderRadius: '20px', background: badge.bg, color: badge.color, whiteSpace: 'nowrap' }}>
+                            {badge.label}
                           </span>
                         </td>
                       </tr>
