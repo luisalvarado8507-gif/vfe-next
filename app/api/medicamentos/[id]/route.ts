@@ -1,6 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { adminDb } from '@/lib/firebase-admin';
-import { verificarAuth } from '@/lib/auth-server';
+import { adminDb, adminAuth } from '@/lib/firebase-admin';
+
+async function verificarAuth(req: NextRequest) {
+  const token = req.headers.get('Authorization')?.replace('Bearer ', '');
+  if (!token) return null;
+  try {
+    return await adminAuth.verifyIdToken(token);
+  } catch {
+    return null;
+  }
+}
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const user = await verificarAuth(req);
@@ -9,24 +18,24 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     const { id } = await params;
 
     // Intento 1: buscar por doc ID de Firestore
-    let doc = await adminDb.collection('medicamentos').doc(id).get();
-    
-    // Intento 2: si no existe, buscar por campo id interno
-    if (!doc.exists) {
+    let docSnap = await adminDb.collection('medicamentos').doc(id).get();
+
+    // Intento 2: si no existe, buscar por campo data.id interno
+    if (!docSnap.exists) {
       const snap = await adminDb.collection('medicamentos')
         .where('data.id', '==', id)
         .limit(1)
         .get();
-      if (!snap.empty) doc = snap.docs[0] as any;
+      if (!snap.empty) docSnap = snap.docs[0] as any;
     }
 
-    if (!doc.exists) return NextResponse.json({ error: 'No encontrado' }, { status: 404 });
+    if (!docSnap.exists) return NextResponse.json({ error: 'No encontrado' }, { status: 404 });
 
     return NextResponse.json({
       medicamento: {
-        id: doc.id,
-        ...doc.data()?.data,
-        estado: doc.data()?.estado,
+        id: docSnap.id,
+        ...docSnap.data()?.data,
+        estado: docSnap.data()?.estado,
       }
     });
   } catch(e) {
