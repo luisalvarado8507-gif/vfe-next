@@ -79,7 +79,7 @@ export default function Arbol() {
       const vtm = m.vtm || '(Sin VTM)';
       const vmp = m.vmp || `${vtm} ${m.conc || ''} ${m.ff || ''}`.trim();
       const vmpp = m.vmpp || '__';
-      const amp = m.nombre || m.vtm || '';
+      const amp = m.amp || m.nombre || m.vtm || '';
       const lab = m.laboratorio || '';
 
       if (!t[vtm]) t[vtm] = { label: vtm, esCombo: m.esCombo === 'true', vmps: {} };
