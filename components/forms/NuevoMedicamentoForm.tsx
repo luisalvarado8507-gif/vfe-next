@@ -143,6 +143,7 @@ export default function NuevoMedicamentoForm({ initialData, editId }: { initialD
   const [snomedFF, setSnomedFF] = useState<{code:string;term:string}|null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
 
   useEffect(() => { 
     const v = tipoPA === 'mono' ? vtm : comboPAs[0]?.vtm || '';
@@ -164,7 +165,61 @@ export default function NuevoMedicamentoForm({ initialData, editId }: { initialD
   const toggleVia = (v: string) => setVias(prev => prev.includes(v) ? prev.filter(x => x !== v) : [...prev, v]);
 
   const handleGuardar = async (marcarRevisado = false) => {
-    if (!vtm || !lab || !ff || !concLabel) { setError('Completa los campos obligatorios'); return; }
+    // ── Validaciones farmacológicas completas ──
+    const validationErrors: string[] = [];
+
+    // Campos obligatorios
+    if (!vtmLabel.trim()) validationErrors.push('El principio activo (VTM/DCI) es obligatorio');
+    if (!lab.trim()) validationErrors.push('El laboratorio/fabricante es obligatorio');
+    if (!ff) validationErrors.push('La forma farmacéutica es obligatoria');
+    if (!concLabel.trim()) validationErrors.push('La concentración/dosis es obligatoria');
+    if (!chapId) validationErrors.push('Debes asignar un capítulo terapéutico');
+    if (vias.length === 0) validationErrors.push('Indica al menos una vía de administración');
+
+    // Validar formato de concentración (debe contener números)
+    if (concLabel && !/d/.test(concLabel)) {
+      validationErrors.push('La concentración debe incluir un valor numérico (ej: 500 mg, 10 mg/ml)');
+    }
+
+    // Validar código ATC si se ingresó
+    if (atc && !/^[A-Z][0-9]{2}[A-Z]{2}[0-9]{2}$/.test(atc.trim())) {
+      validationErrors.push('El código ATC no tiene el formato correcto (ej: C07AB03)');
+    }
+
+    // Validar registro sanitario Ecuador (ARCSA) si se ingresó
+    if (rs && rs.trim().length > 0) {
+      const rsPatterns = [
+        /^d{4}-MEE-d{4}$/,      // Formato ARCSA Ecuador
+        /^d{4}-MIE-d{4}$/,
+        /^d{4}-MEP-d{4}$/,
+        /^d{4}-MEN-d{4}$/,
+        /^d{4}-MEB-d{4}$/,
+        /^[A-Z0-9-/]{4,30}$/,   // Formato genérico aceptable
+      ];
+      const rsValid = rsPatterns.some(p => p.test(rs.trim().toUpperCase()));
+      if (!rsValid) validationErrors.push('El número de registro sanitario no parece válido');
+    }
+
+    // Validar que principio activo esté en minúsculas (estándar DCI)
+    if (vtmLabel && vtmLabel !== vtmLabel.toLowerCase() && tipoPA === 'mono') {
+      validationErrors.push('El principio activo (DCI) debe escribirse en minúsculas (ej: amoxicilina, no Amoxicilina)');
+    }
+
+    // Validar combo: cada PA debe tener concentración
+    if (tipoPA === 'combo') {
+      const pasVacios = comboPAs.filter(p => p.vtm && !p.conc);
+      if (pasVacios.length > 0) validationErrors.push('Todos los principios activos de la combinación deben tener concentración');
+      const sinVtm = comboPAs.filter(p => !p.vtm.trim());
+      if (sinVtm.length > 0) validationErrors.push('Todos los principios activos de la combinación deben tener nombre');
+    }
+
+    if (validationErrors.length > 0) {
+      setError(validationErrors[0]); // Mostrar primer error
+      setValidationErrors(validationErrors);
+      return;
+    }
+    setValidationErrors([]);
+
     if (!isEditor) { setError('No tienes permisos de editor'); return; }
     setSaving(true); setError('');
     try {
@@ -952,7 +1007,23 @@ export default function NuevoMedicamentoForm({ initialData, editId }: { initialD
 
       </div>
 
-      {error && <p style={{ color: 'red', fontSize: 13, marginTop: 12 }}>{error}</p>}
+      {validationErrors.length > 0 && (
+        <div style={{ marginTop: 12, padding: '12px 16px', background: 'var(--red-bg, #FEE2E2)', border: '1.5px solid #FCA5A5', borderRadius: 'var(--r, 8px)' }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--red, #B91C1C)', marginBottom: 6 }}>
+            ⚠ Corrige los siguientes errores antes de guardar:
+          </div>
+          <ul style={{ paddingLeft: 16, margin: 0 }}>
+            {validationErrors.map((e, i) => (
+              <li key={i} style={{ fontSize: 12, color: 'var(--red, #B91C1C)', marginBottom: 2 }}>{e}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {error && validationErrors.length === 0 && (
+        <p style={{ color: 'var(--red, #B91C1C)', fontSize: 13, marginTop: 12, padding: '8px 12px', background: 'var(--red-bg, #FEE2E2)', borderRadius: 'var(--r, 8px)' }}>
+          ⚠ {error}
+        </p>
+      )}
 
       {/* BOTONES */}
       <div style={{ display: 'flex', gap: 12, marginTop: 20 }}>
