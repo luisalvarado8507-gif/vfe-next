@@ -78,7 +78,7 @@ export default function Arbol() {
     meds.forEach(m => {
       const vtm = m.vtm || '(Sin VTM)';
       const vmp = m.vmp || `${vtm} ${m.conc || ''} ${m.ff || ''}`.trim();
-      const vmpp = m.vmpp || '__';
+      const vmpp = m.vmpp || (m.units ? `${m.vmp || vtm} ${m.conc || ''}, ${m.units} ${m.envase || 'unidades'}`.trim() : '__');
       const amp = m.amp || m.nombre || m.vtm || '';
       const lab = m.laboratorio || '';
 
