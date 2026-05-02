@@ -3,6 +3,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import Sidebar from '@/components/layout/Sidebar';
+import Link from 'next/link';
 
 interface AMP {
   id: string;
@@ -13,34 +14,35 @@ interface AMP {
   generico: string;
 }
 interface VMPP { label: string; amps: AMP[]; }
-interface VMP { label: string; ff: string; vmpps: Record<string, VMPP>; }
+interface VMP  { label: string; ff: string; vmpps: Record<string, VMPP>; }
 interface VTMNode { label: string; esCombo: boolean; vmps: Record<string, VMP>; }
-
 type ArbolLevel = 'all' | 'vtm' | 'vmp' | 'amp';
 
-const BADGE: Record<string, { bg: string; label: string }> = {
-  'VTM':  { bg: '#1A6B08', label: 'VTM' },
-  'VMP':  { bg: '#2DB010', label: 'VMP' },
-  'VMPP': { bg: '#2563EB', label: 'VMPP' },
-  'AMP':  { bg: '#7C3AED', label: 'AMP' },
+// ── Nivel badges ──────────────────────────────────────────────────────────
+const NIVEL_STYLES: Record<string, { bg: string; color: string }> = {
+  VTM:  { bg: '#1B4332', color: '#fff' },
+  VMP:  { bg: '#2D6A4F', color: '#fff' },
+  VMPP: { bg: '#1D4ED8', color: '#fff' },
+  AMP:  { bg: '#6D28D9', color: '#fff' },
 };
 
-const NivelBadge = ({ nivel }: { nivel: string }) => (
-  <span style={{
-    padding: '2px 8px', borderRadius: '4px',
-    background: BADGE[nivel]?.bg || '#888',
-    color: '#fff', fontSize: '11px', fontWeight: 700,
-    fontFamily: "'DM Mono', monospace", flexShrink: 0,
-  }}>{nivel}</span>
-);
+function NivelBadge({ nivel }: { nivel: string }) {
+  const s = NIVEL_STYLES[nivel] || { bg: '#6B7280', color: '#fff' };
+  return (
+    <span style={{ padding: '2px 7px', borderRadius: 4, background: s.bg, color: s.color, fontSize: 10, fontWeight: 700, fontFamily: 'var(--mono)', flexShrink: 0, letterSpacing: 0.5 }}>
+      {nivel}
+    </span>
+  );
+}
 
-const EstadoDot = ({ estado }: { estado: string }) => {
+function EstadoDot({ estado }: { estado: string }) {
   const color = estado === 'autorizado' ? 'var(--green)' : estado === 'arcsa_pendiente' ? 'var(--amber)' : 'var(--red)';
-  return <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: color, display: 'inline-block', flexShrink: 0 }} />;
-};
+  return <span style={{ width: 6, height: 6, borderRadius: '50%', background: color, display: 'inline-block', flexShrink: 0 }} />;
+}
 
+// ═════════════════════════════════════════════════════════════════════════
 export default function Arbol() {
-  const [meds, setMeds] = useState<Record<string, string>[]>([]);
+  const [meds, setMeds] = useState<Record<string, any>[]>([]);
   const [loading, setLoading] = useState(true);
   const [busqueda, setBusqueda] = useState('');
   const [open, setOpen] = useState<Set<string>>(new Set());
@@ -54,7 +56,7 @@ export default function Arbol() {
       try {
         const token = await getToken();
         if (!token) return;
-        let all: Record<string, string>[] = [];
+        let all: Record<string, any>[] = [];
         let cursor: string | null = null;
         while (true) {
           const params = new URLSearchParams({ limit: '500', estado: 'autorizado' });
@@ -81,24 +83,16 @@ export default function Arbol() {
       const vmpp = m.vmpp || (m.units ? `${m.vmp || vtm} ${m.conc || ''}, ${m.units} ${m.envase || 'unidades'}`.trim() : '__');
       const amp = m.amp || m.nombre || m.vtm || '';
       const lab = m.laboratorio || '';
-
-      if (!t[vtm]) t[vtm] = { label: vtm, esCombo: m.esCombo === 'true', vmps: {} };
+      if (!t[vtm]) t[vtm] = { label: vtm, esCombo: m.esCombo === 'true' || m.esCombo === true, vmps: {} };
       if (!t[vtm].vmps[vmp]) t[vtm].vmps[vmp] = { label: vmp, ff: m.ff || '', vmpps: {} };
       if (!t[vtm].vmps[vmp].vmpps[vmpp]) t[vtm].vmps[vmp].vmpps[vmpp] = { label: vmpp, amps: [] };
-      t[vtm].vmps[vmp].vmpps[vmpp].amps.push({
-        id: m.id, docId: m.docId, amp, lab,
-        estado: m.estado || '', generico: m.generico || '',
-      });
+      t[vtm].vmps[vmp].vmpps[vmpp].amps.push({ id: m.id, docId: m.docId, amp, lab, estado: m.estado || '', generico: m.generico || '' });
     });
     return t;
   }, [meds]);
 
   const togOpen = (key: string) => {
-    setOpen(prev => {
-      const next = new Set(prev);
-      next.has(key) ? next.delete(key) : next.add(key);
-      return next;
-    });
+    setOpen(prev => { const n = new Set(prev); n.has(key) ? n.delete(key) : n.add(key); return n; });
   };
 
   const expandAll = (expand: boolean) => {
@@ -113,211 +107,212 @@ export default function Arbol() {
 
   const q = busqueda.toLowerCase().trim();
   const matches = (txt: string) => !q || (txt || '').toLowerCase().includes(q);
-
   const vtmList = Object.keys(tree).sort((a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' }));
   const filteredVTMs = vtmList.filter(vtm => {
     if (!q) return true;
     if (matches(vtm)) return true;
-    return Object.keys(tree[vtm].vmps).some(vmp => {
-      if (matches(vmp)) return true;
-      return Object.values(tree[vtm].vmps[vmp].vmpps).some(pkg =>
+    return Object.keys(tree[vtm].vmps).some(vmp =>
+      matches(vmp) ||
+      Object.values(tree[vtm].vmps[vmp].vmpps).some(pkg =>
         pkg.amps.some(a => matches(a.amp) || matches(a.lab))
-      );
-    });
+      )
+    );
   });
 
-  return (
-    <div style={{ minHeight: '100vh', display: 'flex', background: 'var(--bg, #F5FAF3)', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-      <Sidebar />
-      <main style={{ flex: 1, marginLeft: '280px', padding: '24px 32px' }}>
+  const totalMeds = Object.values(tree).reduce((acc, node) =>
+    acc + Object.values(node.vmps).reduce((a2, vmp) =>
+      a2 + Object.values(vmp.vmpps).reduce((a3, pkg) => a3 + pkg.amps.length, 0), 0), 0);
 
-        {/* SEARCH + CONTROLS */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', flexWrap: 'wrap' }}>
-          <div style={{ flex: 1, minWidth: '200px', position: 'relative' }}>
+  // Row styles
+  const rowBase: React.CSSProperties = { display: 'flex', alignItems: 'center', gap: 10, padding: '8px 14px', cursor: 'pointer', transition: 'background .1s', borderTop: '1px solid var(--bdr)' };
+
+  return (
+    <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', fontFamily: 'var(--sans)' }}>
+      <Sidebar />
+      <main style={{ flex: 1, marginLeft: 272, display: 'flex', flexDirection: 'column' }}>
+
+        {/* ── Header dark ── */}
+        <div style={{ background: 'var(--green-dark, #1B4332)', padding: '20px 32px' }}>
+          <div style={{ fontSize: 10, fontFamily: 'var(--mono)', color: 'rgba(255,255,255,.4)', letterSpacing: '2px', marginBottom: 6 }}>ÁRBOL SPMS</div>
+          <h1 style={{ fontSize: 20, fontWeight: 700, color: '#fff', marginBottom: 4 }}>Árbol de medicamentos</h1>
+          <p style={{ fontSize: 12, color: 'rgba(255,255,255,.5)', marginBottom: 16 }}>
+            Nomenclatura VTM → VMP → VMPP → AMP conforme al modelo SPMS
+          </p>
+
+          {/* Buscador */}
+          <div style={{ position: 'relative' }}>
+            <div style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.5)" strokeWidth="2" strokeLinecap="round">
+                <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+              </svg>
+            </div>
             <input
-              placeholder="🔍  Buscar principio activo, VMP o AMP…"
               value={busqueda}
-              onChange={e => { setBusqueda(e.target.value); if (e.target.value) expandAll(true); }}
-              style={{
-                width: '100%', border: '1.5px solid var(--bdr)', borderRadius: '8px',
-                padding: '9px 14px', fontSize: '13px', fontFamily: 'inherit',
-                background: 'var(--bg2)', color: 'var(--tx)', outline: 'none',
-              }}
+              onChange={e => setBusqueda(e.target.value)}
+              placeholder="Buscar principio activo, VMP o nombre comercial..."
+              style={{ width: '100%', border: '1.5px solid rgba(255,255,255,.15)', borderRadius: 'var(--r)', padding: '10px 14px 10px 40px', fontSize: 13, outline: 'none', background: 'rgba(255,255,255,.1)', color: '#fff', fontFamily: 'var(--sans)', boxSizing: 'border-box' }}
             />
+            {busqueda && <button onClick={() => setBusqueda('')} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'rgba(255,255,255,.5)', cursor: 'pointer', fontSize: 16 }}>✕</button>}
           </div>
-          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
-            <span style={{ fontSize: '10px', color: 'var(--tx3)', fontFamily: "'DM Mono', monospace" }}>VER:</span>
-            {(['all', 'vtm', 'vmp', 'amp'] as ArbolLevel[]).map(lv => (
-              <button key={lv} onClick={() => setLevel(lv)}
-                style={{
-                  padding: '4px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: 600, cursor: 'pointer',
-                  border: `1.5px solid ${level === lv ? 'var(--green)' : 'var(--bdr)'}`,
-                  background: level === lv ? 'var(--green)' : 'var(--bg2)',
-                  color: level === lv ? '#fff' : 'var(--tx3)',
-                  fontFamily: 'inherit',
-                }}>
-                {lv === 'all' ? 'Todos los niveles' : lv === 'vtm' ? 'Solo VTM' : lv === 'vmp' ? 'VTM + VMP' : 'Hasta AMP'}
-              </button>
-            ))}
-          </div>
-          <button onClick={() => expandAll(true)}
-            style={{ padding: '6px 12px', borderRadius: '8px', border: '1.5px solid var(--bdr)', background: 'var(--bg2)', fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600, color: 'var(--tx2)' }}>
-            Expandir todo
-          </button>
-          <button onClick={() => expandAll(false)}
-            style={{ padding: '6px 12px', borderRadius: '8px', border: '1.5px solid var(--bdr)', background: 'var(--bg2)', fontSize: '12px', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600, color: 'var(--tx2)' }}>
-            Colapsar todo
-          </button>
         </div>
 
-        {/* LEGEND */}
-        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '14px', alignItems: 'center' }}>
-          <span style={{ fontSize: '10px', fontFamily: "'DM Mono', monospace", color: 'var(--tx3)', letterSpacing: '1px' }}>NIVELES:</span>
+        {/* ── Controles ── */}
+        <div style={{ background: 'var(--bg2)', borderBottom: '1.5px solid var(--bdr)', padding: '10px 32px', display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+          {/* Nivel de vista */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--tx3)', letterSpacing: 1, fontFamily: 'var(--mono)' }}>VER</span>
+            {([['all','Todos los niveles'],['vtm','Solo VTM'],['vmp','VTM + VMP'],['amp','Hasta AMP']] as [ArbolLevel, string][]).map(([val, lbl]) => (
+              <button key={val} onClick={() => setLevel(val)} style={{
+                padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 500,
+                cursor: 'pointer', border: `1.5px solid ${level === val ? 'var(--green)' : 'var(--bdr)'}`,
+                background: level === val ? 'var(--green)' : 'var(--bg2)',
+                color: level === val ? '#fff' : 'var(--tx2)', transition: 'all .13s',
+              }}>{lbl}</button>
+            ))}
+          </div>
+          <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
+            <button onClick={() => expandAll(true)} style={{ padding: '5px 14px', borderRadius: 'var(--r)', border: '1.5px solid var(--bdr)', background: 'var(--bg2)', color: 'var(--tx2)', fontSize: 12, fontWeight: 500, cursor: 'pointer' }}>
+              Expandir todo
+            </button>
+            <button onClick={() => expandAll(false)} style={{ padding: '5px 14px', borderRadius: 'var(--r)', border: '1.5px solid var(--bdr)', background: 'var(--bg2)', color: 'var(--tx2)', fontSize: 12, fontWeight: 500, cursor: 'pointer' }}>
+              Colapsar todo
+            </button>
+          </div>
+        </div>
+
+        {/* ── Leyenda niveles ── */}
+        <div style={{ padding: '8px 32px', background: 'var(--bg)', borderBottom: '1px solid var(--bdr)', display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+          <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--tx4)', letterSpacing: 1.5, fontFamily: 'var(--mono)' }}>NIVELES:</span>
           {[
             { nivel: 'VTM', desc: 'Principio activo' },
             { nivel: 'VMP', desc: 'Producto virtual (dosis + forma)' },
             { nivel: 'VMPP', desc: 'Paquete virtual (unidades)' },
             { nivel: 'AMP', desc: 'Nombre comercial registrado' },
-          ].map(n => (
-            <span key={n.nivel} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <NivelBadge nivel={n.nivel} />
-              <span style={{ fontSize: '11px', color: 'var(--tx3)' }}>{n.desc}</span>
-            </span>
+          ].map(({ nivel, desc }) => (
+            <div key={nivel} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <NivelBadge nivel={nivel} />
+              <span style={{ fontSize: 11, color: 'var(--tx3)' }}>{desc}</span>
+            </div>
           ))}
         </div>
 
-        {/* TREE */}
-        <div style={{ background: 'var(--bg2)', border: '1.5px solid var(--bdr)', borderRadius: '12px', overflow: 'hidden', boxShadow: 'var(--sh)' }}>
+        {/* ── Árbol ── */}
+        <div style={{ flex: 1, padding: '20px 32px' }}>
           {loading ? (
-            <div style={{ padding: '48px', textAlign: 'center', color: 'var(--tx4)' }}>
-              <div style={{ fontSize: '40px', marginBottom: '12px' }}>🌳</div>
-              <div style={{ fontWeight: 700, fontSize: '15px' }}>Construyendo árbol...</div>
-            </div>
-          ) : filteredVTMs.length === 0 ? (
-            <div style={{ padding: '48px', textAlign: 'center', color: 'var(--tx4)' }}>
-              <div style={{ fontSize: '40px', marginBottom: '12px' }}>🔍</div>
-              <div style={{ fontWeight: 700, fontSize: '15px' }}>Sin resultados</div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, padding: 60, color: 'var(--tx4)' }}>
+              <div style={{ width: 24, height: 24, border: '3px solid var(--bdr)', borderTopColor: 'var(--green)', borderRadius: '50%', animation: 'spin .8s linear infinite' }} />
+              <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+              Construyendo árbol...
             </div>
           ) : (
-            <div id="arbol-tree">
-              {filteredVTMs.map((vtm, vi) => {
+            <div style={{ background: 'var(--bg2)', border: '1.5px solid var(--bdr)', borderRadius: 'var(--rl)', overflow: 'hidden', boxShadow: 'var(--sh)' }}>
+              {filteredVTMs.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: 48, color: 'var(--tx4)' }}>
+                  <div style={{ fontSize: 28, marginBottom: 8 }}>🌿</div>
+                  <div style={{ fontWeight: 600 }}>Sin resultados</div>
+                </div>
+              ) : filteredVTMs.map((vtm, vi) => {
                 const node = tree[vtm];
-                const vtmKey = `vtm:${vtm}`;
-                const isVTMOpen = open.has(vtmKey) || level !== 'vtm';
-                const vmpList = Object.keys(node.vmps).sort();
-                const vmpCount = vmpList.length;
+                const isVTMOpen = open.has(`vtm:${vtm}`) || level !== 'vtm';
+                const vmpList = Object.keys(node.vmps);
                 const ampCount = vmpList.reduce((acc, vmp) =>
-                  acc + Object.values(node.vmps[vmp].vmpps).reduce((a2, pkg) => a2 + pkg.amps.length, 0), 0);
-                const isLast = vi === filteredVTMs.length - 1;
+                  acc + Object.values(node.vmps[vmp].vmpps).reduce((a, pkg) => a + pkg.amps.length, 0), 0);
 
                 return (
                   <div key={vtm}>
                     {/* VTM ROW */}
-                    <div style={{ display: 'flex', alignItems: 'center', borderBottom: isLast && !isVTMOpen ? 'none' : '1.5px solid var(--bdr)' }}>
-                      <div style={{ width: '4px', background: 'var(--gdp)', alignSelf: 'stretch', flexShrink: 0, borderRadius: vi === 0 ? '12px 0 0 0' : '0' }} />
-                      <div onClick={() => togOpen(vtmKey)}
-                        style={{
-                          flex: 1, display: 'flex', alignItems: 'center', gap: '10px',
-                          padding: '12px 14px', cursor: 'pointer',
-                          background: isVTMOpen && open.has(vtmKey) ? '#F0FBF0' : 'var(--bg2)',
-                        }}>
-                        <span style={{ fontSize: '11px', color: 'var(--tx4)', transition: 'transform .2s', transform: open.has(vtmKey) ? 'rotate(90deg)' : 'none', display: 'inline-block' }}>▶</span>
-                        <NivelBadge nivel="VTM" />
-                        <span style={{ fontWeight: 700, fontSize: '14px', color: 'var(--tx)', flex: 1 }}>{vtm}</span>
-                        <span style={{ fontSize: '11px', color: 'var(--tx3)', fontFamily: "'DM Mono', monospace", whiteSpace: 'nowrap' }}>
-                          {vmpCount} VMP · {ampCount} AMP
-                        </span>
-                      </div>
+                    <div
+                      onClick={() => togOpen(`vtm:${vtm}`)}
+                      style={{ ...rowBase, background: vi % 2 === 0 ? 'var(--bg2)' : 'var(--bg)', borderTop: vi === 0 ? 'none' : '1px solid var(--bdr)' }}
+                      onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--bg3)'}
+                      onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = vi % 2 === 0 ? 'var(--bg2)' : 'var(--bg)'}>
+                      <span style={{ fontSize: 10, color: 'var(--tx4)', transition: 'transform .2s', transform: isVTMOpen && vmpList.length > 0 ? 'rotate(90deg)' : 'none', display: 'inline-block', flexShrink: 0 }}>▶</span>
+                      <NivelBadge nivel="VTM" />
+                      {node.esCombo && <span style={{ padding: '1px 6px', borderRadius: 20, background: 'var(--purple-bg)', color: 'var(--purple)', fontSize: 10, fontWeight: 700 }}>⊕</span>}
+                      <span style={{ flex: 1, fontWeight: 600, color: 'var(--tx)', fontSize: 13 }}>{vtm}</span>
+                      <span style={{ fontSize: 11, color: 'var(--tx4)', fontFamily: 'var(--mono)' }}>
+                        {vmpList.length} VMP · {ampCount} AMP
+                      </span>
                     </div>
 
-                    {/* VMP LIST */}
-                    {(open.has(vtmKey) || level === 'all' || level === 'vmp' || level === 'amp') && open.has(vtmKey) && (
-                      <>
-                        {vmpList.filter(vmp => {
-                          if (!q) return true;
-                          if (matches(vtm) || matches(vmp)) return true;
-                          return Object.values(node.vmps[vmp].vmpps).some(pkg => pkg.amps.some(a => matches(a.amp) || matches(a.lab)));
-                        }).map((vmp, vi2) => {
-                          const vmpNode = node.vmps[vmp];
-                          const vmpKey = `vmp:${vtm}:${vmp}`;
-                          const isVMPOpen = open.has(vmpKey);
-                          const vmppList = Object.keys(vmpNode.vmpps);
-                          const ampCountVMP = vmppList.reduce((a, k) => a + vmpNode.vmpps[k].amps.length, 0);
-                          const isLastVMP = vi2 === vmpList.length - 1;
+                    {/* VMPs */}
+                    {isVTMOpen && vmpList.map((vmp, vi2) => {
+                      const vmpNode = node.vmps[vmp];
+                      const isVMPOpen = open.has(`vmp:${vtm}:${vmp}`) || level === 'all' || level === 'amp';
+                      const vmppList = Object.keys(vmpNode.vmpps);
+                      const ampCountVMP = vmppList.reduce((a, k) => a + vmpNode.vmpps[k].amps.length, 0);
+                      const shouldShow = level === 'vtm' ? false : true;
+                      if (!shouldShow) return null;
 
-                          return (
-                            <div key={vmp}>
-                              {/* VMP ROW */}
-                              <div style={{ display: 'flex', alignItems: 'center', borderBottom: isLastVMP && !isVMPOpen ? 'none' : '1px solid var(--bdr)', background: 'var(--bg3)' }}>
-                                <div style={{ width: '4px', flexShrink: 0 }} />
-                                <div style={{ width: '20px', flexShrink: 0 }} />
-                                <div onClick={() => togOpen(vmpKey)}
-                                  style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '8px', padding: '9px 14px 9px 8px', cursor: 'pointer' }}>
-                                  <span style={{ fontSize: '10px', color: 'var(--tx4)', transition: 'transform .2s', transform: isVMPOpen ? 'rotate(90deg)' : 'none', display: 'inline-block' }}>▶</span>
-                                  <NivelBadge nivel="VMP" />
-                                  <span style={{ fontWeight: 600, fontSize: '13px', color: 'var(--tx)', flex: 1 }}>{vmp}</span>
-                                  <span style={{ fontSize: '11px', color: 'var(--tx3)', fontFamily: "'DM Mono', monospace" }}>{ampCountVMP} presentac.</span>
-                                </div>
-                              </div>
+                      return (
+                        <div key={vmp}>
+                          {/* VMP ROW */}
+                          <div
+                            onClick={() => togOpen(`vmp:${vtm}:${vmp}`)}
+                            style={{ ...rowBase, paddingLeft: 40, background: 'var(--bg3)' }}
+                            onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--bg4, #E8F0EA)'}
+                            onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'var(--bg3)'}>
+                            <span style={{ fontSize: 10, color: 'var(--tx4)', transition: 'transform .2s', transform: isVMPOpen && vmppList.length > 0 ? 'rotate(90deg)' : 'none', display: 'inline-block', flexShrink: 0 }}>▶</span>
+                            <NivelBadge nivel="VMP" />
+                            <span style={{ flex: 1, fontWeight: 600, color: 'var(--tx2)', fontSize: 13 }}>{vmpNode.label}</span>
+                            <span style={{ fontSize: 11, color: 'var(--tx4)', fontFamily: 'var(--mono)' }}>
+                              {ampCountVMP} presentac.
+                            </span>
+                          </div>
 
-                              {/* VMPP + AMP */}
-                              {isVMPOpen && vmppList.map((vmpp, vi3) => {
-                                const vmppNode = vmpNode.vmpps[vmpp];
-                                const isLastVMPP = vi3 === vmppList.length - 1;
+                          {/* VMPP + AMP */}
+                          {isVMPOpen && vmppList.map((vmpp, vi3) => {
+                            const vmppNode = vmpNode.vmpps[vmpp];
+                            const isLastVMPP = vi3 === vmppList.length - 1;
 
-                                return (
-                                  <div key={vmpp}>
-                                    {/* VMPP ROW */}
-                                    {vmpp !== '__' && (
-                                      <div style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid var(--bdr)', background: '#F8FEF5' }}>
-                                        <div style={{ width: '4px', flexShrink: 0 }} />
-                                        <div style={{ width: '44px', flexShrink: 0 }} />
-                                        <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '8px', padding: '7px 14px 7px 8px' }}>
-                                          <NivelBadge nivel="VMPP" />
-                                          <span style={{ fontSize: '12px', color: 'var(--tx2)' }}>{vmpp}</span>
-                                        </div>
-                                      </div>
-                                    )}
-
-                                    {/* AMP ROWS */}
-                                    {vmppNode.amps.filter(a => !q || matches(vtm) || matches(vmp) || matches(a.amp) || matches(a.lab)).map((amp, ai) => (
-                                      <div key={amp.docId}
-                                        onClick={() => router.push(`/medicamentos/${amp.docId}`)}
-                                        style={{
-                                          display: 'flex', alignItems: 'center', gap: '8px',
-                                          padding: '7px 14px 7px 68px',
-                                          borderBottom: ai === vmppNode.amps.length - 1 && isLastVMPP ? 'none' : '1px solid var(--bdr)',
-                                          cursor: 'pointer', background: 'var(--bg2)',
-                                        }}
-                                        onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--gg, rgba(61,219,24,.10))'}
-                                        onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'var(--bg2)'}>
-                                        <NivelBadge nivel="AMP" />
-                                        <EstadoDot estado={amp.estado} />
-                                        <span style={{ fontSize: '13px', color: 'var(--tx)', flex: 1 }}>
-                                          {amp.amp || amp.lab}
-                                        </span>
-                                        <span style={{ fontSize: '12px', color: 'var(--tx3)', whiteSpace: 'nowrap' }}>
-                                          {amp.lab} →
-                                        </span>
-                                      </div>
-                                    ))}
+                            return (
+                              <div key={vmpp}>
+                                {/* VMPP ROW */}
+                                {vmpp !== '__' && (level === 'all' || level === 'amp') && (
+                                  <div style={{ ...rowBase, paddingLeft: 66, background: 'var(--bg2)' }}>
+                                    <NivelBadge nivel="VMPP" />
+                                    <span style={{ flex: 1, fontSize: 12, color: 'var(--tx3)' }}>{vmppNode.label}</span>
                                   </div>
-                                );
-                              })}
-                            </div>
-                          );
-                        })}
-                      </>
-                    )}
+                                )}
+
+                                {/* AMP ROWS */}
+                                {(level === 'all' || level === 'amp') && vmppNode.amps.map((amp, ai) => (
+                                  <div key={amp.id || ai}
+                                    onClick={() => router.push(`/medicamentos/${amp.docId || amp.id}`)}
+                                    style={{ ...rowBase, paddingLeft: vmpp !== '__' ? 88 : 66, background: 'var(--bg)', justifyContent: 'space-between' }}
+                                    onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--bg3)'}
+                                    onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'var(--bg)'}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0 }}>
+                                      <NivelBadge nivel="AMP" />
+                                      <EstadoDot estado={amp.estado} />
+                                      <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--tx)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                        {amp.amp || '—'}
+                                      </span>
+                                    </div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
+                                      <span style={{ fontSize: 11, color: 'var(--tx3)' }}>{amp.lab}</span>
+                                      {amp.generico === 'Sí' && <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--green)', background: 'var(--estado-autorizado-bg)', padding: '1px 6px', borderRadius: 20 }}>Genérico</span>}
+                                      <span style={{ fontSize: 11, color: 'var(--green)', fontWeight: 600 }}>Ver →</span>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      );
+                    })}
                   </div>
                 );
               })}
             </div>
           )}
-        </div>
 
-        <div style={{ marginTop: '12px', fontSize: '12px', color: 'var(--tx4)', fontFamily: "'DM Mono', monospace" }}>
-          {filteredVTMs.length} VTM · {meds.length.toLocaleString('es-EC')} medicamentos
+          {/* Stats footer */}
+          <div style={{ marginTop: 12, fontSize: 11, color: 'var(--tx4)', fontFamily: 'var(--mono)', textAlign: 'center' }}>
+            {filteredVTMs.length} VTM · {totalMeds} medicamentos
+            {busqueda && <span style={{ color: 'var(--green)', marginLeft: 8 }}>· filtrando por "{busqueda}"</span>}
+          </div>
         </div>
       </main>
     </div>
