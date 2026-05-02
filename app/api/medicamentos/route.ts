@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminDb, adminAuth } from '@/lib/firebase-admin';
 import { Medicamento } from '@/types/medicamento';
+import type { Query, CollectionReference } from 'firebase-admin/firestore';
 
 async function verificarAuth(req: NextRequest) {
   const token = req.headers.get('Authorization')?.replace('Bearer ', '');
@@ -18,6 +19,25 @@ async function verificarEditor(req: NextRequest) {
   return decoded;
 }
 
+function mapDoc(doc: FirebaseFirestore.QueryDocumentSnapshot) {
+  const d = doc.data();
+  return {
+    docId: doc.id,
+    id: d.data?.id || doc.id,
+    vtm: d.data?.vtm || d.vtm || '',
+    laboratorio: d.data?.laboratorio || d.laboratorio || '',
+    ff: d.data?.ff || '',
+    conc: d.data?.conc || '',
+    estado: d.estado || 'pendiente',
+    chapId: d.data?.chapId || '',
+    hasPrices: !!(d.data?.farmPrices && Object.values(d.data.farmPrices as Record<string, number>).some((v) => v > 0)),
+    amp: d.data?.amp || d.amp || '',
+    vmp: d.data?.vmp || d.vmp || '',
+    generico: d.data?.generico || '',
+    nombre: d.data?.nombre || '',
+  };
+}
+
 export async function GET(req: NextRequest) {
   const user = await verificarAuth(req);
   if (!user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
@@ -29,9 +49,10 @@ export async function GET(req: NextRequest) {
     const capitulo = searchParams.get('capitulo');
     const estadoFilter = searchParams.get('estado');
 
-    let query = adminDb.collection('medicamentos') as any;
-    if (estadoFilter) query = query.where('estado', '==', estadoFilter);
-    query = query.orderBy('vtm').limit(limit);
+    const col = adminDb.collection('medicamentos');
+    let query: Query = estadoFilter
+      ? col.where('estado', '==', estadoFilter).orderBy('vtm').limit(limit)
+      : col.orderBy('vtm').limit(limit);
 
     if (cursor) {
       const cursorDoc = await adminDb.collection('medicamentos').doc(cursor).get();
@@ -40,26 +61,11 @@ export async function GET(req: NextRequest) {
 
     const snap = await query.get();
     let medicamentos = snap.docs
-      .filter(doc => doc.data().estado !== 'eliminado')
-      .map(doc => ({
-        docId: doc.id,
-        id: doc.data().data?.id || doc.id,
-        vtm: doc.data().data?.vtm || doc.data().vtm || '',
-        laboratorio: doc.data().data?.laboratorio || doc.data().laboratorio || '',
-        ff: doc.data().data?.ff || '',
-        conc: doc.data().data?.conc || '',
-        estado: doc.data().estado || 'pendiente',
-        chapId: doc.data().data?.chapId || '',
-        hasPrices: !!(doc.data().data?.farmPrices && Object.values(doc.data().data.farmPrices as Record<string,number>).some(v => v > 0)),
-        amp: doc.data().data?.amp || doc.data().amp || '',
-        vmp: doc.data().data?.vmp || doc.data().vmp || '',
-        generico: doc.data().data?.generico || '',
-        nombre: doc.data().data?.nombre || '',
-      }));
+      .filter((doc) => doc.data().estado !== 'eliminado')
+      .map((doc) => mapDoc(doc));
 
-    // Filtrar por capítulo si se especifica
     if (capitulo) {
-      medicamentos = medicamentos.filter(m => m.chapId === capitulo);
+      medicamentos = medicamentos.filter((m) => m.chapId === capitulo);
     }
 
     const lastDoc = snap.docs[snap.docs.length - 1];
@@ -69,7 +75,7 @@ export async function GET(req: NextRequest) {
       nextCursor: snap.docs.length === limit ? lastDoc?.id : null,
       total: medicamentos.length,
     });
-  } catch(e) {
+  } catch (e) {
     console.error('Error GET:', e);
     return NextResponse.json({ error: 'Error al cargar' }, { status: 500 });
   }
@@ -112,7 +118,8 @@ export async function PUT(req: NextRequest) {
     const prevDoc = await adminDb.collection('medicamentos').doc(id).get();
 
     await adminDb.collection('medicamentos').doc(id).update({
-      data, vtm: data.vtm, laboratorio: data.laboratorio, estado: data.estado || "arcsa_pendiente",
+      data, vtm: data.vtm, laboratorio: data.laboratorio,
+      estado: data.estado || 'arcsa_pendiente',
       updatedAt: new Date(), updatedBy: user.email,
     });
 
