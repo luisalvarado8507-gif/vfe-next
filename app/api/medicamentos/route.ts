@@ -109,7 +109,7 @@ export async function PUT(req: NextRequest) {
     const prevDoc = await adminDb.collection('medicamentos').doc(id).get();
 
     await adminDb.collection('medicamentos').doc(id).update({
-      data, vtm: data.vtm, laboratorio: data.laboratorio,
+      data, vtm: data.vtm, laboratorio: data.laboratorio, estado: data.estado || "arcsa_pendiente",
       updatedAt: new Date(), updatedBy: user.email,
     });
 
