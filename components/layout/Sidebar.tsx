@@ -27,7 +27,7 @@ export default function Sidebar() {
 
   const handleSub = (chapId: string, subId: string) => {
     setActiveSub(subId);
-    router.push(`/capitulos/${chapId}`);
+    router.push(`/capitulos/${chapId}?sub=${subId}`);
   };
 
   return (
@@ -130,18 +130,21 @@ export default function Sidebar() {
             {/* SUBCAPÍTULOS */}
             {openCap === cap.id && cap.subs.length > 0 && (
               <div style={{ background: 'var(--bg3, #EDF7E8)' }}>
-                {cap.subs.map(sub => (
+                {cap.subs.map((sub, si) => (
                   <div key={sub.id}
                     onClick={() => handleSub(cap.id, sub.id)}
                     style={{
-                      display: 'flex', alignItems: 'center',
-                      padding: '6px 14px 6px 34px',
-                      fontSize: '12.5px', color: activeSub === sub.id ? 'var(--gdp)' : 'var(--tx2)',
+                      display: 'flex', alignItems: 'center', gap: '6px',
+                      padding: '6px 14px 6px 28px',
+                      fontSize: '12px', color: activeSub === sub.id ? 'var(--gdp)' : 'var(--tx2)',
                       cursor: 'pointer', transition: 'all .12s',
                       borderLeft: `3px solid ${activeSub === sub.id ? 'var(--green)' : 'transparent'}`,
                       background: activeSub === sub.id ? 'rgba(61,219,24,.10)' : 'transparent',
-                      fontWeight: activeSub === sub.id ? 600 : 400,
+                      fontWeight: activeSub === sub.id ? 700 : 400,
                     }}>
+                    <span style={{ fontSize: '10px', fontFamily: 'monospace', color: 'var(--tx4)', minWidth: '28px', flexShrink: 0 }}>
+                      {cap.n}.{si + 1}
+                    </span>
                     {sub.name}
                   </div>
                 ))}
