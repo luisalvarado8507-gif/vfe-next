@@ -73,6 +73,26 @@ export default function NuevoMedicamentoForm({ initialData, editId }: { initialD
   const [cnmb, setCnmb] = useState(initialData?.cnmb || '');
   const [chapId, setChapId] = useState(initialData?.chapId || '');
   const [subId, setSubId] = useState(initialData?.subId || '');
+  // Cascade path: array of selected subIds at each level
+  const [subPath, setSubPath] = useState<string[]>(() => {
+    // Reconstruct path from initialData.subId
+    if (!initialData?.subId || !initialData?.chapId) return [];
+    const path: string[] = [];
+    const cap = CHAPS.find(c => c.id === initialData.chapId);
+    if (!cap) return [];
+    function findPath(subs: any[], targetId: string, current: string[]): string[] | null {
+      for (const s of subs) {
+        const next = [...current, s.id];
+        if (s.id === targetId) return next;
+        if (s.subs?.length) {
+          const found = findPath(s.subs, targetId, next);
+          if (found) return found;
+        }
+      }
+      return null;
+    }
+    return findPath(cap.subs, initialData.subId, []) || [];
+  });
   const [atc, setAtc] = useState(initialData?.atc || '');
   const [nombre, setNombre] = useState(initialData?.nombre || '');
   const [units, setUnits] = useState(initialData?.units || '');
@@ -408,23 +428,74 @@ export default function NuevoMedicamentoForm({ initialData, editId }: { initialD
 
             {/* Capítulo */}
             <div style={{ ...sec }}>Clasificación — Capítulo y subcapítulos</div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 16 }}>
+              {/* Nivel 0: Capítulo */}
               <div>
                 <label style={lbl}>CAPÍTULO <span style={{ color: 'red' }}>*</span></label>
-                <select style={inp} value={chapId} onChange={e => { setChapId(e.target.value); setSubId(''); }}>
+                <select style={inp} value={chapId} onChange={e => {
+                  setChapId(e.target.value);
+                  setSubId('');
+                  setSubPath([]);
+                }}>
                   <option value="">— Selecciona un capítulo —</option>
                   {CHAPS.map(c => <option key={c.id} value={c.id}>{c.n}. {c.name}</option>)}
                 </select>
               </div>
-              {chapId && getSubcaps(chapId).length > 0 && (
-                <div>
-                  <label style={lbl}>SUBCAPÍTULO</label>
-                  <select style={inp} value={subId} onChange={e => setSubId(e.target.value)}>
-                    <option value="">— Selecciona subcapítulo —</option>
-                    {getSubcaps(chapId).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                  </select>
-                </div>
-              )}
+              {/* Niveles en cascada */}
+              {(() => {
+                if (!chapId) return null;
+                const cap = CHAPS.find(c => c.id === chapId);
+                if (!cap || !cap.subs.length) return null;
+                const selectors = [];
+                let currentSubs = cap.subs;
+                let levelNum = 1;
+                for (let level = 0; level <= subPath.length; level++) {
+                  if (!currentSubs.length) break;
+                  const selectedId = subPath[level] || '';
+                  const levelIdx = level;
+                  // Build label number: cap.n + .subPath indices
+                  const prefix = [cap.n, ...subPath.slice(0, level).map((id, li) => {
+                    const subs = level === 0 ? cap.subs : (() => {
+                      let s = cap.subs;
+                      for (let i = 0; i < li; i++) {
+                        const found = s.find((x: any) => x.id === subPath[i]);
+                        s = found?.subs || [];
+                      }
+                      return s;
+                    })();
+                    const idx = subs.findIndex((x: any) => x.id === id);
+                    return idx + 1;
+                  })].join('.');
+                  selectors.push(
+                    <div key={`level-${level}`}>
+                      <label style={lbl}>
+                        SUBCAPÍTULO{level > 0 ? ` (NIVEL ${level + 1})` : ''}
+                        <span style={{ fontSize: 10, color: '#7aaa6a', marginLeft: 6, fontFamily: 'monospace' }}>
+                          {prefix}
+                        </span>
+                      </label>
+                      <select style={inp} value={selectedId} onChange={e => {
+                        const newPath = [...subPath.slice(0, levelIdx), e.target.value];
+                        setSubPath(newPath);
+                        setSubId(e.target.value);
+                      }}>
+                        <option value="">— Selecciona —</option>
+                        {currentSubs.map((s: any, si: number) => (
+                          <option key={s.id} value={s.id}>
+                            {prefix}.{si + 1} {s.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  );
+                  if (!selectedId) break;
+                  const found = currentSubs.find((s: any) => s.id === selectedId);
+                  if (!found?.subs?.length) break;
+                  currentSubs = found.subs;
+                  levelNum++;
+                }
+                return selectors;
+              })()}
             </div>
           </div>
         )}
