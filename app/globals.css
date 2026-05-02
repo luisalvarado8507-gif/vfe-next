@@ -1,47 +1,387 @@
 @import "tailwindcss";
 @layer base, components, utilities;
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap');
+
+/* ═══════════════════════════════════════════════════════════════
+   VFE — SISTEMA DE DISEÑO INSTITUCIONAL
+   Inspirado en CIMA España · EMA Europa · estándares sanitarios
+   ═══════════════════════════════════════════════════════════════ */
 
 :root {
-  --green: #3DDB18;
-  --gd: #2DB010;
-  --gdp: #1A6B08;
-  --bg: #F5FAF3;
-  --bg2: #fff;
-  --bg3: #EDF7E8;
-  --bdr: #D0ECC6;
-  --bdr2: #A8D896;
-  --tx: #0F2008;
-  --tx2: #3A5C30;
-  --tx3: #7BAD6E;
-  --tx4: #B0CFA8;
-  --amber: #D97706;
-  --red: #DC2626;
-  --blue: #2563EB;
-  --purple: #7C3AED;
-  --sans: 'Plus Jakarta Sans', sans-serif;
-  --mono: 'DM Mono', monospace;
-  --r: 8px;
-  --rl: 12px;
+  /* ── Colores primarios institucionales ── */
+  --green:       #2D6A4F;   /* verde institucional (era #3DDB18) */
+  --green-dark:  #1B4332;   /* verde oscuro — sidebar, headers */
+  --green-mid:   #40916C;   /* verde medio — hover, accents */
+  --green-light: #74C69D;   /* verde claro — borders, chips */
+  --green-pale:  #D8F3DC;   /* verde pálido — backgrounds */
+
+  /* ── Alias legacy (compatibilidad con código existente) ── */
+  --gd:   #2D6A4F;
+  --gdp:  #1B4332;
+
+  /* ── Fondos ── */
+  --bg:   #F4F7F5;          /* fondo página */
+  --bg2:  #FFFFFF;          /* fondo tarjetas */
+  --bg3:  #EBF5EE;          /* fondo secundario, hover rows */
+  --bg4:  #F0F7F2;          /* fondo terciario */
+
+  /* ── Bordes ── */
+  --bdr:  #C8E0CC;
+  --bdr2: #A3CCAA;
+
+  /* ── Texto ── */
+  --tx:   #1C2B22;          /* texto primario (oscuro, no negro puro) */
+  --tx2:  #3A5C46;          /* texto secundario */
+  --tx3:  #6B9178;          /* texto terciario */
+  --tx4:  #A8C4AE;          /* texto cuaternario / placeholder */
+
+  /* ── Semánticos ── */
+  --amber:    #B45309;
+  --amber-bg: #FEF3C7;
+  --red:      #B91C1C;
+  --red-bg:   #FEE2E2;
+  --blue:     #1D4ED8;
+  --blue-bg:  #DBEAFE;
+  --purple:   #6D28D9;
+  --purple-bg:#EDE9FE;
+  --teal:     #0F766E;
+  --teal-bg:  #CCFBF1;
+
+  /* ── Estado medicamentos ── */
+  --estado-autorizado:    #166534;
+  --estado-autorizado-bg: #DCFCE7;
+  --estado-pendiente:     #92400E;
+  --estado-pendiente-bg:  #FEF3C7;
+  --estado-suspendido:    #9A3412;
+  --estado-suspendido-bg: #FFEDD5;
+  --estado-retirado:      #991B1B;
+  --estado-retirado-bg:   #FEE2E2;
+
+  /* ── Tipografía ── */
+  --sans: 'Plus Jakarta Sans', 'Inter', sans-serif;
+  --mono: 'DM Mono', 'Consolas', monospace;
+
+  /* ── Radios ── */
+  --r:   8px;
+  --rl:  12px;
   --rxl: 18px;
-  --sh: 0 1px 3px rgba(15,32,8,.07);
-  --shm: 0 4px 20px rgba(15,32,8,.10);
+
+  /* ── Sombras ── */
+  --sh:  0 1px 3px rgba(28,43,34,.06), 0 1px 2px rgba(28,43,34,.04);
+  --shm: 0 4px 16px rgba(28,43,34,.08), 0 2px 4px rgba(28,43,34,.04);
+  --shl: 0 10px 40px rgba(28,43,34,.10), 0 4px 8px rgba(28,43,34,.05);
+
+  /* ── Transiciones ── */
+  --t: .15s ease;
 }
 
+/* ═══════════════════════════════════════════════════════════════
+   RESET Y BASE
+   ═══════════════════════════════════════════════════════════════ */
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: var(--sans); background: var(--bg); color: var(--tx); font-size: 14px; }
 
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--tx);
+  font-size: 14px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   FORMULARIOS
+   ═══════════════════════════════════════════════════════════════ */
 input, select, textarea {
   border: 1.5px solid var(--bdr);
-  border-radius: 8px;
+  border-radius: var(--r);
   padding: 9px 12px;
   background: var(--bg2);
   font-family: var(--sans);
   font-size: 13px;
   outline: none;
   width: 100%;
-  transition: border-color .15s;
+  transition: border-color var(--t), box-shadow var(--t);
+  color: var(--tx);
 }
+
 input:focus, select:focus, textarea:focus {
   border-color: var(--green);
+  box-shadow: 0 0 0 3px rgba(45,106,79,.12);
 }
+
+input::placeholder, textarea::placeholder {
+  color: var(--tx4);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   BOTONES
+   ═══════════════════════════════════════════════════════════════ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: var(--r);
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--t);
+  border: none;
+  text-decoration: none;
+}
+
+.btn-primary {
+  background: var(--green);
+  color: #fff;
+}
+.btn-primary:hover { background: var(--green-dark); }
+
+.btn-outline {
+  background: var(--bg2);
+  color: var(--tx2);
+  border: 1.5px solid var(--bdr);
+}
+.btn-outline:hover { background: var(--bg3); border-color: var(--green-light); }
+
+.btn-ghost {
+  background: transparent;
+  color: var(--tx3);
+  border: none;
+}
+.btn-ghost:hover { background: var(--bg3); color: var(--tx2); }
+
+/* ═══════════════════════════════════════════════════════════════
+   BADGES / ESTADOS
+   ═══════════════════════════════════════════════════════════════ */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+
+.badge-autorizado  { background: var(--estado-autorizado-bg);  color: var(--estado-autorizado);  }
+.badge-pendiente   { background: var(--estado-pendiente-bg);   color: var(--estado-pendiente);   }
+.badge-suspendido  { background: var(--estado-suspendido-bg);  color: var(--estado-suspendido);  }
+.badge-retirado    { background: var(--estado-retirado-bg);    color: var(--estado-retirado);    }
+.badge-cnmb        { background: var(--estado-autorizado-bg);  color: var(--estado-autorizado);  }
+.badge-generico    { background: var(--blue-bg);               color: var(--blue);               }
+.badge-combo       { background: var(--purple-bg);             color: var(--purple);             }
+.badge-snomed      { background: var(--teal-bg);               color: var(--teal);               }
+.badge-atc         { background: #FEF3C7;                      color: #92400E;                   }
+.badge-marca       { background: var(--bg3);                   color: var(--tx3);                }
+
+/* ═══════════════════════════════════════════════════════════════
+   ALERTAS CLÍNICAS
+   ═══════════════════════════════════════════════════════════════ */
+.alert {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 12px 14px;
+  border-radius: var(--r);
+  font-size: 13px;
+  line-height: 1.5;
+  margin-bottom: 8px;
+}
+.alert-danger {
+  background: var(--red-bg);
+  border-left: 3px solid var(--red);
+  color: var(--red);
+}
+.alert-warn {
+  background: var(--amber-bg);
+  border-left: 3px solid var(--amber);
+  color: var(--amber);
+}
+.alert-info {
+  background: var(--blue-bg);
+  border-left: 3px solid var(--blue);
+  color: var(--blue);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   TARJETAS
+   ═══════════════════════════════════════════════════════════════ */
+.card {
+  background: var(--bg2);
+  border: 1.5px solid var(--bdr);
+  border-radius: var(--rl);
+  padding: 16px 20px;
+  box-shadow: var(--sh);
+}
+
+.card-dark {
+  background: var(--green-dark);
+  color: #fff;
+  border: none;
+  border-radius: var(--rl);
+  padding: 20px 24px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   CAMPOS DE FICHA TÉCNICA
+   ═══════════════════════════════════════════════════════════════ */
+.mdf {
+  background: var(--bg2);
+  border: 1.5px solid var(--bdr);
+  border-radius: var(--r);
+  padding: 10px 14px;
+}
+
+.mdf-l {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--tx3);
+  letter-spacing: 1px;
+  font-family: var(--mono);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.mdf-v {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--tx);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   TABLA DE MEDICAMENTOS
+   ═══════════════════════════════════════════════════════════════ */
+.med-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.med-table th {
+  text-align: left;
+  padding: 10px 14px;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--tx3);
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  font-family: var(--mono);
+  background: var(--bg3);
+  border-bottom: 1.5px solid var(--bdr);
+}
+
+.med-table td {
+  padding: 10px 14px;
+  border-top: 1px solid var(--bdr);
+  color: var(--tx2);
+  vertical-align: middle;
+}
+
+.med-table tr:hover td {
+  background: var(--bg3);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SIDEBAR
+   ═══════════════════════════════════════════════════════════════ */
+.sidebar {
+  background: var(--green-dark);
+  color: #fff;
+}
+
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255,255,255,0.75);
+  cursor: pointer;
+  transition: all var(--t);
+  border-left: 3px solid transparent;
+}
+
+.sidebar-item:hover {
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+}
+
+.sidebar-item.active {
+  background: rgba(255,255,255,0.12);
+  color: #fff;
+  border-left-color: var(--green-light);
+}
+
+.sidebar-sub-item {
+  padding: 5px 14px 5px 36px;
+  font-size: 12px;
+  color: rgba(255,255,255,0.55);
+  cursor: pointer;
+  transition: all var(--t);
+}
+
+.sidebar-sub-item:hover { color: rgba(255,255,255,0.85); }
+.sidebar-sub-item.active { color: #fff; font-weight: 600; }
+
+/* ═══════════════════════════════════════════════════════════════
+   SNOMED CHIPS
+   ═══════════════════════════════════════════════════════════════ */
+.snomed-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: var(--mono);
+  cursor: default;
+}
+
+.snomed-vtm   { background: #EDE9FE; color: #5B21B6; border: 1px solid #C4B5FD; }
+.snomed-ff    { background: #DBEAFE; color: #1E40AF; border: 1px solid #93C5FD; }
+.snomed-route { background: #CCFBF1; color: #0F766E; border: 1px solid #5EEAD4; }
+
+/* ═══════════════════════════════════════════════════════════════
+   UTILIDADES
+   ═══════════════════════════════════════════════════════════════ */
+.mono { font-family: var(--mono); }
+.text-xs { font-size: 11px; }
+.text-sm { font-size: 12px; }
+.text-muted { color: var(--tx3); }
+.text-green { color: var(--green); }
+.text-dark { color: var(--green-dark); }
+
+.divider {
+  height: 1px;
+  background: var(--bdr);
+  margin: 12px 0;
+}
+
+.section-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--tx3);
+  letter-spacing: 1.5px;
+  font-family: var(--mono);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SCROLL
+   ═══════════════════════════════════════════════════════════════ */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--bdr2); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--tx4); }
+
+/* ═══════════════════════════════════════════════════════════════
+   SELECCIÓN DE TEXTO
+   ═══════════════════════════════════════════════════════════════ */
+::selection { background: var(--green-pale); color: var(--green-dark); }
