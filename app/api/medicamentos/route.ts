@@ -35,6 +35,8 @@ function mapDoc(doc: FirebaseFirestore.QueryDocumentSnapshot) {
     vmp: d.data?.vmp || d.vmp || '',
     generico: d.data?.generico || '',
     nombre: d.data?.nombre || '',
+    vmpp: d.data?.vmpp || '',
+    ampp: d.data?.ampp || '',
   };
 }
 
