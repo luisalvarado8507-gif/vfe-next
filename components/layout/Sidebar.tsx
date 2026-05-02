@@ -20,7 +20,6 @@ export default function Sidebar() {
   const toggleCap = (id: string) => {
     setOpenCap(prev => prev === id ? null : id);
     setActiveCap(id);
-    router.push(`/capitulos/${id}`);
   };
 
   const handleSub = (chapId: string, subId: string) => {
