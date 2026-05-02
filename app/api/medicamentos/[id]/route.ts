@@ -18,28 +18,47 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     const { id } = await params;
 
     // Intento 1: buscar por doc ID de Firestore
-    let docSnap = await adminDb.collection('medicamentos').doc(id).get();
-
-    // Intento 2: si no existe, buscar por campo data.id interno
-    if (!docSnap.exists) {
-      const snap = await adminDb.collection('medicamentos')
-        .where('data.id', '==', id)
-        .limit(1)
-        .get();
-      if (!snap.empty) docSnap = snap.docs[0] as any;
+    const docSnap1 = await adminDb.collection('medicamentos').doc(id).get();
+    
+    if (docSnap1.exists) {
+      return NextResponse.json({
+        medicamento: {
+          id: docSnap1.id,
+          ...docSnap1.data()?.data,
+          estado: docSnap1.data()?.estado,
+        }
+      });
     }
 
-    if (!docSnap.exists) return NextResponse.json({ error: 'No encontrado' }, { status: 404 });
+    // Intento 2: buscar por campo data.id
+    const snap2 = await adminDb.collection('medicamentos')
+      .where('data.id', '==', id)
+      .limit(1)
+      .get();
 
-    return NextResponse.json({
-      medicamento: {
-        id: docSnap.id,
-        ...docSnap.data()?.data,
-        estado: docSnap.data()?.estado,
-      }
-    });
+    if (!snap2.empty) {
+      const d = snap2.docs[0];
+      return NextResponse.json({
+        medicamento: {
+          id: d.id,
+          ...d.data()?.data,
+          estado: d.data()?.estado,
+        }
+      });
+    }
+
+    // Debug: devolver info de diagnóstico
+    const total = await adminDb.collection('medicamentos').limit(3).get();
+    const muestra = total.docs.map(d => ({ docId: d.id, dataId: d.data()?.data?.id }));
+
+    return NextResponse.json({ 
+      error: 'No encontrado', 
+      idBuscado: id,
+      muestraFirestore: muestra
+    }, { status: 404 });
+
   } catch(e) {
     console.error('Error GET medicamento:', e);
-    return NextResponse.json({ error: 'Error al cargar' }, { status: 500 });
+    return NextResponse.json({ error: 'Error al cargar', detalle: String(e) }, { status: 500 });
   }
 }
