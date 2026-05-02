@@ -4,7 +4,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth-context';
 import Sidebar from '@/components/layout/Sidebar';
-import { CAPITULOS } from '@/lib/capitulos';
+import { CHAPS } from '@/lib/capitulos-tree';
 import { Suspense } from 'react';
 
 interface Medicamento {
@@ -19,11 +19,11 @@ interface Medicamento {
   vmp?: string;
   generico?: string;
   nombre?: string;
+  hasPrices?: boolean;
 }
 
-const PER_PAGE = 12;
+const PER_PAGE = 15;
 
-// Orden de estados: autorizados primero, arcsa_pendiente al final
 const estadoOrden = (estado: string) => {
   if (estado === 'autorizado') return 0;
   if (estado === 'suspendido') return 1;
@@ -31,6 +31,23 @@ const estadoOrden = (estado: string) => {
   if (estado === 'arcsa_pendiente') return 4;
   return 3;
 };
+
+const ESTADO_STYLES: Record<string, { bg: string; color: string; label: string }> = {
+  autorizado:      { bg: 'var(--estado-autorizado-bg)',  color: 'var(--estado-autorizado)',  label: 'Autorizado' },
+  suspendido:      { bg: 'var(--estado-suspendido-bg)',  color: 'var(--estado-suspendido)',  label: 'Suspendido' },
+  retirado:        { bg: 'var(--estado-retirado-bg)',    color: 'var(--estado-retirado)',    label: 'Retirado' },
+  arcsa_pendiente: { bg: 'var(--estado-pendiente-bg)',   color: 'var(--estado-pendiente)',   label: 'ARCSA pendiente' },
+};
+
+function EstadoBadge({ estado }: { estado: string }) {
+  const s = ESTADO_STYLES[estado] || { bg: 'var(--bg3)', color: 'var(--tx3)', label: estado };
+  return (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '3px 10px', borderRadius: 20, fontSize: 11, fontWeight: 600, background: s.bg, color: s.color, whiteSpace: 'nowrap' }}>
+      <span style={{ width: 5, height: 5, borderRadius: '50%', background: s.color, flexShrink: 0 }} />
+      {s.label}
+    </span>
+  );
+}
 
 function BaseDatosContent() {
   const [todos, setTodos] = useState<Medicamento[]>([]);
@@ -41,15 +58,13 @@ function BaseDatosContent() {
   const [filtroEstado, setFiltroEstado] = useState('todos');
   const [filtroGenerico, setFiltroGenerico] = useState('todos');
   const [pagina, setPagina] = useState(1);
-  const [cursor, setCursor] = useState<string | null>(null);
-  const [hayMas, setHayMas] = useState(true);
+  const [busquedaResults, setBusquedaResults] = useState<Medicamento[] | null>(null);
   const { getToken, user, isEditor, loading: authLoading } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   const capitulo = searchParams.get('capitulo');
-  const capNombre = capitulo ? CAPITULOS.find(c => c.id === capitulo)?.name : null;
+  const capNombre = capitulo ? CHAPS.find(c => c.id === capitulo)?.name : null;
 
-  // Carga todos los medicamentos en lotes de 500
   const cargarTodos = useCallback(async () => {
     setLoading(true);
     setCargando(true);
@@ -59,23 +74,19 @@ function BaseDatosContent() {
       let cursorActual: string | null = null;
       let acumulado: Medicamento[] = [];
       let intentos = 0;
-      while (intentos < 50) { // max 50 lotes = 25.000 registros
+      while (intentos < 50) {
         intentos++;
         const params = new URLSearchParams({ limit: '500' });
         if (cursorActual) params.set('cursor', cursorActual);
         if (capitulo) params.set('capitulo', capitulo);
-        const res = await fetch(`/api/medicamentos?${params}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const res = await fetch(`/api/medicamentos?${params}`, { headers: { Authorization: `Bearer ${token}` } });
         const data = await res.json();
-        const meds: Medicamento[] = data.medicamentos || [];
-        acumulado = [...acumulado, ...meds];
-        setTodos([...acumulado]); // actualizar UI progresivamente
+        acumulado = [...acumulado, ...(data.medicamentos || [])];
+        setTodos([...acumulado]);
         setLoading(false);
         cursorActual = data.nextCursor || null;
-        if (!cursorActual) break; // no hay más
+        if (!cursorActual) break;
       }
-      setHayMas(false);
     } catch(e) { console.error(e); }
     finally { setCargando(false); setLoading(false); }
   }, [getToken, capitulo]);
@@ -84,15 +95,11 @@ function BaseDatosContent() {
     if (authLoading) return;
     if (!user) { router.push('/login'); return; }
     setTodos([]);
-    setCursor(null);
-    setHayMas(true);
     setBusqueda('');
     setPagina(1);
     cargarTodos();
   }, [authLoading, user, capitulo]);
 
-  // Búsqueda
-  const [busquedaResults, setBusquedaResults] = useState<Medicamento[] | null>(null);
   useEffect(() => {
     if (!busqueda.trim()) { setBusquedaResults(null); setPagina(1); return; }
     const timer = setTimeout(async () => {
@@ -112,17 +119,12 @@ function BaseDatosContent() {
     return () => clearTimeout(timer);
   }, [busqueda]);
 
-  // Fuente de datos: búsqueda o todos
   const fuente = busquedaResults ?? todos;
-
-  // Ordenar: autorizados primero, arcsa_pendiente al final
   const ordenados = [...fuente].sort((a, b) => {
     const est = estadoOrden(a.estado) - estadoOrden(b.estado);
     if (est !== 0) return est;
     return ((b as any).hasPrices ? 1 : 0) - ((a as any).hasPrices ? 1 : 0);
   });
-
-  // Filtros
   const filtrados = ordenados.filter(m => {
     if (filtroEstado !== 'todos' && m.estado !== filtroEstado) return false;
     if (filtroGenerico === 'si' && m.generico !== 'Sí') return false;
@@ -133,192 +135,209 @@ function BaseDatosContent() {
   const totalPags = Math.max(1, Math.ceil(filtrados.length / PER_PAGE));
   const paginados = filtrados.slice((pagina - 1) * PER_PAGE, pagina * PER_PAGE);
 
-  const estadoDot = (estado: string) => {
-    switch(estado) {
-      case 'autorizado': return '#16a34a';
-      case 'suspendido': return '#D97706';
-      case 'retirado': return '#DC2626';
-      case 'arcsa_pendiente': return '#EA580C';
-      default: return '#9CA3AF';
-    }
-  };
-  const estadoLabel = (estado: string) => {
-    if (estado === 'arcsa_pendiente') return 'ARCSA - No revisado';
-    return estado || 'pendiente';
-  };
-  const estadoBg = (estado: string) => {
-    switch(estado) {
-      case 'autorizado': return '#dcfce7';
-      case 'suspendido': return '#fef9c3';
-      case 'retirado': return '#fee2e2';
-      case 'arcsa_pendiente': return '#ffedd5';
-      default: return '#f3f4f6';
-    }
-  };
-
   const limpiarFiltros = () => { setFiltroEstado('todos'); setFiltroGenerico('todos'); setBusqueda(''); setPagina(1); };
 
-  const btnFiltro = (activo: boolean): React.CSSProperties => ({
-    padding: '4px 12px', borderRadius: 6, fontSize: 12.5, fontWeight: 600, cursor: 'pointer',
-    border: `1.5px solid ${activo ? 'var(--green)' : 'var(--bdr)'}`,
+  const chipBtn = (activo: boolean): React.CSSProperties => ({
+    padding: '5px 12px', borderRadius: 20, fontSize: 12, fontWeight: 500,
+    cursor: 'pointer', border: `1.5px solid ${activo ? 'var(--green)' : 'var(--bdr)'}`,
     background: activo ? 'var(--green)' : 'var(--bg2)',
-    color: activo ? '#fff' : 'var(--tx2)',
+    color: activo ? '#fff' : 'var(--tx2)', transition: 'all .13s',
   });
 
   if (authLoading) return (
-    <div style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center' }}>
-      <p style={{ color:'var(--tx4)' }}>Cargando...</p>
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <p style={{ color: 'var(--tx4)' }}>Cargando...</p>
     </div>
   );
 
   return (
-    <div style={{ minHeight:'100vh', background:'var(--bg)', display:'flex', fontFamily:'var(--sans)' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', fontFamily: 'var(--sans)' }}>
       <Sidebar />
-      <main style={{ flex:1, marginLeft:280, padding:'28px 32px' }}>
+      <main style={{ flex: 1, marginLeft: 272, display: 'flex', flexDirection: 'column' }}>
 
-        {/* Header */}
-        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:20 }}>
-          <div style={{ display:'flex', alignItems:'center', gap:12 }}>
-            <Link href="/dashboard" style={{ display:'flex', alignItems:'center', gap:6, padding:'6px 12px', background:'var(--bg3)', border:'1.5px solid var(--bdr)', borderRadius:8, fontSize:13, fontWeight:600, color:'var(--tx2)', textDecoration:'none' }}>
-              🏠 Inicio
+        {/* ── Header dark ── */}
+        <div style={{ background: 'var(--green-dark, #1B4332)', padding: '20px 32px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+            <Link href="/dashboard" style={{ fontSize: 12, color: 'rgba(255,255,255,.5)', textDecoration: 'none', transition: 'color .15s' }}
+              onMouseEnter={e => (e.currentTarget.style.color = 'rgba(255,255,255,.85)')}
+              onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,.5)')}>
+              ← Dashboard
             </Link>
-            <span style={{ fontSize:15, fontWeight:700, color:'var(--tx)' }}>{capNombre || 'Base de datos'}</span>
+            {capNombre && <>
+              <span style={{ color: 'rgba(255,255,255,.25)' }}>/</span>
+              <span style={{ fontSize: 12, color: 'rgba(255,255,255,.5)' }}>{capNombre}</span>
+            </>}
           </div>
-          <Link href="/medicamentos/nuevo"
-            style={{ background:'var(--green)', color:'#fff', padding:'7px 18px', borderRadius:8, fontSize:13, fontWeight:700, textDecoration:'none' }}>
-            + Nuevo
-          </Link>
+
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+            <div>
+              <h1 style={{ fontSize: 20, fontWeight: 700, color: '#fff', marginBottom: 4 }}>
+                {capNombre || 'Base de datos'}
+              </h1>
+              <p style={{ fontSize: 12, color: 'rgba(255,255,255,.5)' }}>
+                {filtrados.length} medicamentos
+                {cargando && <span style={{ color: 'var(--green-light, #74C69D)', marginLeft: 8 }}>· cargando...</span>}
+              </p>
+            </div>
+            <Link href="/medicamentos/nuevo" style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 18px', background: 'var(--green-light, #74C69D)', color: 'var(--green-dark, #1B4332)', borderRadius: 'var(--r)', fontSize: 13, fontWeight: 700, textDecoration: 'none', transition: 'opacity .15s' }}>
+              ＋ Nuevo medicamento
+            </Link>
+          </div>
+
+          {/* Buscador */}
+          <div style={{ position: 'relative' }}>
+            <div style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--tx3)" strokeWidth="2" strokeLinecap="round">
+                <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+              </svg>
+            </div>
+            <input
+              style={{ width: '100%', border: '1.5px solid rgba(255,255,255,.15)', borderRadius: 'var(--r)', padding: '11px 16px 11px 40px', fontSize: 14, outline: 'none', background: 'rgba(255,255,255,.1)', color: '#fff', fontFamily: 'var(--sans)', boxSizing: 'border-box', transition: 'border-color .15s' }}
+              placeholder="Buscar por principio activo, nombre comercial, laboratorio, ATC…"
+              value={busqueda}
+              onChange={e => { setBusqueda(e.target.value); setPagina(1); }}
+              onFocus={e => (e.currentTarget.style.borderColor = 'rgba(255,255,255,.4)')}
+              onBlur={e => (e.currentTarget.style.borderColor = 'rgba(255,255,255,.15)')}
+            />
+            {buscando && <span style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', fontSize: 12, color: 'rgba(255,255,255,.5)' }}>Buscando...</span>}
+            {busqueda && !buscando && <button onClick={() => { setBusqueda(''); setBusquedaResults(null); }} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'rgba(255,255,255,.5)', cursor: 'pointer', fontSize: 16, lineHeight: 1 }}>✕</button>}
+          </div>
         </div>
 
-        {/* Buscador */}
-        <div style={{ position:'relative', marginBottom:16 }}>
-          <input
-            style={{ width:'100%', border:'1.5px solid var(--bdr)', borderRadius:10, padding:'11px 16px', fontSize:14, outline:'none', background:'var(--bg2)', boxShadow:'var(--shm)', fontFamily:'var(--sans)', color:'var(--tx)', boxSizing:'border-box' }}
-            placeholder="Buscar medicamento, principio activo, laboratorio, código ATC…"
-            value={busqueda}
-            onChange={e => { setBusqueda(e.target.value); setPagina(1); }} />
-          {buscando && <span style={{ position:'absolute', right:14, top:'50%', transform:'translateY(-50%)', fontSize:12, color:'var(--tx4)' }}>Buscando...</span>}
-        </div>
-
-        {/* Filtros */}
-        <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:16, flexWrap:'wrap' }}>
-          <div style={{ display:'flex', alignItems:'center', gap:6 }}>
-            <span style={{ fontSize:12, fontWeight:600, color:'var(--tx3)' }}>ESTADO:</span>
-            {[['todos','Todos'],['autorizado','Autorizado'],['suspendido','Suspendido'],['retirado','Retirado']].map(([val,lbl]) => (
-              <button key={val} onClick={() => { setFiltroEstado(val); setPagina(1); }} style={btnFiltro(filtroEstado===val)}>{lbl}</button>
+        {/* ── Filtros ── */}
+        <div style={{ background: 'var(--bg2)', borderBottom: '1.5px solid var(--bdr)', padding: '12px 32px', display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--tx3)', letterSpacing: 1, fontFamily: 'var(--mono)' }}>ESTADO</span>
+            {[['todos', 'Todos'], ['autorizado', 'Autorizado'], ['arcsa_pendiente', 'Pendiente'], ['suspendido', 'Suspendido'], ['retirado', 'Retirado']].map(([val, lbl]) => (
+              <button key={val} onClick={() => { setFiltroEstado(val); setPagina(1); }} style={chipBtn(filtroEstado === val)}>{lbl}</button>
             ))}
           </div>
-          <div style={{ display:'flex', alignItems:'center', gap:6 }}>
-            <span style={{ fontSize:12, fontWeight:600, color:'var(--tx3)' }}>GENÉRICO:</span>
-            {[['todos','Todos'],['si','Sí'],['no','No']].map(([val,lbl]) => (
-              <button key={val} onClick={() => { setFiltroGenerico(val); setPagina(1); }} style={btnFiltro(filtroGenerico===val)}>{lbl}</button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--tx3)', letterSpacing: 1, fontFamily: 'var(--mono)' }}>TIPO</span>
+            {[['todos', 'Todos'], ['si', 'Genérico'], ['no', 'Marca']].map(([val, lbl]) => (
+              <button key={val} onClick={() => { setFiltroGenerico(val); setPagina(1); }} style={chipBtn(filtroGenerico === val)}>{lbl}</button>
             ))}
           </div>
-          <button onClick={limpiarFiltros} style={{ marginLeft:'auto', padding:'4px 12px', borderRadius:6, fontSize:12.5, fontWeight:600, cursor:'pointer', border:'1.5px solid var(--bdr)', background:'var(--bg2)', color:'var(--tx3)' }}>
-            ✕ Limpiar
-          </button>
+          {(filtroEstado !== 'todos' || filtroGenerico !== 'todos' || busqueda) && (
+            <button onClick={limpiarFiltros} style={{ marginLeft: 'auto', padding: '5px 12px', borderRadius: 20, fontSize: 12, fontWeight: 500, cursor: 'pointer', border: '1.5px solid var(--bdr)', background: 'transparent', color: 'var(--tx3)', transition: 'all .13s' }}>
+              ✕ Limpiar filtros
+            </button>
+          )}
         </div>
 
-        {/* Tabla */}
-        <div style={{ background:'#fff', borderRadius:12, border:'1.5px solid var(--bdr)', overflow:'hidden', boxShadow:'var(--sh)' }}>
-          <div style={{ padding:'12px 16px', borderBottom:'1.5px solid var(--bdr)', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-            <span style={{ fontSize:13, fontWeight:700, color:'var(--tx)' }}>Medicamentos</span>
-            <span style={{ fontSize:12, color:'var(--tx3)', fontFamily:'var(--mono)' }}>
-              {filtrados.length} registros
-              {cargando && <span style={{ color:'var(--green)', marginLeft:8 }}>· cargando más...</span>}
-            </span>
-          </div>
-          <div style={{ overflowX:'auto' }}>
-            <table style={{ width:'100%', borderCollapse:'collapse', fontSize:13 }}>
-              <thead>
-                <tr style={{ background:'var(--bg3)' }}>
-                  {['VTM / DCI ↕','AMP (Comercial) ↕','LABORATORIO ↕','VMP ↕','ESTADO ↕','GENÉRICO','ACCIONES'].map(h => (
-                    <th key={h} style={{ padding:'10px 14px', textAlign:'left', fontSize:11, fontWeight:700, color:'var(--tx3)', letterSpacing:'.5px', fontFamily:'var(--mono)', whiteSpace:'nowrap', borderBottom:'1.5px solid var(--bdr)' }}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {loading ? (
-                  <tr><td colSpan={7} style={{ textAlign:'center', padding:48, color:'var(--tx4)' }}>Cargando medicamentos...</td></tr>
-                ) : paginados.length === 0 ? (
-                  <tr><td colSpan={7} style={{ textAlign:'center', padding:48, color:'var(--tx4)' }}>No hay medicamentos</td></tr>
-                ) : paginados.map((m, i) => {
-                  const id = m.docId || m.id;
-                  const amp = m.amp || m.nombre || '';
-                  return (
-                    <tr key={id} style={{ borderBottom:'1px solid var(--bdr)', background: i%2===0 ? '#fff' : 'var(--bg3)' }}>
-                      <td style={{ padding:'10px 14px', fontWeight:700, color:'var(--tx)' }}>{m.vtm}</td>
-                      <td style={{ padding:'10px 14px', color:'var(--tx2)', maxWidth:220 }}>
-                        <div style={{ fontWeight:500 }}>{amp || <span style={{ color:'var(--tx4)', fontStyle:'italic', fontSize:11 }}>—</span>}</div>
-                        {m.conc && <span style={{ fontSize:11, color:'var(--tx3)', fontFamily:'var(--mono)' }}>{m.conc}</span>}
-                      </td>
-                      <td style={{ padding:'10px 14px', color:'var(--tx2)' }}>{m.laboratorio}</td>
-                      <td style={{ padding:'10px 14px', fontSize:12, fontFamily:'var(--mono)', maxWidth:180 }}>
-                        <span style={{ color:'var(--green)' }}>{m.vmp || '—'}</span>
-                      </td>
-                      <td style={{ padding:'10px 14px' }}>
-                        <span style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'3px 10px', borderRadius:20, fontSize:11.5, fontWeight:600, background:estadoBg(m.estado), color:estadoDot(m.estado) }}>
-                          <span style={{ width:6, height:6, borderRadius:'50%', background:estadoDot(m.estado), flexShrink:0 }}></span>
-                          {estadoLabel(m.estado)}
-                        </span>
-                      </td>
-                      <td style={{ padding:'10px 14px' }}>
-                        <span style={{ fontSize:12, color: m.generico==='Sí' ? 'var(--green)' : 'var(--tx3)', fontWeight:600 }}>
-                          • {m.generico || '—'}
-                        </span>
-                      </td>
-                      <td style={{ padding:'10px 14px' }}>
-                        <div style={{ display:'flex', gap:4 }}>
-                          <Link href={`/medicamentos/${id}`}
-                            style={{ padding:'3px 10px', borderRadius:6, fontSize:12, fontWeight:600, border:'1.5px solid var(--bdr)', color:'var(--gdp)', background:'var(--bg2)', textDecoration:'none' }}>
-                            Ver
-                          </Link>
-                          {isEditor && (
-                            <Link href={`/medicamentos/${id}/editar`}
-                              style={{ padding:'3px 10px', borderRadius:6, fontSize:12, fontWeight:600, border:'1.5px solid var(--bdr)', color:'var(--blue,#2563EB)', background:'var(--bg2)', textDecoration:'none' }}>
-                              Editar
+        {/* ── Tabla ── */}
+        <div style={{ flex: 1, padding: '20px 32px' }}>
+          <div style={{ background: 'var(--bg2)', border: '1.5px solid var(--bdr)', borderRadius: 'var(--rl)', overflow: 'hidden', boxShadow: 'var(--sh)' }}>
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                <thead>
+                  <tr style={{ background: 'var(--bg3)' }}>
+                    {['Principio activo (DCI)', 'Nombre comercial', 'Concentración', 'Forma farm.', 'Laboratorio', 'Estado', 'Genérico', ''].map(h => (
+                      <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontSize: 10, fontWeight: 700, color: 'var(--tx3)', letterSpacing: 0.8, fontFamily: 'var(--mono)', textTransform: 'uppercase', borderBottom: '1.5px solid var(--bdr)', whiteSpace: 'nowrap' }}>
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {loading ? (
+                    <tr><td colSpan={8} style={{ textAlign: 'center', padding: 48, color: 'var(--tx4)' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
+                        <div style={{ width: 20, height: 20, border: '2px solid var(--bdr)', borderTopColor: 'var(--green)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+                        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+                        Cargando medicamentos...
+                      </div>
+                    </td></tr>
+                  ) : paginados.length === 0 ? (
+                    <tr><td colSpan={8} style={{ textAlign: 'center', padding: 48 }}>
+                      <div style={{ color: 'var(--tx4)', fontSize: 13 }}>
+                        <div style={{ fontSize: 28, marginBottom: 8 }}>💊</div>
+                        <div style={{ fontWeight: 600 }}>No se encontraron medicamentos</div>
+                        {busqueda && <div style={{ fontSize: 12, marginTop: 4 }}>Intenta con otro término de búsqueda</div>}
+                      </div>
+                    </td></tr>
+                  ) : paginados.map((m, i) => {
+                    const id = m.docId || m.id;
+                    const amp = m.amp || m.nombre || '';
+                    return (
+                      <tr key={id}
+                        onClick={() => router.push(`/medicamentos/${id}`)}
+                        style={{ borderTop: '1px solid var(--bdr)', background: i % 2 === 0 ? 'var(--bg2)' : 'var(--bg)', cursor: 'pointer', transition: 'background .1s' }}
+                        onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--bg3)'}
+                        onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = i % 2 === 0 ? 'var(--bg2)' : 'var(--bg)'}>
+                        <td style={{ padding: '10px 14px', fontWeight: 600, color: 'var(--tx)' }}>
+                          {m.vtm}
+                        </td>
+                        <td style={{ padding: '10px 14px', color: 'var(--tx2)', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {amp || <span style={{ color: 'var(--tx4)', fontStyle: 'italic', fontSize: 11 }}>—</span>}
+                        </td>
+                        <td style={{ padding: '10px 14px', color: 'var(--tx3)', fontFamily: 'var(--mono)', fontSize: 12, whiteSpace: 'nowrap' }}>
+                          {m.conc || '—'}
+                        </td>
+                        <td style={{ padding: '10px 14px', color: 'var(--tx3)', fontSize: 12, maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {m.ff || '—'}
+                        </td>
+                        <td style={{ padding: '10px 14px', color: 'var(--tx2)', fontSize: 12 }}>
+                          {m.laboratorio || '—'}
+                        </td>
+                        <td style={{ padding: '10px 14px' }}>
+                          <EstadoBadge estado={m.estado} />
+                        </td>
+                        <td style={{ padding: '10px 14px' }}>
+                          <span style={{ fontSize: 11, fontWeight: 600, color: m.generico === 'Sí' ? 'var(--green)' : 'var(--tx4)' }}>
+                            {m.generico === 'Sí' ? '✓ Genérico' : m.generico === 'No' ? 'Marca' : '—'}
+                          </span>
+                        </td>
+                        <td style={{ padding: '10px 14px' }} onClick={e => e.stopPropagation()}>
+                          <div style={{ display: 'flex', gap: 4 }}>
+                            <Link href={`/medicamentos/${id}`} style={{ padding: '4px 10px', borderRadius: 6, fontSize: 11, fontWeight: 600, border: '1.5px solid var(--bdr)', color: 'var(--green)', background: 'var(--bg2)', textDecoration: 'none', whiteSpace: 'nowrap', transition: 'all .13s' }}
+                              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--green)'; (e.currentTarget as HTMLElement).style.background = 'var(--bg3)'; }}
+                              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--bdr)'; (e.currentTarget as HTMLElement).style.background = 'var(--bg2)'; }}>
+                              Ver
                             </Link>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                            {isEditor && (
+                              <Link href={`/medicamentos/${id}/editar`} style={{ padding: '4px 10px', borderRadius: 6, fontSize: 11, fontWeight: 600, border: '1.5px solid var(--bdr)', color: 'var(--blue, #1D4ED8)', background: 'var(--bg2)', textDecoration: 'none', whiteSpace: 'nowrap', transition: 'all .13s' }}
+                                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--blue)'; (e.currentTarget as HTMLElement).style.background = 'var(--blue-bg)'; }}
+                                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--bdr)'; (e.currentTarget as HTMLElement).style.background = 'var(--bg2)'; }}>
+                                Editar
+                              </Link>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
 
-          {/* Paginación inteligente */}
-          {totalPags > 1 && (() => {
-            const delta = 2;
-            const pages: (number|string)[] = [];
-            pages.push(1);
-            if (pagina - delta > 2) pages.push('...');
-            for (let p = Math.max(2, pagina-delta); p <= Math.min(totalPags-1, pagina+delta); p++) pages.push(p);
-            if (pagina + delta < totalPags - 1) pages.push('...');
-            if (totalPags > 1) pages.push(totalPags);
-            return (
-              <div style={{ padding:'12px 16px', borderTop:'1.5px solid var(--bdr)', display:'flex', alignItems:'center', justifyContent:'center', gap:4, flexWrap:'wrap' }}>
-                <button onClick={() => { setPagina(p => Math.max(1,p-1)); window.scrollTo(0,0); }} disabled={pagina===1}
-                  style={{ padding:'4px 10px', borderRadius:6, border:'1.5px solid var(--bdr)', fontSize:13, fontWeight:600, cursor:'pointer', background:'var(--bg2)', color: pagina===1 ? 'var(--tx4)' : 'var(--tx2)', opacity: pagina===1?0.4:1 }}>‹</button>
-                {pages.map((p, i) => typeof p === 'string'
-                  ? <span key={'dot'+i} style={{ fontSize:13, color:'var(--tx3)', padding:'0 2px' }}>···</span>
-                  : <button key={p} onClick={() => { setPagina(p as number); window.scrollTo(0,0); }}
-                      style={{ minWidth:30, height:30, borderRadius:6, border:'1.5px solid var(--bdr)', fontSize:12.5, fontWeight:600, cursor:'pointer',
-                        background: pagina===p ? 'var(--green)' : 'var(--bg2)',
-                        color: pagina===p ? '#fff' : 'var(--tx2)',
-                        padding:'0 6px',
-                      }}>{p}</button>
-                )}
-                <button onClick={() => { setPagina(p => Math.min(totalPags,p+1)); window.scrollTo(0,0); }} disabled={pagina===totalPags}
-                  style={{ padding:'4px 10px', borderRadius:6, border:'1.5px solid var(--bdr)', fontSize:13, fontWeight:600, cursor:'pointer', background:'var(--bg2)', color: pagina===totalPags ? 'var(--tx4)' : 'var(--tx2)', opacity: pagina===totalPags?0.4:1 }}>›</button>
-                <span style={{ fontSize:12, color:'var(--tx3)', marginLeft:8 }}>Pág. {pagina} de {totalPags}</span>
-                <input type='number' min={1} max={totalPags} value={pagina}
-                  onChange={e => { const v=parseInt(e.target.value); if(v>=1&&v<=totalPags){setPagina(v);window.scrollTo(0,0);}}}
-                  style={{ width:60, border:'1.5px solid var(--bdr)', borderRadius:6, padding:'3px 8px', fontSize:12.5, textAlign:'center', outline:'none', marginLeft:4 }} />
-              </div>
-            );
-          })()}
+            {/* Paginación */}
+            {totalPags > 1 && (() => {
+              const delta = 2;
+              const pages: (number | string)[] = [];
+              pages.push(1);
+              if (pagina - delta > 2) pages.push('...');
+              for (let p = Math.max(2, pagina - delta); p <= Math.min(totalPags - 1, pagina + delta); p++) pages.push(p);
+              if (pagina + delta < totalPags - 1) pages.push('...');
+              if (totalPags > 1) pages.push(totalPags);
+              return (
+                <div style={{ padding: '12px 16px', borderTop: '1.5px solid var(--bdr)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, flexWrap: 'wrap', background: 'var(--bg3)' }}>
+                  <button onClick={() => { setPagina(p => Math.max(1, p - 1)); window.scrollTo(0, 0); }} disabled={pagina === 1}
+                    style={{ padding: '5px 12px', borderRadius: 6, border: '1.5px solid var(--bdr)', fontSize: 13, fontWeight: 600, cursor: 'pointer', background: 'var(--bg2)', color: pagina === 1 ? 'var(--tx4)' : 'var(--tx2)', opacity: pagina === 1 ? 0.4 : 1 }}>‹</button>
+                  {pages.map((p, i) => typeof p === 'string'
+                    ? <span key={'dot' + i} style={{ fontSize: 13, color: 'var(--tx3)', padding: '0 2px' }}>···</span>
+                    : <button key={p} onClick={() => { setPagina(p as number); window.scrollTo(0, 0); }}
+                      style={{ minWidth: 32, height: 32, borderRadius: 6, border: '1.5px solid var(--bdr)', fontSize: 12, fontWeight: 600, cursor: 'pointer', background: pagina === p ? 'var(--green)' : 'var(--bg2)', color: pagina === p ? '#fff' : 'var(--tx2)', padding: '0 6px', transition: 'all .13s' }}>
+                      {p}
+                    </button>
+                  )}
+                  <button onClick={() => { setPagina(p => Math.min(totalPags, p + 1)); window.scrollTo(0, 0); }} disabled={pagina === totalPags}
+                    style={{ padding: '5px 12px', borderRadius: 6, border: '1.5px solid var(--bdr)', fontSize: 13, fontWeight: 600, cursor: 'pointer', background: 'var(--bg2)', color: pagina === totalPags ? 'var(--tx4)' : 'var(--tx2)', opacity: pagina === totalPags ? 0.4 : 1 }}>›</button>
+                  <span style={{ fontSize: 12, color: 'var(--tx3)', marginLeft: 8 }}>Pág. {pagina} de {totalPags} · {filtrados.length} registros</span>
+                </div>
+              );
+            })()}
+          </div>
         </div>
       </main>
     </div>
@@ -327,7 +346,7 @@ function BaseDatosContent() {
 
 export default function BaseDatos() {
   return (
-    <Suspense fallback={<div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'100vh', color:'var(--tx4)' }}>Cargando...</div>}>
+    <Suspense fallback={<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', color: 'var(--tx4)' }}>Cargando...</div>}>
       <BaseDatosContent />
     </Suspense>
   );
