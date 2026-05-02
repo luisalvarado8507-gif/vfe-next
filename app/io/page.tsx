@@ -30,7 +30,7 @@ const EXPORT_FIELDS = [
   { key: 'nombre',     label: 'Nombre comercial (AMP)',      default: true },
   { key: 'conc',       label: 'Concentración',               default: true },
   { key: 'ff',         label: 'Forma farmacéutica',          default: true },
-  { key: 'via',        label: 'Vía de administración',       default: true },
+  { key: 'vias',       label: 'Vía de administración',       default: true },
   { key: 'laboratorio',label: 'Laboratorio',                 default: true },
   { key: 'rs',         label: 'Registro sanitario',          default: true },
   { key: 'units',      label: 'Unidades por presentación',   default: true },
