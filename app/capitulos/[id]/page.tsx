@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth-context';
 import Sidebar from '@/components/layout/Sidebar';
@@ -89,8 +89,9 @@ export default function CapituloPage() {
   const router = useRouter();
   const { getToken, isEditor } = useAuth();
 
+  const searchParams = useSearchParams();
   const [chaps, setChaps] = useState<CapituloTree[]>(CHAPS);
-  const [activeSub, setActiveSub] = useState<string | null>(null);
+  const [activeSub, setActiveSub] = useState<string | null>(searchParams?.get('sub') || null);
   const [meds, setMeds] = useState<Med[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -100,6 +101,12 @@ export default function CapituloPage() {
   const [modalInput, setModalInput] = useState('');
 
   const cap = chaps.find(c => c.id === id);
+
+  // Sync activeSub with URL param
+  useEffect(() => {
+    const sub = searchParams?.get('sub') || null;
+    if (sub) setActiveSub(sub);
+  }, [searchParams]);
 
   // ── Load chaps from Firestore ────────────────────────────────────────
   useEffect(() => {
