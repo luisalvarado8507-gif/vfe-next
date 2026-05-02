@@ -27,8 +27,11 @@ export async function GET(req: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '50');
     const cursor = searchParams.get('cursor');
     const capitulo = searchParams.get('capitulo');
+    const estadoFilter = searchParams.get('estado');
 
-    let query = adminDb.collection('medicamentos').orderBy('vtm').limit(limit);
+    let query: any = adminDb.collection('medicamentos');
+    if (estadoFilter) query = query.where('estado', '==', estadoFilter);
+    query = query.orderBy('vtm').limit(limit);
 
     if (cursor) {
       const cursorDoc = await adminDb.collection('medicamentos').doc(cursor).get();
