@@ -57,7 +57,7 @@ export default function Arbol() {
         let all: Record<string, string>[] = [];
         let cursor: string | null = null;
         while (true) {
-          const params = new URLSearchParams({ limit: '500' });
+          const params = new URLSearchParams({ limit: '500', estado: 'autorizado' });
           if (cursor) params.set('cursor', cursor);
           const res = await fetch(`/api/medicamentos?${params}`, { headers: { Authorization: `Bearer ${token}` } });
           const data = await res.json();
