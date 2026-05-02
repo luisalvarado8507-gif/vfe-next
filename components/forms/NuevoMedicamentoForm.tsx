@@ -178,7 +178,7 @@ export default function NuevoMedicamentoForm({ initialData, editId }: { initialD
     if (vias.length === 0) validationErrors.push('Indica al menos una vía de administración');
 
     // Validar formato de concentración (debe contener números)
-    if (concLabel && !/d/.test(concLabel)) {
+    if (concLabel && !/[0-9]/.test(concLabel.replace(/,/g, "."))) {
       validationErrors.push('La concentración debe incluir un valor numérico (ej: 500 mg, 10 mg/ml)');
     }
 
