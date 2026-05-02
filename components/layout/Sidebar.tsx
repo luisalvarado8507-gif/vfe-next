@@ -9,7 +9,7 @@ export default function Sidebar() {
   const { user, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
-  // Detect active cap from URL e.g. /capitulos/c01
+
   const capFromUrl = pathname?.match(/\/capitulos\/(c\w+)/)?.[1] || null;
   const [openCap, setOpenCap] = useState<string | null>(capFromUrl);
   const [activeCap, setActiveCap] = useState<string | null>(capFromUrl);
@@ -30,11 +30,12 @@ export default function Sidebar() {
     router.push(`/capitulos/${chapId}?sub=${subId}`);
   };
 
+  const isActive = (href: string) => pathname === href;
+
   return (
     <aside style={{
-      width: '280px',
-      background: 'var(--bg2, #fff)',
-      borderRight: '1.5px solid var(--bdr, #D0ECC6)',
+      width: '272px',
+      background: 'var(--green-dark, #1B4332)',
       display: 'flex',
       flexDirection: 'column',
       height: '100vh',
@@ -42,152 +43,183 @@ export default function Sidebar() {
       left: 0,
       top: 0,
       overflow: 'hidden',
-      fontFamily: "'Plus Jakarta Sans', sans-serif",
+      fontFamily: 'var(--sans)',
+      zIndex: 100,
     }}>
-      {/* LOGO */}
-      <div style={{ background: 'var(--green, #3DDB18)', padding: '15px 14px 13px', flexShrink: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '9px' }}>
-          <svg viewBox="0 0 26 14" fill="none" width="26" height="14" style={{ marginTop: '3px', flexShrink: 0 }}>
-            <rect x="0" y="0" width="26" height="14" rx="7" fill="white" opacity="0.15"/>
-            <path d="M13 0 Q7 0 3.5 3.5 Q0 5.5 0 7 Q0 8.5 3.5 10.5 Q7 14 13 14 Z" fill="white"/>
-            <path d="M13 0 Q19 0 22.5 3.5 Q26 5.5 26 7 Q26 8.5 22.5 10.5 Q19 14 13 14 Z" fill="rgba(61,219,24,0.85)"/>
-            <line x1="13" y1="0" x2="13" y2="14" stroke="white" strokeWidth="1.2" opacity="0.6"/>
-            <rect x="0.6" y="0.6" width="24.8" height="12.8" rx="6.4" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="1.2"/>
-          </svg>
+
+      {/* ── LOGO ── */}
+      <div style={{ padding: '18px 16px 14px', flexShrink: 0, borderBottom: '1px solid rgba(255,255,255,.08)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
+          <div style={{
+            width: '36px', height: '36px', borderRadius: '10px',
+            background: 'rgba(255,255,255,.15)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+          }}>
+            <svg viewBox="0 0 26 14" fill="none" width="22" height="12">
+              <rect x="0" y="0" width="26" height="14" rx="7" fill="white" opacity="0.2"/>
+              <path d="M13 0 Q7 0 3.5 3.5 Q0 5.5 0 7 Q0 8.5 3.5 10.5 Q7 14 13 14 Z" fill="white"/>
+              <path d="M13 0 Q19 0 22.5 3.5 Q26 5.5 26 7 Q26 8.5 22.5 10.5 Q19 14 13 14 Z" fill="rgba(116,198,157,0.9)"/>
+              <line x1="13" y1="0" x2="13" y2="14" stroke="white" strokeWidth="1.2" opacity="0.5"/>
+            </svg>
+          </div>
           <div>
-            <div style={{ fontWeight: 800, fontSize: '26px', color: '#fff', letterSpacing: '-1px', lineHeight: 1 }}>VFE</div>
-            <div style={{ fontSize: '12px', fontWeight: 600, color: 'rgba(255,255,255,.9)', marginTop: '3px' }}>Gestión de Medicamentos</div>
+            <div style={{ fontWeight: 700, fontSize: '22px', color: '#fff', letterSpacing: '-0.5px', lineHeight: 1 }}>VFE</div>
+            <div style={{ fontSize: '10px', fontWeight: 500, color: 'rgba(255,255,255,.55)', marginTop: '2px', fontFamily: 'var(--mono)', letterSpacing: '1.2px' }}>
+              EL LIBRO VERDE · ECUADOR
+            </div>
           </div>
         </div>
-        <div style={{ fontSize: '9px', color: 'rgba(255,255,255,.6)', fontFamily: "'DM Mono', monospace", letterSpacing: '1.5px', marginTop: '4px' }}>
-          EL LIBRO VERDE · ECUADOR
-        </div>
-        {user && (
-          <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <div style={{ width: '22px', height: '22px', borderRadius: '50%', background: 'rgba(255,255,255,.25)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="white"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
+
+        {/* Usuario */}
+        {user ? (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 8px', background: 'rgba(255,255,255,.08)', borderRadius: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
+              <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: 'var(--green-light, #74C69D)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 700, color: 'var(--green-dark, #1B4332)', flexShrink: 0 }}>
+                {(user.email || '?')[0].toUpperCase()}
               </div>
-              <span style={{ fontSize: '11px', color: 'rgba(255,255,255,.85)', maxWidth: '140px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <span style={{ fontSize: '11px', color: 'rgba(255,255,255,.8)', maxWidth: '130px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {user.email}
               </span>
             </div>
-            <button onClick={handleLogout}
-              style={{ fontSize: '11px', color: 'rgba(255,255,255,.7)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 6px', borderRadius: '4px' }}>
+            <button onClick={handleLogout} style={{ fontSize: '11px', color: 'rgba(255,255,255,.5)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 4px', borderRadius: '4px', transition: 'color .15s' }}
+              onMouseEnter={e => (e.currentTarget.style.color = 'rgba(255,255,255,.9)') }
+              onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,.5)')}>
               Salir
             </button>
           </div>
-        )}
-        {!user && (
-          <Link href="/login" style={{
-            display: 'flex', alignItems: 'center', gap: '6px', marginTop: '8px',
-            fontSize: '12px', fontWeight: 600, color: 'rgba(255,255,255,.9)',
-            background: 'rgba(255,255,255,.2)', borderRadius: '6px', padding: '4px 10px',
-            border: '1px solid rgba(255,255,255,.3)', textDecoration: 'none'
-          }}>
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="white"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12z"/></svg>
-            VISITANTE &nbsp;<strong>ENTRAR</strong>
+        ) : (
+          <Link href="/login" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 10px', background: 'rgba(255,255,255,.08)', borderRadius: '8px', textDecoration: 'none', transition: 'background .15s' }}
+            onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,.13)') }
+            onMouseLeave={e => (e.currentTarget.style.background = 'rgba(255,255,255,.08)')}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
+              <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: 'rgba(255,255,255,.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="rgba(255,255,255,.7)"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12z"/></svg>
+              </div>
+              <span style={{ fontSize: '11px', color: 'rgba(255,255,255,.6)' }}>Visitante</span>
+            </div>
+            <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--green-light, #74C69D)' }}>Entrar →</span>
           </Link>
         )}
       </div>
 
-      {/* CHAPTER LIST HEADER */}
-      <div style={{ padding: '6px 8px 2px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
-        <span style={{ fontSize: '9px', fontFamily: "'DM Mono', monospace", color: 'var(--tx4, #B0CFA8)', letterSpacing: '1px' }}>CAPÍTULOS</span>
+      {/* ── NAV RÁPIDA ── */}
+      <div style={{ padding: '10px 10px 6px', flexShrink: 0 }}>
+        {[
+          { href: '/dashboard',         icon: '⌂', label: 'Dashboard' },
+          { href: '/medicamentos',       icon: '⊞', label: 'Base de datos' },
+          { href: '/arbol',              icon: '⊤', label: 'Árbol SPMS' },
+          { href: '/avances',            icon: '◎', label: 'Panel de avances' },
+        ].map(item => (
+          <Link key={item.href} href={item.href} style={{
+            display: 'flex', alignItems: 'center', gap: '9px',
+            padding: '7px 10px', borderRadius: '7px', marginBottom: '2px',
+            fontSize: '12.5px', fontWeight: 500, textDecoration: 'none',
+            color: isActive(item.href) ? '#fff' : 'rgba(255,255,255,.65)',
+            background: isActive(item.href) ? 'rgba(255,255,255,.12)' : 'transparent',
+            transition: 'all .13s',
+            borderLeft: `2px solid ${isActive(item.href) ? 'var(--green-light, #74C69D)' : 'transparent'}`,
+          }}
+            onMouseEnter={e => { if (!isActive(item.href)) (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,.07)'; }}
+            onMouseLeave={e => { if (!isActive(item.href)) (e.currentTarget as HTMLElement).style.background = 'transparent'; }}>
+            <span style={{ fontSize: '13px', opacity: 0.8, width: '16px', textAlign: 'center' }}>{item.icon}</span>
+            {item.label}
+          </Link>
+        ))}
+      </div>
+
+      {/* ── CAPÍTULOS ── */}
+      <div style={{ padding: '4px 14px 6px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <span style={{ fontSize: '9px', fontFamily: 'var(--mono)', color: 'rgba(255,255,255,.3)', letterSpacing: '1.5px' }}>CAPÍTULOS</span>
         <Link href="/medicamentos/nuevo" style={{
-          background: 'var(--green, #3DDB18)', color: '#fff', borderRadius: '5px',
-          padding: '2px 8px', fontSize: '11px', fontWeight: 700, textDecoration: 'none'
+          background: 'var(--green-light, #74C69D)', color: 'var(--green-dark, #1B4332)',
+          borderRadius: '5px', padding: '2px 8px', fontSize: '11px', fontWeight: 700, textDecoration: 'none',
         }}>＋ Nuevo</Link>
       </div>
 
-      {/* CHAPTERS */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '6px 0' }}>
+      {/* ── LISTA CAPÍTULOS ── */}
+      <div style={{ flex: 1, overflowY: 'auto', padding: '2px 0' }}>
         {CHAPS.map(cap => (
           <div key={cap.id}>
+            {/* Capítulo */}
             <div
               onClick={() => toggleCap(cap.id)}
               style={{
-                display: 'flex', alignItems: 'center', gap: '7px',
-                padding: '8px 14px', fontSize: '13.5px', fontWeight: 600,
-                color: activeCap === cap.id ? 'var(--gdp, #1A6B08)' : 'var(--tx2, #3A5C30)',
-                cursor: 'pointer', transition: 'all .12s',
-                borderLeft: `3px solid ${activeCap === cap.id ? 'var(--green, #3DDB18)' : 'transparent'}`,
-                background: activeCap === cap.id ? 'rgba(61,219,24,.10)' : 'transparent',
+                display: 'flex', alignItems: 'center', gap: '8px',
+                padding: '7px 14px', cursor: 'pointer', transition: 'all .12s',
+                borderLeft: `2px solid ${activeCap === cap.id ? 'var(--green-light, #74C69D)' : 'transparent'}`,
+                background: activeCap === cap.id ? 'rgba(255,255,255,.09)' : 'transparent',
               }}
-              onMouseEnter={e => { if (activeCap !== cap.id) (e.currentTarget as HTMLElement).style.background = 'var(--bg3, #EDF7E8)'; }}
+              onMouseEnter={e => { if (activeCap !== cap.id) (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,.05)'; }}
               onMouseLeave={e => { if (activeCap !== cap.id) (e.currentTarget as HTMLElement).style.background = 'transparent'; }}>
-              <span style={{ fontFamily: "'DM Mono', monospace", fontSize: '11px', color: 'var(--tx4, #B0CFA8)', minWidth: '22px', flexShrink: 0 }}>
+              <span style={{ fontFamily: 'var(--mono)', fontSize: '10px', color: 'rgba(255,255,255,.35)', minWidth: '22px', flexShrink: 0 }}>
                 {cap.n}
               </span>
-              <span style={{ flex: 1, lineHeight: 1.3, fontSize: '12px' }}>{cap.name}</span>
-              <span style={{
-                marginLeft: 'auto', fontSize: '10px', color: 'var(--tx4)',
-                transition: 'transform .2s',
-                transform: openCap === cap.id ? 'rotate(90deg)' : 'none',
-              }}>▶</span>
+              <span style={{ flex: 1, fontSize: '12px', fontWeight: activeCap === cap.id ? 600 : 400, color: activeCap === cap.id ? '#fff' : 'rgba(255,255,255,.7)', lineHeight: 1.3 }}>
+                {cap.name}
+              </span>
+              <span style={{ fontSize: '9px', color: 'rgba(255,255,255,.3)', transition: 'transform .2s', transform: openCap === cap.id ? 'rotate(90deg)' : 'none', flexShrink: 0 }}>
+                ▶
+              </span>
             </div>
 
-            {/* SUBCAPÍTULOS */}
+            {/* Subcapítulos */}
             {openCap === cap.id && cap.subs.length > 0 && (
-              <div style={{ background: 'var(--bg3, #EDF7E8)' }}>
+              <div style={{ background: 'rgba(0,0,0,.15)', borderLeft: '2px solid rgba(255,255,255,.06)', marginLeft: '14px' }}>
                 {cap.subs.map((sub, si) => (
                   <div key={sub.id}
                     onClick={() => handleSub(cap.id, sub.id)}
                     style={{
-                      display: 'flex', alignItems: 'center', gap: '6px',
-                      padding: '6px 14px 6px 28px',
-                      fontSize: '12px', color: activeSub === sub.id ? 'var(--gdp)' : 'var(--tx2)',
-                      cursor: 'pointer', transition: 'all .12s',
-                      borderLeft: `3px solid ${activeSub === sub.id ? 'var(--green)' : 'transparent'}`,
-                      background: activeSub === sub.id ? 'rgba(61,219,24,.10)' : 'transparent',
-                      fontWeight: activeSub === sub.id ? 700 : 400,
-                    }}>
-                    <span style={{ fontSize: '10px', fontFamily: 'monospace', color: 'var(--tx4)', minWidth: '28px', flexShrink: 0 }}>
+                      display: 'flex', alignItems: 'flex-start', gap: '7px',
+                      padding: '5px 12px 5px 10px', cursor: 'pointer', transition: 'all .12s',
+                      background: activeSub === sub.id ? 'rgba(116,198,157,.12)' : 'transparent',
+                      borderLeft: `2px solid ${activeSub === sub.id ? 'var(--green-light, #74C69D)' : 'transparent'}`,
+                    }}
+                    onMouseEnter={e => { if (activeSub !== sub.id) (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,.05)'; }}
+                    onMouseLeave={e => { if (activeSub !== sub.id) (e.currentTarget as HTMLElement).style.background = 'transparent'; }}>
+                    <span style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'rgba(255,255,255,.3)', minWidth: '30px', flexShrink: 0, paddingTop: '1px' }}>
                       {cap.n}.{si + 1}
                     </span>
-                    {sub.name}
+                    <span style={{ fontSize: '11.5px', color: activeSub === sub.id ? '#fff' : 'rgba(255,255,255,.6)', fontWeight: activeSub === sub.id ? 600 : 400, lineHeight: 1.35 }}>
+                      {sub.name}
+                    </span>
                   </div>
                 ))}
                 <div
-                  onClick={() => router.push(`/capitulos/cap.id`)}
-                  style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '5px 14px 5px 34px', fontSize: '12px', color: 'var(--tx3)', cursor: 'pointer' }}>
+                  onClick={() => router.push(`/capitulos/${cap.id}`)}
+                  style={{ padding: '5px 12px 6px 42px', fontSize: '11px', color: 'var(--green-light, #74C69D)', cursor: 'pointer', opacity: 0.8 }}
+                  onMouseEnter={e => (e.currentTarget.style.opacity = '1')}
+                  onMouseLeave={e => (e.currentTarget.style.opacity = '0.8')}>
                   Ver todos →
                 </div>
-              </div>
-            )}
-
-            {openCap === cap.id && cap.subs.length === 0 && (
-              <div onClick={() => router.push(`/capitulos/cap.id`)}
-                style={{ padding: '5px 14px 5px 34px', fontSize: '12px', color: 'var(--tx3)', cursor: 'pointer', background: 'var(--bg3)' }}>
-                Ver medicamentos →
               </div>
             )}
           </div>
         ))}
       </div>
 
-      {/* FOOTER NAV */}
-      <div style={{ padding: '9px 10px', borderTop: '1.5px solid var(--bdr)', flexShrink: 0, display: 'flex', flexDirection: 'column', gap: '5px' }}>
+      {/* ── FOOTER ── */}
+      <div style={{ padding: '8px 10px', borderTop: '1px solid rgba(255,255,255,.08)', flexShrink: 0, display: 'flex', flexDirection: 'column', gap: '2px' }}>
         {[
-          { href: '/dashboard', icon: '🏠', label: 'Dashboard' },
-          { href: '/medicamentos', icon: '📋', label: 'Base de datos' },
-          { href: '/arbol', icon: '🌳', label: 'Árbol de medicamentos' },
-          { href: '/avances', icon: '📊', label: 'Panel de avances' },
-          { href: '/medicamentos/nuevo', icon: '➕', label: 'Nuevo medicamento' },
-          { href: '/io', icon: '📦', label: 'Importar / Exportar' },
-          { href: '/audit', icon: '🔍', label: 'Audit log' },
+          { href: '/medicamentos/nuevo', icon: '＋', label: 'Nuevo medicamento', accent: true },
+          { href: '/io',    icon: '⬇', label: 'Importar / Exportar' },
+          { href: '/audit', icon: '◉', label: 'Audit log' },
         ].map(item => (
           <Link key={item.href} href={item.href} style={{
             display: 'flex', alignItems: 'center', gap: '8px',
-            padding: '7px 10px', borderRadius: '8px',
-            cursor: 'pointer', fontSize: '12.5px', fontWeight: 600,
-            color: 'var(--tx2)', border: '1.5px solid var(--bdr)',
-            background: 'var(--bg2)', transition: 'all .12s', textDecoration: 'none'
-          }}>
-            {item.icon} {item.label}
+            padding: '6px 10px', borderRadius: '7px',
+            fontSize: '12px', fontWeight: (item as any).accent ? 600 : 400,
+            color: (item as any).accent ? 'var(--green-light, #74C69D)' : 'rgba(255,255,255,.55)',
+            textDecoration: 'none', transition: 'all .13s',
+            background: (item as any).accent ? 'rgba(116,198,157,.1)' : 'transparent',
+          }}
+            onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,.07)'}
+            onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = (item as any).accent ? 'rgba(116,198,157,.1)' : 'transparent'}>
+            <span style={{ fontSize: '12px', width: '16px', textAlign: 'center' }}>{item.icon}</span>
+            {item.label}
           </Link>
         ))}
       </div>
+
     </aside>
   );
 }
