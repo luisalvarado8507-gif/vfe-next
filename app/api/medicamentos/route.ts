@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
     const capitulo = searchParams.get('capitulo');
     const estadoFilter = searchParams.get('estado');
 
-    let query: any = adminDb.collection('medicamentos');
+    let query = adminDb.collection('medicamentos') as any;
     if (estadoFilter) query = query.where('estado', '==', estadoFilter);
     query = query.orderBy('vtm').limit(limit);
 
