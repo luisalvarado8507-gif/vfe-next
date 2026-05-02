@@ -20,11 +20,12 @@ export default function Sidebar() {
   const toggleCap = (id: string) => {
     setOpenCap(prev => prev === id ? null : id);
     setActiveCap(id);
+    router.push(`/capitulos/${id}`);
   };
 
   const handleSub = (chapId: string, subId: string) => {
     setActiveSub(subId);
-    router.push(`/medicamentos?capitulo=${chapId}&subcapitulo=${subId}`);
+    router.push(`/capitulos/${chapId}`);
   };
 
   return (
@@ -143,7 +144,7 @@ export default function Sidebar() {
                   </div>
                 ))}
                 <div
-                  onClick={() => router.push(`/medicamentos?capitulo=${cap.id}`)}
+                  onClick={() => router.push(`/capitulos/cap.id`)}
                   style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '5px 14px 5px 34px', fontSize: '12px', color: 'var(--tx3)', cursor: 'pointer' }}>
                   Ver todos →
                 </div>
@@ -151,7 +152,7 @@ export default function Sidebar() {
             )}
 
             {openCap === cap.id && cap.subs.length === 0 && (
-              <div onClick={() => router.push(`/medicamentos?capitulo=${cap.id}`)}
+              <div onClick={() => router.push(`/capitulos/cap.id`)}
                 style={{ padding: '5px 14px 5px 34px', fontSize: '12px', color: 'var(--tx3)', cursor: 'pointer', background: 'var(--bg3)' }}>
                 Ver medicamentos →
               </div>
