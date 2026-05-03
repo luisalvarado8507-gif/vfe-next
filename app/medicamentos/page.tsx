@@ -20,6 +20,8 @@ interface Medicamento {
   generico?: string;
   nombre?: string;
   hasPrices?: boolean;
+  prospectoUrl?: string;
+  packagingUrl?: string;
 }
 
 const PER_PAGE = 15;
@@ -295,6 +297,20 @@ function BaseDatosContent() {
                               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--bdr)'; (e.currentTarget as HTMLElement).style.background = 'var(--bg2)'; }}>
                               Ver
                             </Link>
+                            {m.prospectoUrl && (
+                              <a href={m.prospectoUrl} target="_blank" rel="noreferrer"
+                                style={{ padding: '4px 10px', borderRadius: 6, fontSize: 11, fontWeight: 600, border: '1.5px solid #BFDBFE', color: '#1D4ED8', background: '#EFF6FF', textDecoration: 'none', whiteSpace: 'nowrap' }}
+                                title="Ver prospecto PDF">
+                                📄 Prospecto
+                              </a>
+                            )}
+                            {m.packagingUrl && (
+                              <a href={m.packagingUrl} target="_blank" rel="noreferrer"
+                                style={{ padding: '4px 10px', borderRadius: 6, fontSize: 11, fontWeight: 600, border: '1.5px solid #E9D5FF', color: '#6D28D9', background: '#F5F3FF', textDecoration: 'none', whiteSpace: 'nowrap' }}
+                                title="Ver packaging PDF">
+                                📦 Packaging
+                              </a>
+                            )}
                             {isEditor && (
                               <Link href={`/medicamentos/${id}/editar`} style={{ padding: '4px 10px', borderRadius: 6, fontSize: 11, fontWeight: 600, border: '1.5px solid var(--bdr)', color: 'var(--blue, #1D4ED8)', background: 'var(--bg2)', textDecoration: 'none', whiteSpace: 'nowrap', transition: 'all .13s' }}
                                 onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--blue)'; (e.currentTarget as HTMLElement).style.background = 'var(--blue-bg)'; }}
