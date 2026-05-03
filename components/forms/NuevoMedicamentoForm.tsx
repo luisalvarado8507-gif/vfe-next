@@ -235,7 +235,7 @@ export default function NuevoMedicamentoForm({ initialData, editId }: { initialD
         snomed_vtm_code: snomedVTM?.code || '', snomed_ff_code: snomedFF?.code || '',
         upres, vol, volUnit, iso11238Forma, iso11238Estado,
         ...farmPrecios,
-        cum, rsTitular, rsTipo, rsFecha, rsVence, rsPais, rsCondicion, rsProc,
+        cum, prospectoUrl, packagingUrl, rsTitular, rsTipo, rsFecha, rsVence, rsPais, rsCondicion, rsProc,
         rsFabricante, rsPaisFab, rsImportador,
         phpidL1, phpidL2, phpidL3, phpid, gtin, cnmbCodigo, pmc, rsObs,
         clinData: clin,
