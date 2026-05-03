@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { useRouter } from 'next/navigation';
 import AtcAutocomplete from '@/components/ui/AtcAutocomplete';
+import PdfUploader from '@/components/ui/PdfUploader';
 import { getSnomedVTM, getSnomedFF } from '@/lib/snomed-db';
 import { CHAPS, getSubcaps } from '@/lib/capitulos-tree';
 
@@ -124,6 +125,8 @@ export default function NuevoMedicamentoForm({ initialData, editId }: { initialD
   const [cnmbCodigo, setCnmbCodigo] = useState(initialData?.cnmbCodigo || '');
   const [pmc, setPmc] = useState(initialData?.pmc || '');
   const [rsObs, setRsObs] = useState(initialData?.rsObs || '');
+  const [prospectoUrl, setProspectoUrl] = useState(initialData?.prospectoUrl || '');
+  const [packagingUrl, setPackagingUrl] = useState(initialData?.packagingUrl || '');
   // Clínica
   const SECCIONES_CLINICAS = ['Generalidades','Rol del medicamento','Embarazo y lactancia','Interacciones','Precauciones','Indicaciones','Contraindicaciones','Efectos adversos','Dosificación','Farmacocinética'];
   const [secActivas, setSecActivas] = useState<string[]>(['Generalidades','Rol del medicamento']);

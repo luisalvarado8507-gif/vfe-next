@@ -68,6 +68,8 @@ function mapDoc(doc: FirebaseFirestore.QueryDocumentSnapshot) {
     esCombo: data.esCombo || false,
     comboData: data.comboData || null,
     clinData: data.clinData || {},
+    prospectoUrl: data.prospectoUrl || '',
+    packagingUrl: data.packagingUrl || '',
   };
 }
 
