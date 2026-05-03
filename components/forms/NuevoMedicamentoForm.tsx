@@ -794,6 +794,13 @@ export default function NuevoMedicamentoForm({ initialData, editId }: { initialD
               <textarea style={{ ...inp, minHeight: 90, resize: 'vertical' }}
                 placeholder="Ej. Sujeto a farmacovigilancia intensiva. No intercambiable con genéricos sin autorización médica."
                 value={rsObs} onChange={e => setRsObs(e.target.value)} />
+            <div style={{ display: "flex", alignItems: "center", gap: 8, margin: "20px 0 12px", padding: "8px 14px", background: "var(--bg3)", borderLeft: "3px solid var(--blue)", borderRadius: "0 var(--r) var(--r) 0" }}>
+              <span style={{ fontWeight: 600, fontSize: 12, color: "var(--blue)" }}>Documentos PDF</span>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
+              <PdfUploader label="Prospecto" fieldKey="prospectoUrl" currentUrl={prospectoUrl} medId={editId || "nuevo"} onUploaded={url => setProspectoUrl(url)} onDeleted={() => setProspectoUrl("")} />
+              <PdfUploader label="Packaging" fieldKey="packagingUrl" currentUrl={packagingUrl} medId={editId || "nuevo"} onUploaded={url => setPackagingUrl(url)} onDeleted={() => setPackagingUrl("")} />
+            </div>
             </div>
           </div>
         )}
