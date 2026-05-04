@@ -93,7 +93,7 @@ export default function ImportarExportar() {
       if (!token) return;
       const all = await fetchAllMeds(token);
       const filtered = filterMeds(all);
-      const fields = EXPORT_FIELDS.filter(f => selectedFields[f.key]).map(f => f.key);
+      const fields = ["vtm","nombre","conc","ff","vias","laboratorio","rs","cum","units","envase","pu","pp","rango","generico","cnmb","atc","atclbl","chapId","subId","estado","vmp","vmpp","amp","ampp","rsFabricante","rsPaisFab","rsImportador","rsTitular","rsTipo","rsFecha","rsVence","rsCondicion","pmc","gtin","phpid","phpidL1","phpidL2","phpidL3","prospectoUrl","packagingUrl"];
       if (exportFormat === 'json') {
         const data = filtered.map(m => Object.fromEntries(fields.map(k => [k, m[k] ?? ''])));
         download(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }), `vfe_medicamentos_${today()}.json`);
