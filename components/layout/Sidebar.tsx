@@ -203,6 +203,7 @@ export default function Sidebar() {
           { href: '/medicamentos/nuevo', icon: '＋', label: 'Nuevo medicamento', accent: true },
           { href: '/io',    icon: '⬇', label: 'Importar / Exportar' },
           { href: '/audit', icon: '◉', label: 'Audit log' },
+          { href: '/docs', icon: '⊙', label: 'API Docs' },
         ].map(item => (
           <Link key={item.href} href={item.href} style={{
             display: 'flex', alignItems: 'center', gap: '8px',
