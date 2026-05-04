@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
+import AtcHierarchy from '@/components/ui/AtcHierarchy';
 import Sidebar from '@/components/layout/Sidebar';
 
 // ── SNOMED databases ──────────────────────────────────────────────────────
@@ -282,8 +283,13 @@ export default function MedicamentoDetalle() {
                 </div>
               </div>
 
-              <Field label="Código ATC" value={med.atc || '—'} mono />
-              <Field label="Descripción ATC" value={med.atclbl || '—'} full />
+              {/* ATC Jerarquía completa */}
+              <div style={{ background: 'var(--bg2)', border: '1.5px solid var(--bdr)', borderRadius: 'var(--r)', padding: '10px 14px', gridColumn: '1 / -1' }}>
+                <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--tx3)', letterSpacing: 1, fontFamily: 'var(--mono)', textTransform: 'uppercase', marginBottom: 8 }}>
+                  Código ATC — Clasificación WHO
+                </div>
+                <AtcHierarchy code={med.atc || ''} label={med.atclbl || ''} />
+              </div>
               <Field label="CNMB" value={med.cnmb || '—'} />
               <Field label="Genérico" value={med.generico || '—'} />
 
