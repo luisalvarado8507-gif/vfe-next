@@ -4,6 +4,8 @@ import { useAuth } from '@/lib/auth-context';
 import { useRouter } from 'next/navigation';
 import AtcAutocomplete from '@/components/ui/AtcAutocomplete';
 import PdfUploader from '@/components/ui/PdfUploader';
+import EstadoSelector from '@/components/ui/EstadoSelector';
+import type { EstadoRegulatorio } from '@/lib/regulatory-lifecycle';
 import { getSnomedVTM, getSnomedFF } from '@/lib/snomed-db';
 import { CHAPS, getSubcaps } from '@/lib/capitulos-tree';
 
@@ -100,7 +102,7 @@ export default function NuevoMedicamentoForm({ initialData, editId }: { initialD
   const [envase, setEnvase] = useState(initialData?.envase || '');
   const [rs, setRs] = useState(initialData?.rs || '');
   const [cum, setCum] = useState(initialData?.cum || '');
-  const [estado, setEstado] = useState(initialData?.estado || 'arcsa_pendiente');
+  const [estado, setEstado] = useState<EstadoRegulatorio>((initialData?.estado as EstadoRegulatorio) || 'arcsa_pendiente');
   const [upres, setUpres] = useState(initialData?.upres || '');
   const [vol, setVol] = useState(initialData?.vol || '');
   const [volUnit, setVolUnit] = useState(initialData?.volUnit || 'mL');
@@ -699,13 +701,12 @@ export default function NuevoMedicamentoForm({ initialData, editId }: { initialD
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
               <div>
                 <label style={lbl}>ESTADO REGULATORIO <span style={{ fontSize:10,fontWeight:400,color:'var(--tx4)',textTransform:'none',letterSpacing:0 }}>ISO 11615</span></label>
-                <select style={inp} value={estado} onChange={e => setEstado(e.target.value)}>
-                  <option value="">— Selecciona —</option>
-                  <option value="arcsa_pendiente">Pendiente de revisión</option>
-                  <option value="autorizado">Autorizado</option>
-                  <option value="suspendido">Suspendido</option>
-                  <option value="retirado">Retirado del mercado</option>
-                </select>
+                <EstadoSelector
+                  value={estado}
+                  onChange={setEstado}
+                  mostrarTodos={!editId}
+                />
+
               </div>
               <div>
                 <label style={lbl}>PAÍS DE AUTORIZACIÓN <span style={{ fontSize:10,fontWeight:400,color:'var(--tx4)',textTransform:'none',letterSpacing:0 }}>ISO 11615</span></label>

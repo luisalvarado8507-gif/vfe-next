@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { puedeTransicionar, EstadoRegulatorio } from '@/lib/regulatory-lifecycle';
 import { adminDb, adminAuth } from '@/lib/firebase-admin';
 import { Medicamento } from '@/types/medicamento';
 import type { Query } from 'firebase-admin/firestore';
@@ -152,6 +153,13 @@ export async function PUT(req: NextRequest) {
     if (!id) return NextResponse.json({ error: 'ID requerido' }, { status: 400 });
 
     const prevDoc = await adminDb.collection('medicamentos').doc(id).get();
+    const estadoActual = (prevDoc.data()?.estado || 'arcsa_pendiente') as EstadoRegulatorio;
+    const estadoNuevo = (data.estado || estadoActual) as EstadoRegulatorio;
+    if (estadoNuevo !== estadoActual && !puedeTransicionar(estadoActual, estadoNuevo)) {
+      return NextResponse.json({
+        error: `Transición no permitida: ${estadoActual} → ${estadoNuevo}`
+      }, { status: 400 });
+    }
 
     await adminDb.collection('medicamentos').doc(id).update({
       data, vtm: data.vtm, laboratorio: data.laboratorio,
@@ -160,7 +168,6 @@ export async function PUT(req: NextRequest) {
     });
 
     const estadoAnterior = prevDoc.data()?.estado || '';
-    const estadoNuevo = data.estado || '';
     const cambioEstado = estadoAnterior !== estadoNuevo;
     await adminDb.collection('auditLog').add({
       accion: cambioEstado ? `UPDATE_ESTADO:${estadoAnterior}->${estadoNuevo}` : 'UPDATE',
