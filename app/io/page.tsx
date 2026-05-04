@@ -95,7 +95,7 @@ export default function ImportarExportar() {
       const filtered = filterMeds(all);
       const fields = ["vtm","nombre","conc","ff","vias","laboratorio","rs","cum","units","envase","pu","pp","rango","generico","cnmb","atc","atclbl","chapId","subId","estado","vmp","vmpp","amp","ampp","rsFabricante","rsPaisFab","rsImportador","rsTitular","rsTipo","rsFecha","rsVence","rsCondicion","pmc","gtin","phpid","phpidL1","phpidL2","phpidL3","prospectoUrl","packagingUrl"];
       if (exportFormat === 'json') {
-        const data = filtered.map(m => Object.fromEntries(fields.map(k => [k, m[k] ?? ''])));
+        const data = filtered.map(m => { const row: Record<string,string> = {}; fields.forEach(k => { row[k] = m[k] !== undefined && m[k] !== null ? String(m[k]) : ''; }); return row; });
         download(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }), `vfe_medicamentos_${today()}.json`);
       } else if (exportFormat === 'csv') {
         const rows = filtered.map(m => fields.map(k => `"${String(m[k] ?? '').replace(/"/g, '""')}"`).join(','));
