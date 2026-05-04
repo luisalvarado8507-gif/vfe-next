@@ -23,6 +23,9 @@ interface Medicamento {
   atc?: string;
   rs?: string;
   cum?: string;
+  generico?: string;
+  nombre?: string;
+  cnmb?: string;
 }
 
 const PER_PAGE = 15;
