@@ -33,6 +33,7 @@ function mapDoc(doc: FirebaseFirestore.QueryDocumentSnapshot) {
     vias: Array.isArray(data.vias) ? data.vias.join(', ') : (data.via || ''),
     laboratorio: data.laboratorio || d.laboratorio || '',
     rs: data.rs || '',
+    cum: data.cum || '',
     units: data.units || '',
     envase: data.envase || '',
     pu: data.pu || '',
