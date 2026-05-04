@@ -189,7 +189,7 @@ td{border:1px solid #C8E0CC;padding:5px 8px}tr:nth-child(even){background:#EBF5E
     if (file) importarArchivo(file);
   }, [isEditor]);
 
-  const totalCampos = Object.values(selectedFields).filter(Boolean).length + Object.values(selectedSnomed).filter(Boolean).length;
+  const totalCampos = 35; // todos los campos excepto clinData
   const capNombre = CHAPS.find(c => c.id === exportCap)?.name;
 
   // ── Estilos ──────────────────────────────────────────────────────────────
@@ -310,40 +310,21 @@ td{border:1px solid #C8E0CC;padding:5px 8px}tr:nth-child(even){background:#EBF5E
                 </div>
               </div>
 
-              {/* Campos */}
-              <div style={{ marginBottom: 14 }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                  <span style={{ fontSize: 12, color: 'var(--tx2)' }}>Campos a exportar:</span>
-                  <div style={{ display: 'flex', gap: 6 }}>
-                    <button onClick={() => setSelectedFields(Object.fromEntries(EXPORT_FIELDS.map(f => [f.key, true])))} style={chipBtn(false)}>✓ Todos</button>
-                    <button onClick={() => setSelectedFields(Object.fromEntries(EXPORT_FIELDS.map(f => [f.key, false])))} style={chipBtn(false)}>✗ Ninguno</button>
-                  </div>
+              {/* Campos incluidos */}
+              <div style={{ marginBottom: 14, padding: '12px 14px', background: 'var(--bg3)', borderRadius: 'var(--r)', border: '1px solid var(--bdr)' }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--tx2)', marginBottom: 8 }}>
+                  ✓ Se exportan todos los campos excepto datos clínicos
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 4 }}>
-                  {EXPORT_FIELDS.map(f => (
-                    <label key={f.key} style={checkField(f.key, !!selectedFields[f.key])} title={f.label}>
-                      <input type="checkbox" checked={!!selectedFields[f.key]} onChange={e => setSelectedFields(p => ({ ...p, [f.key]: e.target.checked }))} style={{ accentColor: 'var(--green)', flexShrink: 0 }} />
-                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.label}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              {/* SNOMED */}
-              <div style={{ marginBottom: 14 }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                  <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--purple)', fontFamily: 'var(--mono)', letterSpacing: 1 }}>SNOMED CT</span>
-                  <div style={{ display: 'flex', gap: 6 }}>
-                    <button onClick={() => setSelectedSnomed(Object.fromEntries(SNOMED_FIELDS.map(f => [f.key, true])))} style={{ ...chipBtn(false), color: 'var(--purple)', borderColor: '#C4B5FD' }}>todos</button>
-                    <button onClick={() => setSelectedSnomed(Object.fromEntries(SNOMED_FIELDS.map(f => [f.key, false])))} style={{ ...chipBtn(false), color: 'var(--tx3)' }}>ninguno</button>
-                  </div>
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 4 }}>
-                  {SNOMED_FIELDS.map(f => (
-                    <label key={f.key} style={checkField(f.key, !!selectedSnomed[f.key], true)} title={f.label}>
-                      <input type="checkbox" checked={!!selectedSnomed[f.key]} onChange={e => setSelectedSnomed(p => ({ ...p, [f.key]: e.target.checked }))} style={{ accentColor: 'var(--purple)', flexShrink: 0 }} />
-                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.label}</span>
-                    </label>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                  {['VTM/DCI','Nombre comercial','Concentración','Forma farm.','Vías','Laboratorio',
+                    'RS','CUM','Unidades','Envase','Precio unit.','Precio pres.','Genérico','CNMB',
+                    'ATC','Descripción ATC','VMP','VMPP','AMP','AMPP','Fabricante','País fab.',
+                    'Importador','Titular RS','Tipo RS','Fecha RS','Venc. RS','Condición venta',
+                    'PMC','GTIN','PhPID','Prospecto URL','Packaging URL','SNOMED VTM','SNOMED FF'
+                  ].map(f => (
+                    <span key={f} style={{ padding: '2px 8px', borderRadius: 20, fontSize: 11, background: 'var(--bg2)', border: '1px solid var(--bdr)', color: 'var(--tx3)' }}>
+                      {f}
+                    </span>
                   ))}
                 </div>
               </div>
@@ -371,7 +352,7 @@ td{border:1px solid #C8E0CC;padding:5px 8px}tr:nth-child(even){background:#EBF5E
               </div>
 
               <div style={{ fontSize: 11, color: 'var(--tx3)', fontFamily: 'var(--mono)', marginBottom: 12 }}>
-                {totalCampos} campo{totalCampos !== 1 ? 's' : ''} seleccionado{totalCampos !== 1 ? 's' : ''}
+                35 campos incluidos · sin datos clínicos
               </div>
 
               <button onClick={exportar} disabled={exportando || totalCampos === 0} style={{
