@@ -113,10 +113,10 @@ export default function Dashboard() {
           <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: '20px' }}>
             <div>
               <div style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'rgba(255,255,255,.4)', letterSpacing: '2px', marginBottom: '6px' }}>
-                VADEMÉCUM FARMACOTERAPÉUTICO — ECUADOR
+                SIMI · SISTEMA INTEGRAL DE MEDICAMENTOS INTEROPERABLES
               </div>
               <h1 style={{ fontSize: '22px', fontWeight: 700, color: '#fff', letterSpacing: '-0.3px', lineHeight: 1.2 }}>
-                El Libro Verde de los Medicamentos
+                Sistema Integral de Medicamentos Interoperables
               </h1>
             </div>
             <div style={{ fontSize: '11px', color: 'rgba(255,255,255,.35)', fontFamily: 'var(--mono)', textAlign: 'right', lineHeight: 1.8 }}>

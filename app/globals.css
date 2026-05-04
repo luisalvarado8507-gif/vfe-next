@@ -9,31 +9,31 @@
 
 :root {
   /* ── Colores primarios institucionales ── */
-  --green:       #2D6A4F;   /* verde institucional (era #3DDB18) */
-  --green-dark:  #1B4332;   /* verde oscuro — sidebar, headers */
-  --green-mid:   #40916C;   /* verde medio — hover, accents */
-  --green-light: #74C69D;   /* verde claro — borders, chips */
-  --green-pale:  #D8F3DC;   /* verde pálido — backgrounds */
+  --green:       #1D4ED8;   /* verde institucional (era #3DDB18) */
+  --green-dark: #0F2D5E;   /* verde oscuro — sidebar, headers */
+  --green-mid:   #2563EB;   /* verde medio — hover, accents */
+  --green-light: #60A5FA;   /* verde claro — borders, chips */
+  --green-pale:  #DBEAFE;   /* verde pálido — backgrounds */
 
   /* ── Alias legacy (compatibilidad con código existente) ── */
-  --gd:   #2D6A4F;
-  --gdp:  #1B4332;
+  --gd:          #1D4ED8;
+  --gdp:         #0F2D5E;
 
   /* ── Fondos ── */
-  --bg:   #F4F7F5;          /* fondo página */
+  --bg:          #F0F4FF;          /* fondo página */
   --bg2:  #FFFFFF;          /* fondo tarjetas */
-  --bg3:  #EBF5EE;          /* fondo secundario, hover rows */
-  --bg4:  #F0F7F2;          /* fondo terciario */
+  --bg3:         #EFF6FF;          /* fondo secundario, hover rows */
+  --bg4:         #DBEAFE;          /* fondo terciario */
 
   /* ── Bordes ── */
-  --bdr:  #C8E0CC;
-  --bdr2: #A3CCAA;
+  --bdr:         #BFDBFE;
+  --bdr2:        #93C5FD;
 
   /* ── Texto ── */
-  --tx:   #1C2B22;          /* texto primario (oscuro, no negro puro) */
-  --tx2:  #3A5C46;          /* texto secundario */
-  --tx3:  #6B9178;          /* texto terciario */
-  --tx4:  #A8C4AE;          /* texto cuaternario / placeholder */
+  --tx:          #0F172A;          /* texto primario (oscuro, no negro puro) */
+  --tx2:         #1E3A6E;          /* texto secundario */
+  --tx3:         #3B6CC7;          /* texto terciario */
+  --tx4:         #93C5FD;          /* texto cuaternario / placeholder */
 
   /* ── Semánticos ── */
   --amber:    #B45309;

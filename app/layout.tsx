@@ -6,7 +6,7 @@ import { AuthProvider } from '@/lib/auth-context';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'VFE — El Libro Verde de los Medicamentos',
+  title: 'SIMI — Sistema Integral de Medicamentos Interoperables',
   description: 'Base de datos de medicamentos de referencia para Ecuador',
 };
 
