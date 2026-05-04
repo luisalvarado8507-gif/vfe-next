@@ -63,9 +63,9 @@ export default function Sidebar() {
             </svg>
           </div>
           <div>
-            <div style={{ fontWeight: 700, fontSize: '22px', color: '#fff', letterSpacing: '-0.5px', lineHeight: 1 }}>VFE</div>
+            <div style={{ fontWeight: 700, fontSize: "22px", color: "#fff", letterSpacing: "-0.5px", lineHeight: 1 }}>SIMI</div>
             <div style={{ fontSize: '10px', fontWeight: 500, color: 'rgba(255,255,255,.55)', marginTop: '2px', fontFamily: 'var(--mono)', letterSpacing: '1.2px' }}>
-              EL LIBRO VERDE · ECUADOR
+              MEDICAMENTOS · ECUADOR
             </div>
           </div>
         </div>
