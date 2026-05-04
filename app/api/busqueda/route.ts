@@ -13,6 +13,7 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const q = searchParams.get('q')?.toLowerCase().trim() || '';
+    const tipo = searchParams.get('tipo') || 'todo';
     const capitulo = searchParams.get('capitulo');
     const estadoFilter = searchParams.get('estado');
 
@@ -51,15 +52,23 @@ export async function GET(req: NextRequest) {
         estado: doc.data().estado || '',
         chapId: doc.data().data?.chapId || '',
         nombre: doc.data().data?.nombre || doc.data().amp || '',
+        atc: doc.data().data?.atc || '',
+        rs: doc.data().data?.rs || '',
+        cum: doc.data().data?.cum || '',
+        generico: doc.data().data?.generico || '',
+        cnmb: doc.data().data?.cnmb || '',
       }))
       .filter(m => {
         if (estadoFilter && m.estado !== estadoFilter) return false;
         const matchCap = capitulo ? m.chapId === capitulo : true;
         const matchQ = q ? (
-          m.vtm.toLowerCase().includes(q) ||
-          m.laboratorio.toLowerCase().includes(q) ||
-          m.ff.toLowerCase().includes(q) ||
-          m.nombre.toLowerCase().includes(q)
+          (tipo === 'todo' || tipo === 'vtm' ? m.vtm.toLowerCase().includes(q) : false) ||
+          (tipo === 'todo' ? m.laboratorio.toLowerCase().includes(q) : false) ||
+          (tipo === 'todo' ? m.ff.toLowerCase().includes(q) : false) ||
+          (tipo === 'todo' || tipo === 'nombre' ? m.nombre.toLowerCase().includes(q) : false) ||
+          (tipo === 'todo' || tipo === 'atc' ? (m.atc || '').toLowerCase().includes(q) : false) ||
+          (tipo === 'todo' || tipo === 'rs' ? (m.rs || '').toLowerCase().includes(q) : false) ||
+          (tipo === 'todo' || tipo === 'rs' ? (m.cum || '').toLowerCase().includes(q) : false)
         ) : true;
         return matchCap && matchQ;
       });

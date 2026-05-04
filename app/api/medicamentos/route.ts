@@ -159,9 +159,14 @@ export async function PUT(req: NextRequest) {
       updatedAt: new Date(), updatedBy: user.email,
     });
 
+    const estadoAnterior = prevDoc.data()?.estado || '';
+    const estadoNuevo = data.estado || '';
+    const cambioEstado = estadoAnterior !== estadoNuevo;
     await adminDb.collection('auditLog').add({
-      accion: 'UPDATE', medId: id, vtm: data.vtm,
+      accion: cambioEstado ? `UPDATE_ESTADO:${estadoAnterior}->${estadoNuevo}` : 'UPDATE',
+      medId: id, vtm: data.vtm,
       usuario: user.email, timestamp: new Date(),
+      estadoAnterior, estadoNuevo, cambioEstado,
       datosPrevios: prevDoc.data()?.data, datosNuevos: data,
     });
 

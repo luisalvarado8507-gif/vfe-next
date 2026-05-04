@@ -17,11 +17,12 @@ interface Medicamento {
   estado: string;
   amp?: string;
   vmp?: string;
-  generico?: string;
-  nombre?: string;
   hasPrices?: boolean;
   prospectoUrl?: string;
   packagingUrl?: string;
+  atc?: string;
+  rs?: string;
+  cum?: string;
 }
 
 const PER_PAGE = 15;
@@ -61,6 +62,7 @@ function BaseDatosContent() {
   const [filtroGenerico, setFiltroGenerico] = useState('todos');
   const [pagina, setPagina] = useState(1);
   const [busquedaResults, setBusquedaResults] = useState<Medicamento[] | null>(null);
+  const [tipoBusqueda, setTipoBusqueda] = useState<'todo' | 'nombre' | 'vtm' | 'atc' | 'rs'>('todo');
   const { getToken, user, isEditor, loading: authLoading } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -109,7 +111,7 @@ function BaseDatosContent() {
       try {
         const token = await getToken();
         if (!token) return;
-        const res = await fetch(`/api/busqueda?q=${encodeURIComponent(busqueda)}${capitulo ? `&capitulo=${capitulo}` : ''}`, {
+        const res = await fetch(`/api/busqueda?q=${encodeURIComponent(busqueda)}&tipo=${tipoBusqueda}${capitulo ? `&capitulo=${capitulo}` : ''}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         const data = await res.json();
@@ -119,7 +121,7 @@ function BaseDatosContent() {
       finally { setBuscando(false); }
     }, 400);
     return () => clearTimeout(timer);
-  }, [busqueda]);
+  }, [busqueda, tipoBusqueda]);
 
   const fuente = busquedaResults ?? todos;
   const ordenados = [...fuente].sort((a, b) => {
@@ -218,6 +220,17 @@ function BaseDatosContent() {
             <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--tx3)', letterSpacing: 1, fontFamily: 'var(--mono)' }}>TIPO</span>
             {[['todos', 'Todos'], ['si', 'Genérico'], ['no', 'Marca']].map(([val, lbl]) => (
               <button key={val} onClick={() => { setFiltroGenerico(val); setPagina(1); }} style={chipBtn(filtroGenerico === val)}>{lbl}</button>
+            ))}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--tx3)', letterSpacing: 1, fontFamily: 'var(--mono)' }}>BÚSQUEDA POR</span>
+            {[['nombre', 'Nombre comercial'], ['vtm', 'INN / DCI'], ['atc', 'Código ATC'], ['rs', 'Registro sanitario'], ['todo', 'Todo']].map(([val, lbl]) => (
+              <button key={val} onClick={() => { setTipoBusqueda(val as any); setPagina(1); }} style={{
+                padding: '4px 10px', borderRadius: 20, fontSize: 11, fontWeight: 500, cursor: 'pointer',
+                border: `1.5px solid ${tipoBusqueda === val ? 'var(--green)' : 'var(--bdr)'}`,
+                background: tipoBusqueda === val ? 'var(--green)' : 'var(--bg2)',
+                color: tipoBusqueda === val ? '#fff' : 'var(--tx2)', transition: 'all .13s',
+              }}>{lbl}</button>
             ))}
           </div>
           {(filtroEstado !== 'todos' || filtroGenerico !== 'todos' || busqueda) && (
