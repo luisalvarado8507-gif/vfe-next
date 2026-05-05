@@ -12,6 +12,9 @@ interface AuditEntry {
   usuario: string;
   timestamp: string;
   motivo?: string;
+  estadoAnterior?: string;
+  estadoNuevo?: string;
+  cambioEstado?: boolean;
 }
 
 const ACCION_STYLES: Record<string, { bg: string; color: string; label: string }> = {
@@ -102,7 +105,7 @@ export default function AuditLog() {
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
               <thead>
                 <tr style={{ background: 'var(--bg3)' }}>
-                  {['Fecha y hora', 'Acción', 'Medicamento (VTM)', 'Usuario', 'Detalle'].map(h => (
+                  {['Fecha y hora', 'Acción', 'Medicamento (VTM)', 'Usuario', 'Cambio estado', 'Detalle'].map(h => (
                     <th key={h} style={{ textAlign: 'left', padding: '10px 16px', fontSize: 10, fontWeight: 700, color: 'var(--tx3)', letterSpacing: 0.8, fontFamily: 'var(--mono)', textTransform: 'uppercase', borderBottom: '1.5px solid var(--bdr)', whiteSpace: 'nowrap' }}>
                       {h}
                     </th>
@@ -149,6 +152,15 @@ export default function AuditLog() {
                       </td>
                       <td style={{ padding: '10px 16px', color: 'var(--tx3)', fontSize: 12, maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {e.usuario || '—'}
+                      </td>
+                      <td style={{ padding: '10px 16px' }}>
+                        {e.cambioEstado ? (
+                          <div style={{ fontSize: 11, display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>
+                            <span style={{ padding: '1px 6px', borderRadius: 20, background: 'var(--bg3)', color: 'var(--tx3)', fontFamily: 'var(--mono)' }}>{e.estadoAnterior}</span>
+                            <span style={{ color: 'var(--tx4)' }}>→</span>
+                            <span style={{ padding: '1px 6px', borderRadius: 20, background: 'var(--estado-autorizado-bg)', color: 'var(--estado-autorizado)', fontFamily: 'var(--mono)', fontWeight: 700 }}>{e.estadoNuevo}</span>
+                          </div>
+                        ) : <span style={{ color: 'var(--tx4)', fontSize: 12 }}>—</span>}
                       </td>
                       <td style={{ padding: '10px 16px', color: 'var(--tx4)', fontSize: 12 }}>
                         {e.motivo || '—'}
