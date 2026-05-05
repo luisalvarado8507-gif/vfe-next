@@ -34,11 +34,10 @@ export default function AtcAutocomplete({ value, onChange, placeholder }: Props)
     const matches = Object.entries(ATC_DB)
       .filter(([code, v]) =>
         code.toLowerCase().startsWith(ql) ||
-        v.lbl.toLowerCase().includes(ql) ||
-        v.inn.toLowerCase().includes(ql)
+        (typeof v === 'string' ? v.toLowerCase().includes(ql) : false)
       )
       .slice(0, 12)
-      .map(([code, v]) => ({ code, lbl: v.lbl, inn: v.inn }));
+      .map(([code, v]) => ({ code, lbl: typeof v === 'string' ? v : code, inn: '' }));
     setResults(matches);
     setOpen(matches.length > 0);
     setIdx(-1);
