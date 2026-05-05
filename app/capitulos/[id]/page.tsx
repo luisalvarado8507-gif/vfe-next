@@ -574,7 +574,7 @@ function TablaCompletitud({ meds, router, calcCompletitud }: { meds: Med[]; rout
                   </div>
                 </td>
                 <td style={{ padding: '8px 12px', textAlign: 'center' }}>{check(!!(m.vtm && m.conc && m.ff && m.rs))}</td>
-                <td style={{ padding: '8px 12px', textAlign: 'center' }}>{check(hasClin)}</td>
+                <td style={{ padding: '8px 12px', textAlign: 'center' }}>{check(!!hasClin)}</td>
                 <td style={{ padding: '8px 12px', textAlign: 'center' }}>{check(!!hasDoc)}</td>
                 <td style={{ padding: '8px 12px', textAlign: 'center' }}>{check(!!hasPrecio)}</td>
                 <td style={{ padding: '8px 12px' }}>
