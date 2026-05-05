@@ -165,6 +165,43 @@ export async function GET() {
           },
         },
       },
+      '/api/fhir/r4/metadata': {
+        get: {
+          summary: 'FHIR CapabilityStatement',
+          description: 'Devuelve las capacidades del servidor FHIR R4',
+          tags: ['FHIR R4'],
+          responses: { '200': { description: 'CapabilityStatement' } },
+        },
+      },
+      '/api/fhir/r4/Medication': {
+        get: {
+          summary: 'Buscar recursos Medication (FHIR R4)',
+          description: 'Búsqueda de medicamentos en formato FHIR R4 Bundle',
+          tags: ['FHIR R4'],
+          parameters: [
+            { name: 'code', in: 'query', schema: { type: 'string' }, description: 'Código ATC o SNOMED CT' },
+            { name: 'status', in: 'query', schema: { type: 'string', enum: ['active', 'inactive'] } },
+            { name: '_count', in: 'query', schema: { type: 'integer', default: 20 } },
+          ],
+          responses: { '200': { description: 'Bundle FHIR con recursos Medication' } },
+        },
+      },
+      '/api/fhir/r4/Substance': {
+        get: {
+          summary: 'Buscar recursos Substance (FHIR R4)',
+          description: 'Principios activos en formato FHIR R4',
+          tags: ['FHIR R4'],
+          responses: { '200': { description: 'Bundle FHIR con recursos Substance' } },
+        },
+      },
+      '/api/fhir/r4/Organization': {
+        get: {
+          summary: 'Buscar recursos Organization (FHIR R4)',
+          description: 'Laboratorios/fabricantes en formato FHIR R4',
+          tags: ['FHIR R4'],
+          responses: { '200': { description: 'Bundle FHIR con recursos Organization' } },
+        },
+      },
       '/api/audit': {
         get: {
           summary: 'Audit log de cambios',
@@ -181,6 +218,7 @@ export async function GET() {
       { name: 'Búsqueda', description: 'Búsqueda semántica por INN, ATC, RS' },
       { name: 'Capítulos', description: 'Estructura terapéutica del vademécum' },
       { name: 'Estadísticas', description: 'Métricas y avances de la base' },
+      { name: 'FHIR R4', description: 'Recursos HL7 FHIR R4 — Medication, Substance, Organization' },
       { name: 'Auditoría', description: 'Trazabilidad de cambios regulatorios' },
     ],
   };
