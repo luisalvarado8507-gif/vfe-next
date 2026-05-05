@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limit';
 import { adminDb, adminAuth } from '@/lib/firebase-admin';
 
 async function verificarAuth(req: NextRequest) {
@@ -10,6 +11,12 @@ async function verificarAuth(req: NextRequest) {
 export async function GET(req: NextRequest) {
   const user = await verificarAuth(req);
   if (!user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+
+  const rl = checkRateLimit(`busqueda:${user.uid}`, RATE_LIMITS.busqueda);
+  if (!rl.allowed) {
+    return NextResponse.json({ error: 'Rate limit: máximo 30 búsquedas por minuto.' }, { status: 429 });
+  }
+
   try {
     const { searchParams } = new URL(req.url);
     const q = searchParams.get('q')?.toLowerCase().trim() || '';

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminDb, adminAuth } from '@/lib/firebase-admin';
+import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limit';
 
 async function verificarAuth(req: NextRequest) {
   const token = req.headers.get('Authorization')?.replace('Bearer ', '');
@@ -12,6 +13,12 @@ export async function POST(req: NextRequest) {
   if (!user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
 
   try {
+    // Rate limiting IA — máximo 10 req/min
+    const rl = checkRateLimit(`ai:${user.uid}`, RATE_LIMITS.ai);
+    if (!rl.allowed) {
+      return NextResponse.json({ error: 'Rate limit: máximo 10 búsquedas IA por minuto.' }, { status: 429 });
+    }
+
     const { query } = await req.json();
     if (!query?.trim()) return NextResponse.json({ error: 'query requerido' }, { status: 400 });
 
