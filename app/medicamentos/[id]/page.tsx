@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import AtcHierarchy from '@/components/ui/AtcHierarchy';
+import RxNormLookup from '@/components/ui/RxNormLookup';
 import Sidebar from '@/components/layout/Sidebar';
 
 // ── SNOMED databases ──────────────────────────────────────────────────────
@@ -308,6 +309,8 @@ export default function MedicamentoDetalle() {
                 )}
                 {/* SNOMED VTM */}
                 {sFF && !esCombo && <SnomedChip label="VTM" code={sFF.code} term={sFF.term} type="vtm" />}
+                {/* RxNorm FDA */}
+                {med.vtm && <RxNormLookup inn={med.vtm} />}
               </div>
 
               <Field label="VMP — Producto virtual" value={med.vmp || '—'} />
