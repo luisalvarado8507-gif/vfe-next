@@ -285,3 +285,6 @@ export function getATCHierarchy(code: string): Array<{
   
   return levels;
 }
+
+// Alias para compatibilidad con AtcAutocomplete
+export const ATC_DB = { ...ATC_L1, ...ATC_L2, ...ATC_L3, ...ATC_L4, ...ATC_L5 };
