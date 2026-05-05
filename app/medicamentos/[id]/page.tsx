@@ -5,6 +5,7 @@ import Link from 'next/link';
 import AtcHierarchy from '@/components/ui/AtcHierarchy';
 import RxNormLookup from '@/components/ui/RxNormLookup';
 import SNOMEDValidator from '@/components/ui/SNOMEDValidator';
+import EMASPORLookup from '@/components/ui/EMASPORLookup';
 import Sidebar from '@/components/layout/Sidebar';
 
 // ── SNOMED databases ──────────────────────────────────────────────────────
@@ -312,6 +313,8 @@ export default function MedicamentoDetalle() {
                 {sFF && !esCombo && <SNOMEDValidator conceptId={sFF.code} term={sFF.term} type="vtm" />}
                 {/* RxNorm FDA */}
                 {med.vtm && <RxNormLookup inn={med.vtm} />}
+                {/* EMA SPOR + G-SRS */}
+                {med.vtm && <EMASPORLookup inn={med.vtm} />}
               </div>
 
               <Field label="VMP — Producto virtual" value={med.vmp || '—'} />
