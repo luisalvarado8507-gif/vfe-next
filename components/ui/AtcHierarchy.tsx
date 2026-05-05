@@ -13,23 +13,6 @@ interface AtcHierarchyProps {
   label?: string;
 }
 
-// Descripciones de niveles ATC nivel 1 (grupos anatómicos principales)
-const ATC_L1: Record<string, string> = {
-  A: 'Tracto alimentario y metabolismo',
-  B: 'Sangre y órganos hematopoyéticos',
-  C: 'Sistema cardiovascular',
-  D: 'Dermatológicos',
-  G: 'Sistema genitourinario y hormonas sexuales',
-  H: 'Preparados hormonales sistémicos',
-  J: 'Antiinfecciosos para uso sistémico',
-  L: 'Agentes antineoplásicos e inmunomoduladores',
-  M: 'Sistema musculoesquelético',
-  N: 'Sistema nervioso',
-  P: 'Productos antiparasitarios, insecticidas y repelentes',
-  R: 'Sistema respiratorio',
-  S: 'Órganos de los sentidos',
-  V: 'Varios',
-};
 
 const LEVEL_LABELS = [
   'Grupo anatómico principal',
