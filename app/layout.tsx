@@ -6,7 +6,8 @@ import { AuthProvider } from '@/lib/auth-context';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'SIMI — Sistema Integral de Medicamentos Interoperables',
+  keywords: ['medicamentos', 'farmacología', 'Ecuador', 'ARCSA', 'FHIR', 'ISO IDMP', 'SPOR'],
+    title: 'SIMI — Sistema Integral de Medicamentos Interoperables',
   description: 'Base de datos de medicamentos de referencia para Ecuador',
 };
 
