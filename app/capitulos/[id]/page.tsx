@@ -8,8 +8,11 @@ import { CHAPS, CapituloTree, SubCapitulo } from '@/lib/capitulos-tree';
 
 interface Med {
   docId: string; id: string; vtm: string; amp: string; nombre: string;
-  conc: string; ff: string; laboratorio: string; estado: string;
+  conc: string; ff: string; vias: string; laboratorio: string; estado: string;
   chapId: string; subId?: string;
+  atc?: string; rs?: string; cum?: string; pp?: string; pu?: string;
+  generico?: string; cnmb?: string; prospectoUrl?: string; packagingUrl?: string;
+  clinData?: Record<string, string>;
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────
@@ -95,6 +98,7 @@ export default function CapituloPage() {
   const [meds, setMeds] = useState<Med[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [viewMode, setViewMode] = useState<'lista' | 'comparativa' | 'completitud'>('lista');
 
   // Modal state
   const [modal, setModal] = useState<{ type: string; payload?: any } | null>(null);
@@ -234,6 +238,28 @@ export default function CapituloPage() {
     }
 
     setModal(null);
+  };
+
+  // Calcular completitud de un medicamento
+  const calcCompletitud = (m: Med): number => {
+    const campos = [m.vtm, m.conc, m.ff, m.vias, m.laboratorio, m.rs, m.atc, m.pp, m.generico, m.cnmb];
+    const llenos = campos.filter(v => v && v !== '—' && v !== '').length;
+    const tieneClin = m.clinData && Object.keys(m.clinData).length > 0;
+    const tieneDoc = m.prospectoUrl || m.packagingUrl;
+    return Math.round(((llenos / campos.length) * 70) + (tieneClin ? 20 : 0) + (tieneDoc ? 10 : 0));
+  };
+
+  // Stats de completitud del subcapítulo/capítulo
+  const calcStats = (medList: Med[]) => {
+    if (!medList.length) return { avg: 0, completos: 0, conClin: 0, conDoc: 0, conPrecio: 0 };
+    const scores = medList.map(m => calcCompletitud(m));
+    return {
+      avg: Math.round(scores.reduce((a,b) => a+b, 0) / scores.length),
+      completos: scores.filter(s => s >= 80).length,
+      conClin: medList.filter(m => m.clinData && Object.keys(m.clinData).length > 0).length,
+      conDoc: medList.filter(m => m.prospectoUrl || m.packagingUrl).length,
+      conPrecio: medList.filter(m => m.pp && parseFloat(m.pp) > 0).length,
+    };
   };
 
   if (!cap) return (
@@ -469,6 +495,96 @@ export default function CapituloPage() {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+// ── Tabla comparativa ────────────────────────────────────────────────────
+function TablaComparativa({ meds, router }: { meds: Med[]; router: any }) {
+  return (
+    <div style={{ background: '#fff', border: '1.5px solid var(--bdr)', borderRadius: 'var(--rl)', overflow: 'hidden', overflowX: 'auto' }}>
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+        <thead>
+          <tr style={{ background: 'var(--bg3)' }}>
+            {['DCI / Principio activo', 'Nombre comercial', 'Concentración', 'Forma farm.', 'Vía', 'ATC', 'Lab.', 'Precio PVP', 'CNMB', 'RS', 'Estado'].map(h => (
+              <th key={h} style={{ textAlign: 'left', padding: '8px 12px', fontSize: 9, fontWeight: 700, color: 'var(--tx3)', letterSpacing: 0.8, fontFamily: 'var(--mono)', textTransform: 'uppercase', borderBottom: '1.5px solid var(--bdr)', whiteSpace: 'nowrap' }}>{h}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {meds.map((m, i) => (
+            <tr key={m.docId} onClick={() => router.push(`/medicamentos/${m.docId}`)}
+              style={{ background: i % 2 === 0 ? '#fff' : 'var(--bg)', cursor: 'pointer', transition: 'background .1s', borderTop: '1px solid var(--bdr)' }}
+              onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--bg3)'}
+              onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = i % 2 === 0 ? '#fff' : 'var(--bg)'}>
+              <td style={{ padding: '8px 12px', fontWeight: 600, color: 'var(--tx)' }}>{m.vtm}</td>
+              <td style={{ padding: '8px 12px', color: 'var(--tx2)', maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.amp || m.nombre || '—'}</td>
+              <td style={{ padding: '8px 12px', fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--tx3)' }}>{m.conc || '—'}</td>
+              <td style={{ padding: '8px 12px', color: 'var(--tx3)', maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.ff || '—'}</td>
+              <td style={{ padding: '8px 12px', color: 'var(--tx3)', whiteSpace: 'nowrap' }}>{m.vias || '—'}</td>
+              <td style={{ padding: '8px 12px', fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--blue, #1D4ED8)', fontWeight: 600 }}>{m.atc || '—'}</td>
+              <td style={{ padding: '8px 12px', color: 'var(--tx3)', maxWidth: 100, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.laboratorio}</td>
+              <td style={{ padding: '8px 12px', fontWeight: 700, color: m.pp ? 'var(--green)' : 'var(--tx4)' }}>{m.pp ? `${parseFloat(m.pp).toFixed(2)}` : '—'}</td>
+              <td style={{ padding: '8px 12px', textAlign: 'center' }}>{m.cnmb === 'Sí' ? <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--amber)', background: 'var(--amber-bg)', padding: '1px 6px', borderRadius: 20 }}>✓</span> : <span style={{ color: 'var(--tx4)' }}>—</span>}</td>
+              <td style={{ padding: '8px 12px', fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--tx3)' }}>{m.rs || '—'}</td>
+              <td style={{ padding: '8px 12px' }}>
+                <span style={{ fontSize: 10, fontWeight: 600, padding: '2px 6px', borderRadius: 20, background: m.estado === 'autorizado' ? 'var(--estado-autorizado-bg)' : 'var(--bg3)', color: m.estado === 'autorizado' ? 'var(--estado-autorizado)' : 'var(--tx3)' }}>{m.estado}</span>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+// ── Tabla de completitud ──────────────────────────────────────────────────
+function TablaCompletitud({ meds, router, calcCompletitud }: { meds: Med[]; router: any; calcCompletitud: (m: Med) => number }) {
+  const sorted = [...meds].sort((a, b) => calcCompletitud(b) - calcCompletitud(a));
+  return (
+    <div style={{ background: '#fff', border: '1.5px solid var(--bdr)', borderRadius: 'var(--rl)', overflow: 'hidden' }}>
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+        <thead>
+          <tr style={{ background: 'var(--bg3)' }}>
+            {['Medicamento', 'Completitud', 'Datos básicos', 'Clínica', 'Documentos', 'Precio', 'Acciones'].map(h => (
+              <th key={h} style={{ textAlign: 'left', padding: '8px 12px', fontSize: 9, fontWeight: 700, color: 'var(--tx3)', letterSpacing: 0.8, fontFamily: 'var(--mono)', textTransform: 'uppercase', borderBottom: '1.5px solid var(--bdr)' }}>{h}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {sorted.map((m, i) => {
+            const score = calcCompletitud(m);
+            const color = score >= 80 ? 'var(--green)' : score >= 50 ? 'var(--amber)' : 'var(--red)';
+            const hasClin = m.clinData && Object.keys(m.clinData).length > 0;
+            const hasDoc = m.prospectoUrl || m.packagingUrl;
+            const hasPrecio = m.pp && parseFloat(m.pp) > 0;
+            const check = (v: boolean) => v
+              ? <span style={{ color: 'var(--green)', fontSize: 14 }}>✓</span>
+              : <span style={{ color: 'var(--tx4)', fontSize: 14 }}>—</span>;
+            return (
+              <tr key={m.docId} style={{ background: i % 2 === 0 ? '#fff' : 'var(--bg)', borderTop: '1px solid var(--bdr)', cursor: 'pointer' }}
+                onClick={() => router.push(`/medicamentos/${m.docId}`)}>
+                <td style={{ padding: '8px 12px', fontWeight: 600, color: 'var(--tx)' }}>{m.vtm}<div style={{ fontSize: 10, color: 'var(--tx3)', marginTop: 1 }}>{m.amp || m.nombre}</div></td>
+                <td style={{ padding: '8px 12px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ flex: 1, height: 8, background: 'var(--bg3)', borderRadius: 4, overflow: 'hidden', minWidth: 60 }}>
+                      <div style={{ height: '100%', width: `${score}%`, background: color, borderRadius: 4 }} />
+                    </div>
+                    <span style={{ fontSize: 11, fontWeight: 700, color, minWidth: 32 }}>{score}%</span>
+                  </div>
+                </td>
+                <td style={{ padding: '8px 12px', textAlign: 'center' }}>{check(!!(m.vtm && m.conc && m.ff && m.rs))}</td>
+                <td style={{ padding: '8px 12px', textAlign: 'center' }}>{check(hasClin)}</td>
+                <td style={{ padding: '8px 12px', textAlign: 'center' }}>{check(!!hasDoc)}</td>
+                <td style={{ padding: '8px 12px', textAlign: 'center' }}>{check(!!hasPrecio)}</td>
+                <td style={{ padding: '8px 12px' }}>
+                  <a href={`/medicamentos/${m.docId}/editar`} onClick={e => e.stopPropagation()} style={{ fontSize: 11, color: 'var(--green)', fontWeight: 600, textDecoration: 'none' }}>Completar →</a>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
     </div>
   );
 }
