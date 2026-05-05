@@ -45,6 +45,126 @@ const ESTADO_STYLES: Record<string, { bg: string; color: string; label: string }
   arcsa_pendiente: { bg: 'var(--estado-pendiente-bg)',   color: 'var(--estado-pendiente)',   label: 'ARCSA pendiente' },
 };
 
+function SlideOver({ med, onClose, isEditor }: { med: Medicamento | null; onClose: () => void; isEditor: boolean }) {
+  if (!med) return null;
+  const id = med.docId || med.id;
+
+  const field = (label: string, value?: string | null, mono?: boolean) => value ? (
+    <div style={{ marginBottom: 10 }}>
+      <div style={{ fontSize: 9, fontWeight: 700, color: 'var(--tx3)', letterSpacing: 1.2, fontFamily: 'var(--mono)', textTransform: 'uppercase', marginBottom: 3 }}>{label}</div>
+      <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--tx)', fontFamily: mono ? 'var(--mono)' : undefined }}>{value}</div>
+    </div>
+  ) : null;
+
+  return (
+    <>
+      {/* Backdrop */}
+      <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.3)', zIndex: 200, backdropFilter: 'blur(2px)' }} />
+      {/* Panel */}
+      <div style={{ position: 'fixed', right: 0, top: 0, bottom: 0, width: 420, background: 'var(--bg2)', zIndex: 201, display: 'flex', flexDirection: 'column', boxShadow: '-4px 0 32px rgba(0,0,0,.15)', animation: 'slideIn .2s ease' }}>
+        <style>{`@keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }`}</style>
+
+        {/* Header */}
+        <div style={{ background: 'var(--green-dark, #0F2D5E)', padding: '16px 20px', flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 11, color: 'rgba(255,255,255,.5)', fontFamily: 'var(--mono)', marginBottom: 3 }}>
+                {(med as any).atc || 'Sin ATC'}
+              </div>
+              <div style={{ fontSize: 16, fontWeight: 700, color: '#fff', lineHeight: 1.3, marginBottom: 4 }}>
+                {(med as any).nombre || med.vtm}
+              </div>
+              <div style={{ fontSize: 12, color: 'rgba(255,255,255,.65)' }}>{med.vtm}</div>
+            </div>
+            <button onClick={onClose} style={{ background: 'rgba(255,255,255,.1)', border: 'none', color: '#fff', width: 28, height: 28, borderRadius: '50%', cursor: 'pointer', fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>✕</button>
+          </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginTop: 10 }}>
+            <EstadoBadge estado={med.estado} />
+            {(med as any).cnmb === 'Sí' && <span style={{ padding: '2px 8px', borderRadius: 20, fontSize: 11, fontWeight: 700, background: 'var(--amber-bg)', color: 'var(--amber)' }}>CNMB</span>}
+            {(med as any).generico === 'Sí' && <span style={{ padding: '2px 8px', borderRadius: 20, fontSize: 11, fontWeight: 700, background: 'var(--blue-bg)', color: 'var(--blue)' }}>Genérico</span>}
+          </div>
+        </div>
+
+        {/* Content */}
+        <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px' }}>
+
+          {/* Identificación */}
+          <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--tx3)', letterSpacing: 1.5, fontFamily: 'var(--mono)', textTransform: 'uppercase', marginBottom: 10, paddingBottom: 6, borderBottom: '1px solid var(--bdr)' }}>Identificación</div>
+          {field('Principio activo (DCI/INN)', med.vtm)}
+          {field('Nombre comercial', (med as any).nombre || (med as any).amp)}
+          {field('Concentración', med.conc, true)}
+          {field('Forma farmacéutica', med.ff)}
+          {field('Vía de administración', (med as any).vias || (med as any).via)}
+          {field('Código ATC', (med as any).atc, true)}
+          {field('Descripción ATC', (med as any).atclbl)}
+          {field('Laboratorio', med.laboratorio)}
+
+          {/* Registro */}
+          <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--tx3)', letterSpacing: 1.5, fontFamily: 'var(--mono)', textTransform: 'uppercase', margin: '14px 0 10px', paddingBottom: 6, borderBottom: '1px solid var(--bdr)' }}>Registro sanitario</div>
+          {field('N° Registro sanitario', (med as any).rs, true)}
+          {field('CUM — Código único ARCSA', (med as any).cum, true)}
+          {field('Condición de venta', (med as any).rsCondicion)}
+          {field('Fecha autorización', (med as any).rsFecha)}
+          {field('Fecha vencimiento RS', (med as any).rsVence)}
+          {field('Titular del RS', (med as any).rsTitular)}
+
+          {/* Precios */}
+          {((med as any).pp || (med as any).pu) && (
+            <>
+              <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--tx3)', letterSpacing: 1.5, fontFamily: 'var(--mono)', textTransform: 'uppercase', margin: '14px 0 10px', paddingBottom: 6, borderBottom: '1px solid var(--bdr)' }}>Precios</div>
+              {(med as any).pp && (
+                <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
+                  <div style={{ flex: 1, background: 'var(--bg3)', borderRadius: 'var(--r)', padding: '10px 12px', textAlign: 'center' }}>
+                    <div style={{ fontSize: 9, fontWeight: 700, color: 'var(--tx3)', fontFamily: 'var(--mono)', letterSpacing: 1, marginBottom: 4 }}>PRESENTACIÓN</div>
+                    <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--green)' }}>$ {parseFloat((med as any).pp).toFixed(2)}</div>
+                  </div>
+                  {(med as any).pu && (
+                    <div style={{ flex: 1, background: 'var(--bg3)', borderRadius: 'var(--r)', padding: '10px 12px', textAlign: 'center' }}>
+                      <div style={{ fontSize: 9, fontWeight: 700, color: 'var(--tx3)', fontFamily: 'var(--mono)', letterSpacing: 1, marginBottom: 4 }}>UNITARIO</div>
+                      <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--tx)' }}>$ {parseFloat((med as any).pu).toFixed(4)}</div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </>
+          )}
+
+          {/* PDFs */}
+          {((med as any).prospectoUrl || (med as any).packagingUrl) && (
+            <>
+              <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--tx3)', letterSpacing: 1.5, fontFamily: 'var(--mono)', textTransform: 'uppercase', margin: '14px 0 10px', paddingBottom: 6, borderBottom: '1px solid var(--bdr)' }}>Documentos</div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                {(med as any).prospectoUrl && (
+                  <a href={(med as any).prospectoUrl} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', background: 'var(--blue-bg)', color: 'var(--blue)', border: '1.5px solid #BFDBFE', borderRadius: 'var(--r)', fontSize: 12, fontWeight: 600, textDecoration: 'none' }}>
+                    📄 Prospecto
+                  </a>
+                )}
+                {(med as any).packagingUrl && (
+                  <a href={(med as any).packagingUrl} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', background: 'var(--purple-bg)', color: 'var(--purple)', border: '1.5px solid #C4B5FD', borderRadius: 'var(--r)', fontSize: 12, fontWeight: 600, textDecoration: 'none' }}>
+                    📦 Packaging
+                  </a>
+                )}
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Footer actions */}
+        <div style={{ padding: '12px 20px', borderTop: '1.5px solid var(--bdr)', flexShrink: 0, display: 'flex', gap: 8 }}>
+          <a href={`/medicamentos/${id}`} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '9px 0', background: 'var(--green)', color: '#fff', borderRadius: 'var(--r)', fontSize: 13, fontWeight: 700, textDecoration: 'none' }}>
+            Ver ficha completa →
+          </a>
+          {isEditor && (
+            <a href={`/medicamentos/${id}/editar`} style={{ padding: '9px 16px', background: 'var(--bg2)', color: 'var(--blue)', border: '1.5px solid var(--bdr)', borderRadius: 'var(--r)', fontSize: 13, fontWeight: 600, textDecoration: 'none' }}>
+              ✏ Editar
+            </a>
+          )}
+        </div>
+      </div>
+    </>
+  );
+}
+
 function EstadoBadge({ estado }: { estado: string }) {
   const s = ESTADO_STYLES[estado] || { bg: 'var(--bg3)', color: 'var(--tx3)', label: estado };
   return (
@@ -67,6 +187,7 @@ function BaseDatosContent() {
   const [filtroCondicion, setFiltroCondicion] = useState('todos'); // todos | otc | prescripcion
   const [pagina, setPagina] = useState(1);
   const [busquedaResults, setBusquedaResults] = useState<Medicamento[] | null>(null);
+  const [selectedMed, setSelectedMed] = useState<Medicamento | null>(null);
   const [tipoBusqueda, setTipoBusqueda] = useState<'todo' | 'nombre' | 'vtm' | 'atc' | 'rs'>('todo');
   const { getToken, user, isEditor, loading: authLoading } = useAuth();
   const router = useRouter();
@@ -302,7 +423,7 @@ function BaseDatosContent() {
                     const amp = m.amp || m.nombre || '';
                     return (
                       <tr key={id}
-                        onClick={() => router.push(`/medicamentos/${id}`)}
+                        onClick={() => setSelectedMed(m)}
                         style={{ borderTop: '1px solid var(--bdr)', background: i % 2 === 0 ? 'var(--bg2)' : 'var(--bg)', cursor: 'pointer', transition: 'background .1s' }}
                         onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--bg3)'}
                         onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = i % 2 === 0 ? 'var(--bg2)' : 'var(--bg)'}>
@@ -396,7 +517,8 @@ function BaseDatosContent() {
               );
             })()}
           </div>
-        </div>
+        {selectedMed && <SlideOver med={selectedMed} onClose={() => setSelectedMed(null)} isEditor={isEditor} />}
+      </div>
       </main>
     </div>
   );
