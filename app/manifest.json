@@ -1,0 +1,23 @@
+{
+  "name": "SIMI — Sistema Integral de Medicamentos Interoperables",
+  "short_name": "SIMI",
+  "description": "Repositorio farmacéutico nacional de Ecuador",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#0F2D5E",
+  "theme_color": "#0F2D5E",
+  "lang": "es-EC",
+  "categories": [
+    "health",
+    "medical",
+    "government"
+  ],
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
