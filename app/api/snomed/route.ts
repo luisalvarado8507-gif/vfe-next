@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminAuth } from '@/lib/firebase-admin';
+import { snomedCache } from '@/lib/cache';
 import { searchSubstance, searchDoseForm, validateSNOMED } from '@/lib/snomed/international';
 
 async function verificarAuth(req: NextRequest) {
@@ -18,16 +19,25 @@ export async function GET(req: NextRequest) {
   const conceptId = searchParams.get('conceptId');
 
   try {
+    const cacheKey = `snomed:${type}:${conceptId || q}`;
+    const cached = snomedCache.get(cacheKey);
+    if (cached) return NextResponse.json({ ...cached, fromCache: true });
+
     if (type === 'validate' && conceptId) {
       const result = await validateSNOMED(conceptId);
+      snomedCache.set(cacheKey, result);
       return NextResponse.json(result);
     }
     if (type === 'doseform') {
       const results = await searchDoseForm(q);
-      return NextResponse.json({ results, total: results.length });
+      const r = { results, total: results.length };
+      snomedCache.set(cacheKey, r);
+      return NextResponse.json(r);
     }
     const results = await searchSubstance(q);
-    return NextResponse.json({ results, total: results.length, system: 'SNOMED-International' });
+    const r = { results, total: results.length, system: 'SNOMED-International' };
+    snomedCache.set(cacheKey, r);
+    return NextResponse.json(r);
   } catch(e) {
     return NextResponse.json({ error: String(e) }, { status: 500 });
   }

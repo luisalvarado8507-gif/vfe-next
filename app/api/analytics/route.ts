@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminDb, adminAuth } from '@/lib/firebase-admin';
+import { analyticsCache } from '@/lib/cache';
 
 async function verificarAuth(req: NextRequest) {
   const token = req.headers.get('Authorization')?.replace('Bearer ', '');
@@ -12,6 +13,10 @@ export async function GET(req: NextRequest) {
   if (!user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
 
   try {
+    const cacheKey = 'analytics:dashboard';
+    const cached = analyticsCache.get(cacheKey);
+    if (cached) return NextResponse.json({ ...cached, fromCache: true });
+
     const snap = await adminDb.collection('medicamentos')
       .where('estado', '!=', 'eliminado').limit(2000).get();
 
@@ -93,7 +98,7 @@ export async function GET(req: NextRequest) {
       }
     });
 
-    return NextResponse.json({
+    const result = {
       total: meds.length,
       autorizados, genericos, cnmb, conPrecio,
       precioPromedio, precioMax, precioMin,
@@ -103,7 +108,9 @@ export async function GET(req: NextRequest) {
       porLab: Object.entries(porLab).sort((a,b) => b[1]-a[1]).slice(0, 10),
       porCap: Object.entries(porCap).sort((a,b) => b[1]-a[1]).slice(0, 18),
       tendencia: Object.entries(porMes),
-    });
+    };
+    analyticsCache.set(cacheKey, result);
+    return NextResponse.json(result);
   } catch(e) {
     return NextResponse.json({ error: String(e) }, { status: 500 });
   }

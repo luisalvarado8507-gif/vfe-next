@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminAuth } from '@/lib/firebase-admin';
+import { rxnormCache } from '@/lib/cache';
 
 async function verificarAuth(req: NextRequest) {
   const token = req.headers.get('Authorization')?.replace('Bearer ', '');
@@ -17,6 +18,9 @@ export async function GET(req: NextRequest) {
 
   try {
     const term = inn.split(' + ')[0].trim();
+    const cacheKey = `rxnorm:${term.toLowerCase()}`;
+    const cached = rxnormCache.get(cacheKey);
+    if (cached) return NextResponse.json({ ...cached, fromCache: true });
     // Buscar RxCUI exacto
     const res = await fetch(
       `https://rxnav.nlm.nih.gov/REST/rxcui.json?name=${encodeURIComponent(term)}&search=2`,
@@ -28,15 +32,19 @@ export async function GET(req: NextRequest) {
       const rxcui = data.idGroup.rxnormId[0];
       const detailRes = await fetch(`https://rxnav.nlm.nih.gov/REST/rxcui/${rxcui}/properties.json`);
       const detail = await detailRes.json();
-      return NextResponse.json({
+      const result = {
         found: true,
         rxcui,
         name: detail.properties?.name || term,
         tty: detail.properties?.tty || 'IN',
         url: `https://www.rxnav.nlm.nih.gov/RxNav.html?search=${rxcui}`,
-      });
+      };
+      rxnormCache.set(`rxnorm:${term.toLowerCase()}`, result);
+      return NextResponse.json(result);
     }
-    return NextResponse.json({ found: false, term });
+    const notFoundResult = { found: false, term };
+    rxnormCache.set(`rxnorm:${term.toLowerCase()}`, notFoundResult);
+    return NextResponse.json(notFoundResult);
   } catch(e) {
     return NextResponse.json({ error: String(e), found: false }, { status: 500 });
   }
