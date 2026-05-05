@@ -105,6 +105,8 @@ export default function MedicamentoDetalle() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [tab, setTab] = useState(0);
+  const [versiones, setVersiones] = useState<Record<string, any>[]>([]);
+  const [loadingVer, setLoadingVer] = useState(false);
 
   useEffect(() => {
     const cargar = async () => {
@@ -118,6 +120,34 @@ export default function MedicamentoDetalle() {
     };
     cargar();
   }, [id]);
+
+  useEffect(() => {
+    if (tab !== 4 || !id) return;
+    const cargarVersiones = async () => {
+      setLoadingVer(true);
+      try {
+        const res = await fetch(`/api/medicamentos/${id}/versiones`);
+        const data = await res.json();
+        setVersiones(data.versiones || []);
+      } catch(e) { console.error(e); }
+      finally { setLoadingVer(false); }
+    };
+    cargarVersiones();
+  }, [tab, id]);
+
+  useEffect(() => {
+    if (tab !== 4 || !id) return;
+    const cargarVersiones = async () => {
+      setLoadingVer(true);
+      try {
+        const res = await fetch(`/api/medicamentos/${id}/versiones`);
+        const data = await res.json();
+        setVersiones(data.versiones || []);
+      } catch(e) { console.error(e); }
+      finally { setLoadingVer(false); }
+    };
+    cargarVersiones();
+  }, [tab, id]);
 
   if (loading) return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex' }}>
@@ -154,6 +184,7 @@ export default function MedicamentoDetalle() {
     { label: 'Presentación',   icon: '⊞' },
     { label: 'Registro',       icon: '⊟' },
     { label: 'Clínica',        icon: '⚕' },
+    { label: 'Historial',      icon: '⟳' },
   ];
 
   const hasRegistro = med.rs || med.rsTitular || med.rsFabricante || med.phpid;
@@ -390,6 +421,130 @@ export default function MedicamentoDetalle() {
                   <div style={{ padding: '14px 16px', fontSize: 13, color: 'var(--tx)', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>{clinData[k]}</div>
                 </div>
               ))}
+            </div>
+          )}
+
+          {/* TAB 4: HISTORIAL DE VERSIONES */}
+          {tab === 4 && (
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+                <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--tx3)', letterSpacing: 1.5, fontFamily: 'var(--mono)', textTransform: 'uppercase' }}>
+                  Historial de versiones regulatorias
+                </div>
+                <div style={{ flex: 1, height: 1, background: 'var(--bdr)' }} />
+                <span style={{ fontSize: 11, color: 'var(--tx4)', fontFamily: 'var(--mono)' }}>
+                  v{med.version || 1} actual
+                </span>
+              </div>
+              {loadingVer ? (
+                <div style={{ textAlign: 'center', padding: 32, color: 'var(--tx4)' }}>Cargando historial...</div>
+              ) : versiones.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: 32, background: 'var(--bg2)', border: '1.5px solid var(--bdr)', borderRadius: 'var(--rl)', color: 'var(--tx4)' }}>
+                  <div style={{ fontSize: 20, marginBottom: 8 }}>⟳</div>
+                  <div style={{ fontWeight: 600 }}>Sin versiones anteriores</div>
+                  <div style={{ fontSize: 12, marginTop: 4 }}>Las versiones se guardan automáticamente al editar</div>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  {/* Versión actual */}
+                  <div style={{ background: 'var(--bg3)', border: '1.5px solid var(--green)', borderRadius: 'var(--r)', padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: 11, fontWeight: 700, background: 'var(--green)', color: '#fff' }}>
+                      v{med.version || 1} · Actual
+                    </span>
+                    <span style={{ fontSize: 12, color: 'var(--tx2)' }}>
+                      Última modificación por <strong>{med.updatedBy || '—'}</strong>
+                    </span>
+                  </div>
+                  {/* Versiones anteriores */}
+                  {versiones.map((v, i) => (
+                    <div key={v.id} style={{ background: 'var(--bg2)', border: '1.5px solid var(--bdr)', borderRadius: 'var(--r)', padding: '12px 16px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+                        <span style={{ padding: '2px 8px', borderRadius: 20, fontSize: 11, fontWeight: 600, background: 'var(--bg3)', color: 'var(--tx3)' }}>
+                          v{v.version}
+                        </span>
+                        <span style={{ fontSize: 12, color: 'var(--tx3)', fontFamily: 'var(--mono)' }}>
+                          {v.savedAt ? new Date(v.savedAt).toLocaleString('es-EC') : '—'}
+                        </span>
+                        <span style={{ fontSize: 12, color: 'var(--tx2)', marginLeft: 4 }}>
+                          por <strong>{v.savedBy || '—'}</strong>
+                        </span>
+                        {v.estado && (
+                          <span style={{ fontSize: 11, padding: '1px 8px', borderRadius: 20, background: 'var(--bg3)', color: 'var(--tx3)', marginLeft: 'auto' }}>
+                            {v.estado}
+                          </span>
+                        )}
+                      </div>
+                      {v.motivo && v.motivo !== 'Actualización' && (
+                        <div style={{ fontSize: 11, color: 'var(--tx3)', fontStyle: 'italic' }}>
+                          Motivo: {v.motivo}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* TAB 4: HISTORIAL DE VERSIONES */}
+          {tab === 4 && (
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+                <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--tx3)', letterSpacing: 1.5, fontFamily: 'var(--mono)', textTransform: 'uppercase' }}>
+                  Historial de versiones regulatorias
+                </div>
+                <div style={{ flex: 1, height: 1, background: 'var(--bdr)' }} />
+                <span style={{ fontSize: 11, color: 'var(--tx4)', fontFamily: 'var(--mono)' }}>
+                  v{med.version || 1} actual
+                </span>
+              </div>
+              {loadingVer ? (
+                <div style={{ textAlign: 'center', padding: 32, color: 'var(--tx4)' }}>Cargando historial...</div>
+              ) : versiones.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: 32, background: 'var(--bg2)', border: '1.5px solid var(--bdr)', borderRadius: 'var(--rl)', color: 'var(--tx4)' }}>
+                  <div style={{ fontSize: 20, marginBottom: 8 }}>⟳</div>
+                  <div style={{ fontWeight: 600 }}>Sin versiones anteriores</div>
+                  <div style={{ fontSize: 12, marginTop: 4 }}>Las versiones se guardan automáticamente al editar</div>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  {/* Versión actual */}
+                  <div style={{ background: 'var(--bg3)', border: '1.5px solid var(--green)', borderRadius: 'var(--r)', padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: 11, fontWeight: 700, background: 'var(--green)', color: '#fff' }}>
+                      v{med.version || 1} · Actual
+                    </span>
+                    <span style={{ fontSize: 12, color: 'var(--tx2)' }}>
+                      Última modificación por <strong>{med.updatedBy || '—'}</strong>
+                    </span>
+                  </div>
+                  {/* Versiones anteriores */}
+                  {versiones.map((v, i) => (
+                    <div key={v.id} style={{ background: 'var(--bg2)', border: '1.5px solid var(--bdr)', borderRadius: 'var(--r)', padding: '12px 16px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+                        <span style={{ padding: '2px 8px', borderRadius: 20, fontSize: 11, fontWeight: 600, background: 'var(--bg3)', color: 'var(--tx3)' }}>
+                          v{v.version}
+                        </span>
+                        <span style={{ fontSize: 12, color: 'var(--tx3)', fontFamily: 'var(--mono)' }}>
+                          {v.savedAt ? new Date(v.savedAt).toLocaleString('es-EC') : '—'}
+                        </span>
+                        <span style={{ fontSize: 12, color: 'var(--tx2)', marginLeft: 4 }}>
+                          por <strong>{v.savedBy || '—'}</strong>
+                        </span>
+                        {v.estado && (
+                          <span style={{ fontSize: 11, padding: '1px 8px', borderRadius: 20, background: 'var(--bg3)', color: 'var(--tx3)', marginLeft: 'auto' }}>
+                            {v.estado}
+                          </span>
+                        )}
+                      </div>
+                      {v.motivo && v.motivo !== 'Actualización' && (
+                        <div style={{ fontSize: 11, color: 'var(--tx3)', fontStyle: 'italic' }}>
+                          Motivo: {v.motivo}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 

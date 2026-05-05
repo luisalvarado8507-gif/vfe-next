@@ -161,9 +161,27 @@ export async function PUT(req: NextRequest) {
       }, { status: 400 });
     }
 
+    // Obtener versión actual
+    const versionActual = prevDoc.data()?.version || 1;
+    const nuevaVersion = versionActual + 1;
+
+    // Guardar snapshot de la versión anterior en subcolección
+    await adminDb
+      .collection('medicamentos').doc(id)
+      .collection('versiones').add({
+        version: versionActual,
+        data: prevDoc.data()?.data,
+        estado: prevDoc.data()?.estado,
+        savedAt: new Date(),
+        savedBy: user.email,
+        motivo: 'Actualización',
+      });
+
+    // Actualizar documento principal con nueva versión
     await adminDb.collection('medicamentos').doc(id).update({
       data, vtm: data.vtm, laboratorio: data.laboratorio,
       estado: data.estado || 'arcsa_pendiente',
+      version: nuevaVersion,
       updatedAt: new Date(), updatedBy: user.email,
     });
 
