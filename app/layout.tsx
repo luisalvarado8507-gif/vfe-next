@@ -38,6 +38,7 @@ export const metadata: Metadata = {
   },
   category: 'health',
   classification: 'Government Health Information System',
+  manifest: '/manifest.json',
   other: {
     'dc.title': 'SIMI — Sistema Integral de Medicamentos Interoperables',
     'dc.subject': 'Farmacología, Medicamentos, Salud, Ecuador',
