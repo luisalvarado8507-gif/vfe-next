@@ -4,6 +4,7 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import AtcHierarchy from '@/components/ui/AtcHierarchy';
 import RxNormLookup from '@/components/ui/RxNormLookup';
+import SNOMEDValidator from '@/components/ui/SNOMEDValidator';
 import Sidebar from '@/components/layout/Sidebar';
 
 // ── SNOMED databases ──────────────────────────────────────────────────────
@@ -308,7 +309,7 @@ export default function MedicamentoDetalle() {
                   <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--tx)', marginBottom: 4 }}>{med.vtm || '—'}</div>
                 )}
                 {/* SNOMED VTM */}
-                {sFF && !esCombo && <SnomedChip label="VTM" code={sFF.code} term={sFF.term} type="vtm" />}
+                {sFF && !esCombo && <SNOMEDValidator conceptId={sFF.code} term={sFF.term} type="vtm" />}
                 {/* RxNorm FDA */}
                 {med.vtm && <RxNormLookup inn={med.vtm} />}
               </div>
@@ -322,7 +323,7 @@ export default function MedicamentoDetalle() {
               <div style={{ background: 'var(--bg2)', border: '1.5px solid var(--bdr)', borderRadius: 'var(--r)', padding: '10px 14px' }}>
                 <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--tx3)', letterSpacing: 1, fontFamily: 'var(--mono)', textTransform: 'uppercase', marginBottom: 4 }}>Forma farmacéutica</div>
                 <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--tx)', marginBottom: 6 }}>{med.ff || '—'}</div>
-                {sFF && <SnomedChip label="FF" code={sFF.code} term={sFF.term} type="ff" />}
+                {sFF && <SNOMEDValidator conceptId={sFF.code} term={sFF.term} type="ff" />}
               </div>
 
               {/* Vías con SNOMED */}
