@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminDb, adminAuth } from '@/lib/firebase-admin';
 import { toFHIRMedication, toFHIRBundle } from '@/lib/fhir/mappers';
+import { checkRateLimit, getClientId, RATE_LIMITS } from '@/lib/rate-limit';
 
 async function verificarAuth(req: NextRequest) {
   const token = req.headers.get('Authorization')?.replace('Bearer ', '');
@@ -11,6 +12,16 @@ async function verificarAuth(req: NextRequest) {
 export async function GET(req: NextRequest) {
   const user = await verificarAuth(req);
   if (!user) return NextResponse.json({ resourceType: 'OperationOutcome', issue: [{ severity: 'error', code: 'security', diagnostics: 'Unauthorized' }] }, { status: 401 });
+
+  // Rate limiting
+  const clientId = user.uid || getClientId(req);
+  const rl = checkRateLimit(`fhir:${clientId}`, RATE_LIMITS.fhir);
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { resourceType: 'OperationOutcome', issue: [{ severity: 'error', code: 'throttled', diagnostics: 'Rate limit exceeded. Max 60 requests/minute.' }] },
+      { status: 429, headers: { 'Retry-After': String(Math.ceil((rl.resetAt - Date.now()) / 1000)), 'X-RateLimit-Limit': '60', 'X-RateLimit-Remaining': '0' } }
+    );
+  }
 
   const { searchParams } = new URL(req.url);
   const code = searchParams.get('code');

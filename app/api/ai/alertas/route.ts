@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminAuth } from '@/lib/firebase-admin';
+import { checkRateLimit, getClientId, RATE_LIMITS } from '@/lib/rate-limit';
 
 async function verificarAuth(req: NextRequest) {
   const token = req.headers.get('Authorization')?.replace('Bearer ', '');
@@ -12,6 +13,13 @@ export async function GET(req: NextRequest) {
   const capitulo = searchParams.get('capitulo') || '';
   const subcapitulo = searchParams.get('subcapitulo') || '';
   const atc = searchParams.get('atc') || '';
+
+  // Rate limiting IA
+  const clientId = getClientId(req);
+  const rl = checkRateLimit(`alertas:${clientId}`, RATE_LIMITS.ai);
+  if (!rl.allowed) {
+    return NextResponse.json({ error: 'Rate limit: máximo 10 alertas IA por minuto.', alertas: [] }, { status: 429 });
+  }
 
   if (!capitulo) return NextResponse.json({ error: 'capitulo requerido' }, { status: 400 });
 
