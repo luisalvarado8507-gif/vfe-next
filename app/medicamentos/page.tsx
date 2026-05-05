@@ -63,6 +63,8 @@ function BaseDatosContent() {
   const [busqueda, setBusqueda] = useState('');
   const [filtroEstado, setFiltroEstado] = useState('todos');
   const [filtroGenerico, setFiltroGenerico] = useState('todos');
+  const [filtroCNMB, setFiltroCNMB] = useState(false);
+  const [filtroCondicion, setFiltroCondicion] = useState('todos'); // todos | otc | prescripcion
   const [pagina, setPagina] = useState(1);
   const [busquedaResults, setBusquedaResults] = useState<Medicamento[] | null>(null);
   const [tipoBusqueda, setTipoBusqueda] = useState<'todo' | 'nombre' | 'vtm' | 'atc' | 'rs'>('todo');
@@ -136,13 +138,16 @@ function BaseDatosContent() {
     if (filtroEstado !== 'todos' && m.estado !== filtroEstado) return false;
     if (filtroGenerico === 'si' && m.generico !== 'Sí') return false;
     if (filtroGenerico === 'no' && m.generico !== 'No') return false;
+    if (filtroCNMB && (m as any).cnmb !== 'Sí') return false;
+    if (filtroCondicion === 'otc' && (m as any).rsCondicion !== 'Venta libre') return false;
+    if (filtroCondicion === 'prescripcion' && (m as any).rsCondicion === 'Venta libre') return false;
     return true;
   });
 
   const totalPags = Math.max(1, Math.ceil(filtrados.length / PER_PAGE));
   const paginados = filtrados.slice((pagina - 1) * PER_PAGE, pagina * PER_PAGE);
 
-  const limpiarFiltros = () => { setFiltroEstado('todos'); setFiltroGenerico('todos'); setBusqueda(''); setPagina(1); };
+  const limpiarFiltros = () => { setFiltroEstado('todos'); setFiltroGenerico('todos'); setFiltroCNMB(false); setFiltroCondicion('todos'); setBusqueda(''); setPagina(1); };
 
   const chipBtn = (activo: boolean): React.CSSProperties => ({
     padding: '5px 12px', borderRadius: 20, fontSize: 12, fontWeight: 500,
@@ -236,7 +241,25 @@ function BaseDatosContent() {
               }}>{lbl}</button>
             ))}
           </div>
-          {(filtroEstado !== 'todos' || filtroGenerico !== 'todos' || busqueda) && (
+          {/* Filtros clínicos */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--tx3)', letterSpacing: 1, fontFamily: 'var(--mono)' }}>CLÍNICO</span>
+            <button onClick={() => { setFiltroCNMB(!filtroCNMB); setPagina(1); }} style={{
+              padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 500,
+              cursor: 'pointer', border: `1.5px solid ${filtroCNMB ? 'var(--amber)' : 'var(--bdr)'}`,
+              background: filtroCNMB ? 'var(--amber-bg)' : 'var(--bg2)',
+              color: filtroCNMB ? 'var(--amber)' : 'var(--tx2)', transition: 'all .13s',
+            }}>CNMB / Esencial</button>
+            {[['todos','Todos'],['otc','Venta libre'],['prescripcion','Prescripción']].map(([val, lbl]) => (
+              <button key={val} onClick={() => { setFiltroCondicion(val); setPagina(1); }} style={{
+                padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 500,
+                cursor: 'pointer', border: `1.5px solid ${filtroCondicion === val ? 'var(--green)' : 'var(--bdr)'}`,
+                background: filtroCondicion === val ? 'var(--green)' : 'var(--bg2)',
+                color: filtroCondicion === val ? '#fff' : 'var(--tx2)', transition: 'all .13s',
+              }}>{lbl}</button>
+            ))}
+          </div>
+          {(filtroEstado !== 'todos' || filtroGenerico !== 'todos' || filtroCNMB || filtroCondicion !== 'todos' || busqueda) && (
             <button onClick={limpiarFiltros} style={{ marginLeft: 'auto', padding: '5px 12px', borderRadius: 20, fontSize: 12, fontWeight: 500, cursor: 'pointer', border: '1.5px solid var(--bdr)', background: 'transparent', color: 'var(--tx3)', transition: 'all .13s' }}>
               ✕ Limpiar filtros
             </button>
@@ -250,7 +273,7 @@ function BaseDatosContent() {
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                 <thead>
                   <tr style={{ background: 'var(--bg3)' }}>
-                    {['Principio activo (DCI)', 'Nombre comercial', 'Concentración', 'Forma farm.', 'Laboratorio', 'Estado', 'Genérico', ''].map(h => (
+                    {['Principio activo (DCI)', 'Nombre comercial', 'Conc. / Forma', 'ATC', 'Laboratorio', 'Estado', 'CNMB', ''].map(h => (
                       <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontSize: 10, fontWeight: 700, color: 'var(--tx3)', letterSpacing: 0.8, fontFamily: 'var(--mono)', textTransform: 'uppercase', borderBottom: '1.5px solid var(--bdr)', whiteSpace: 'nowrap' }}>
                         {h}
                       </th>
@@ -289,11 +312,12 @@ function BaseDatosContent() {
                         <td style={{ padding: '10px 14px', color: 'var(--tx2)', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {amp || <span style={{ color: 'var(--tx4)', fontStyle: 'italic', fontSize: 11 }}>—</span>}
                         </td>
-                        <td style={{ padding: '10px 14px', color: 'var(--tx3)', fontFamily: 'var(--mono)', fontSize: 12, whiteSpace: 'nowrap' }}>
-                          {m.conc || '—'}
+                        <td style={{ padding: '10px 14px', color: 'var(--tx3)', fontSize: 12 }}>
+                          <div style={{ fontFamily: 'var(--mono)', fontSize: 11 }}>{m.conc || '—'}</div>
+                          <div style={{ fontSize: 11, color: 'var(--tx4)', marginTop: 1 }}>{m.ff || ''}</div>
                         </td>
-                        <td style={{ padding: '10px 14px', color: 'var(--tx3)', fontSize: 12, maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {m.ff || '—'}
+                        <td style={{ padding: '10px 14px', fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--blue, #1D4ED8)', fontWeight: 600 }}>
+                          {(m as any).atc || '—'}
                         </td>
                         <td style={{ padding: '10px 14px', color: 'var(--tx2)', fontSize: 12 }}>
                           {m.laboratorio || '—'}
@@ -302,9 +326,11 @@ function BaseDatosContent() {
                           <EstadoBadge estado={m.estado} />
                         </td>
                         <td style={{ padding: '10px 14px' }}>
-                          <span style={{ fontSize: 11, fontWeight: 600, color: m.generico === 'Sí' ? 'var(--green)' : 'var(--tx4)' }}>
-                            {m.generico === 'Sí' ? '✓ Genérico' : m.generico === 'No' ? 'Marca' : '—'}
-                          </span>
+                          {(m as any).cnmb === 'Sí' ? (
+                            <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 20, background: 'var(--amber-bg)', color: 'var(--amber)' }}>✓ CNMB</span>
+                          ) : (
+                            <span style={{ fontSize: 11, color: 'var(--tx4)' }}>—</span>
+                          )}
                         </td>
                         <td style={{ padding: '10px 14px' }} onClick={e => e.stopPropagation()}>
                           <div style={{ display: 'flex', gap: 4 }}>
