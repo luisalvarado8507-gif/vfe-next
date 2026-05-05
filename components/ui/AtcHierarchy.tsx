@@ -1,3 +1,4 @@
+import { getATCHierarchy, ATC_L1 } from '@/lib/atc-db';
 'use client';
 
 interface AtcLevel {
@@ -30,57 +31,23 @@ const ATC_L1: Record<string, string> = {
   V: 'Varios',
 };
 
+const LEVEL_LABELS = [
+  'Grupo anatómico principal',
+  'Subgrupo terapéutico',
+  'Subgrupo farmacológico',
+  'Subgrupo químico',
+  'Sustancia química',
+];
+
 function parseAtcLevels(code: string): AtcLevel[] {
   if (!code || code.length < 1) return [];
-  const c = code.toUpperCase().trim();
-  const levels: AtcLevel[] = [];
-
-  // Nivel 1: 1 letra (grupo anatómico)
-  if (c.length >= 1) {
-    levels.push({
-      code: c[0],
-      level: 1,
-      label: 'Grupo anatómico principal',
-      description: ATC_L1[c[0]] || c[0],
-    });
-  }
-  // Nivel 2: 1 letra + 2 dígitos (subgrupo terapéutico)
-  if (c.length >= 3) {
-    levels.push({
-      code: c.substring(0, 3),
-      level: 2,
-      label: 'Subgrupo terapéutico',
-      description: c.substring(0, 3),
-    });
-  }
-  // Nivel 3: 4 caracteres (subgrupo farmacológico)
-  if (c.length >= 4) {
-    levels.push({
-      code: c.substring(0, 4),
-      level: 3,
-      label: 'Subgrupo farmacológico',
-      description: c.substring(0, 4),
-    });
-  }
-  // Nivel 4: 5 caracteres (subgrupo químico)
-  if (c.length >= 5) {
-    levels.push({
-      code: c.substring(0, 5),
-      level: 4,
-      label: 'Subgrupo químico',
-      description: c.substring(0, 5),
-    });
-  }
-  // Nivel 5: 7 caracteres (sustancia química)
-  if (c.length >= 7) {
-    levels.push({
-      code: c.substring(0, 7),
-      level: 5,
-      label: 'Sustancia química',
-      description: c,
-    });
-  }
-  return levels;
+  const hierarchy = getATCHierarchy(code);
+  return hierarchy.map(h => ({
+    code: h.code,
+    level: h.level,
+    label: LEVEL_LABELS[h.level - 1] || `Nivel ${h.level}`,
+    description: h.description,
+  }));
 }
 
 const LEVEL_COLORS = [
@@ -142,11 +109,9 @@ export default function AtcHierarchy({ code, label }: AtcHierarchyProps) {
               <span style={{ fontSize: 11, color: 'var(--tx3)', fontWeight: 500 }}>
                 Nivel {lvl.level} — {lvl.label}
               </span>
-              {lvl.level === 1 && lvl.description !== lvl.code && (
-                <span style={{ fontSize: 12, color: 'var(--tx)', fontWeight: 600, marginLeft: 4 }}>
-                  {lvl.description}
-                </span>
-              )}
+              <span style={{ fontSize: 12, color: 'var(--tx)', fontWeight: 600, marginLeft: 4 }}>
+                {lvl.description}
+              </span>
             </div>
           );
         })}
