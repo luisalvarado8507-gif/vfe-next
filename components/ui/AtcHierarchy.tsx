@@ -1,5 +1,5 @@
-import { getATCHierarchy, ATC_L1 } from '@/lib/atc-db';
 'use client';
+import { getATCHierarchy, ATC_L1 } from '@/lib/atc-db';
 
 interface AtcLevel {
   code: string;
