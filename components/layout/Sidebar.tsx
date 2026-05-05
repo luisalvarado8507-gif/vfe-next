@@ -110,6 +110,7 @@ export default function Sidebar() {
           { href: '/arbol',              icon: '⊤', label: 'Árbol SPMS' },
         { href: '/busqueda-semantica', icon: '✦', label: 'Búsqueda IA' },
           { href: '/avances',            icon: '◎', label: 'Panel de avances' },
+        { href: '/analytics',          icon: '◈', label: 'Analítica avanzada' },
         ].map(item => (
           <Link key={item.href} href={item.href} style={{
             display: 'flex', alignItems: 'center', gap: '9px',
