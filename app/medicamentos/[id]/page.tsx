@@ -106,6 +106,8 @@ export default function MedicamentoDetalle() {
   const [error, setError] = useState(false);
   const [tab, setTab] = useState(0);
   const [versiones, setVersiones] = useState<Record<string, any>[]>([]);
+  const [sporData, setSporData] = useState<Record<string, any> | null>(null);
+  const [loadingSpor, setLoadingSpor] = useState(false);
   const [loadingVer, setLoadingVer] = useState(false);
 
   useEffect(() => {
@@ -120,6 +122,20 @@ export default function MedicamentoDetalle() {
     };
     cargar();
   }, [id]);
+
+  useEffect(() => {
+    if (tab !== 5 || !id) return;
+    const cargarSpor = async () => {
+      setLoadingSpor(true);
+      try {
+        const res = await fetch(`/api/spor?id=${id}`);
+        const data = await res.json();
+        setSporData(data);
+      } catch(e) { console.error(e); }
+      finally { setLoadingSpor(false); }
+    };
+    cargarSpor();
+  }, [tab, id]);
 
   useEffect(() => {
     if (tab !== 4 || !id) return;
@@ -185,6 +201,7 @@ export default function MedicamentoDetalle() {
     { label: 'Registro',       icon: '⊟' },
     { label: 'Clínica',        icon: '⚕' },
     { label: 'Historial',      icon: '⟳' },
+    { label: 'SPOR/IDMP',      icon: '⊕' },
   ];
 
   const hasRegistro = med.rs || med.rsTitular || med.rsFabricante || med.phpid;
@@ -545,6 +562,87 @@ export default function MedicamentoDetalle() {
                   ))}
                 </div>
               )}
+            </div>
+          )}
+
+          {/* TAB 5: SPOR/IDMP */}
+          {tab === 5 && (
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+                <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--tx3)', letterSpacing: 1.5, fontFamily: 'var(--mono)', textTransform: 'uppercase' }}>
+                  EMA SPOR — ISO IDMP 11615/11238
+                </div>
+                <div style={{ flex: 1, height: 1, background: 'var(--bdr)' }} />
+                <a href="https://spor.ema.europa.eu" target="_blank" rel="noreferrer"
+                  style={{ fontSize: 11, color: 'var(--green)', textDecoration: 'none', fontWeight: 600, padding: '2px 8px', border: '1px solid var(--bdr)', borderRadius: 20 }}>
+                  EMA SPOR →
+                </a>
+              </div>
+              {loadingSpor ? (
+                <div style={{ textAlign: 'center', padding: 32, color: 'var(--tx4)' }}>Calculando modelo SPOR...</div>
+              ) : sporData ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  {/* Substance */}
+                  <div style={{ background: 'var(--bg2)', border: '1.5px solid #C4B5FD', borderRadius: 'var(--r)', padding: '12px 16px' }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: '#5B21B6', letterSpacing: 1.5, fontFamily: 'var(--mono)', marginBottom: 8 }}>S — SUBSTANCE (ISO 11238)</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+                      {[
+                        ['ID SIMI', sporData.substance?.simiId],
+                        ['INN/DCI', sporData.substance?.inn],
+                        ['SNOMED CT', sporData.substance?.snomed || '—'],
+                        ['Código ATC', sporData.substance?.atcCode || '—'],
+                        ['CAS', sporData.substance?.cas || '—'],
+                      ].map(([l, v]) => (
+                        <div key={l} style={{ background: '#F5F3FF', borderRadius: 6, padding: '8px 10px' }}>
+                          <div style={{ fontSize: 9, fontWeight: 700, color: '#7C3AED', fontFamily: 'var(--mono)', letterSpacing: 1, marginBottom: 2 }}>{l}</div>
+                          <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--tx)', fontFamily: 'var(--mono)' }}>{v}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  {/* Product */}
+                  <div style={{ background: 'var(--bg2)', border: '1.5px solid var(--bdr)', borderRadius: 'var(--r)', padding: '12px 16px' }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--green)', letterSpacing: 1.5, fontFamily: 'var(--mono)', marginBottom: 8 }}>P — PRODUCT (ISO 11615)</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
+                      {[
+                        ['VTM ID', sporData.product?.vtmId],
+                        ['VMP ID', sporData.product?.vmpId],
+                        ['AMP ID', sporData.product?.ampId],
+                        ['AMPP ID', sporData.product?.amppId || '—'],
+                        ['Registro sanitario', sporData.product?.rs || '—'],
+                        ['CUM', sporData.product?.cum || '—'],
+                        ['GTIN', sporData.product?.gtin || '—'],
+                        ['PhPID', sporData.product?.phpid || '—'],
+                      ].map(([l, v]) => (
+                        <div key={l} style={{ background: 'var(--bg3)', borderRadius: 6, padding: '8px 10px' }}>
+                          <div style={{ fontSize: 9, fontWeight: 700, color: 'var(--tx3)', fontFamily: 'var(--mono)', letterSpacing: 1, marginBottom: 2 }}>{l}</div>
+                          <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--tx)', fontFamily: 'var(--mono)' }}>{v}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  {/* Organisation */}
+                  <div style={{ background: 'var(--bg2)', border: '1.5px solid #BAE6FD', borderRadius: 'var(--r)', padding: '12px 16px' }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: '#0369A1', letterSpacing: 1.5, fontFamily: 'var(--mono)', marginBottom: 8 }}>O — ORGANISATION (ISO 11615)</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+                      {[
+                        ['ID SIMI', sporData.organisation?.simiId],
+                        ['Nombre', sporData.organisation?.name],
+                        ['Tipo', sporData.organisation?.type],
+                        ['País', sporData.organisation?.country || '—'],
+                      ].map(([l, v]) => (
+                        <div key={l} style={{ background: '#F0F9FF', borderRadius: 6, padding: '8px 10px' }}>
+                          <div style={{ fontSize: 9, fontWeight: 700, color: '#0369A1', fontFamily: 'var(--mono)', letterSpacing: 1, marginBottom: 2 }}>{l}</div>
+                          <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--tx)', fontFamily: 'var(--mono)' }}>{v}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div style={{ fontSize: 10, color: 'var(--tx4)', fontFamily: 'var(--mono)', textAlign: 'center' }}>
+                    Modelo EMA SPOR · ISO IDMP 11615/11238 · SIMI Ecuador v1.0
+                  </div>
+                </div>
+              ) : null}
             </div>
           )}
 
