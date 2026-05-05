@@ -108,7 +108,7 @@ export default function Dashboard() {
         }}>
           {/* Decoración fondo */}
           <div style={{ position: 'absolute', right: -60, top: -60, width: 300, height: 300, borderRadius: '50%', background: 'rgba(255,255,255,.03)', pointerEvents: 'none' }} />
-          <div style={{ position: 'absolute', right: 80, bottom: -80, width: 200, height: 200, borderRadius: '50%', background: 'rgba(116,198,157,.06)', pointerEvents: 'none' }} />
+          <div style={{ position: 'absolute', right: 80, bottom: -80, width: 200, height: 200, borderRadius: '50%', background: 'rgba(96,165,250,.06)', pointerEvents: 'none' }} />
 
           <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: '20px' }}>
             <div>
