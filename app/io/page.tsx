@@ -104,7 +104,7 @@ export default function ImportarExportar() {
         const header = fields.map(k => `<th>${k}</th>`).join('');
         const rowsHtml = filtered.map(m => `<tr>${fields.map(k => `<td>${String(m[k] ?? '')}</td>`).join('')}</tr>`).join('');
         const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>VFE Export</title>
-<style>body{font-family:Arial,sans-serif;font-size:12px}table{border-collapse:collapse;width:100%}th,td{border:1px solid #ccc;padding:4px 8px}th{background:#1B4332;color:#fff}</style></head>
+<style>body{font-family:Inter,sans-serif;font-size:12px;margin:20px}table{border-collapse:collapse;width:100%}th,td{border:1px solid #BFDBFE;padding:5px 8px;text-align:left}th{background:#0F2D5E;color:#fff;font-size:11px}tr:nth-child(even){background:#EFF6FF}h2{color:#0F2D5E}</style></head>
 <body><h2>VFE — El Libro Verde · ${today()}</h2><table><thead><tr>${header}</tr></thead><tbody>${rowsHtml}</tbody></table></body></html>`;
         download(new Blob([html], { type: 'text/html;charset=utf-8' }), `vfe_medicamentos_${today()}.html`);
       }
@@ -131,14 +131,14 @@ export default function ImportarExportar() {
       const html = `<!DOCTYPE html><html lang="es"><head><meta charset="utf-8">
 <title>VFE — ${cap?.name}</title>
 <style>body{font-family:Arial,sans-serif;font-size:11px;margin:40px;color:#1a3a1a}
-h1{color:#1B4332;font-size:22px;border-bottom:3px solid #2D6A4F;padding-bottom:8px}
+h1{color:#0F2D5E;font-size:22px;border-bottom:3px solid #1D4ED8;padding-bottom:8px}
 table{width:100%;border-collapse:collapse;margin-top:12px;font-size:10px}
-th{background:#1B4332;color:#fff;padding:6px 8px;text-align:left}
-td{border:1px solid #C8E0CC;padding:5px 8px}tr:nth-child(even){background:#EBF5EE}
+th{background:#0F2D5E;color:#fff;padding:6px 8px;text-align:left}
+td{border:1px solid #BFDBFE;padding:5px 8px}tr:nth-child(even){background:#EFF6FF}
 .footer{margin-top:32px;font-size:10px;color:#888;border-top:1px solid #ccc;padding-top:8px}</style>
 </head><body>
 <h1>VFE — El Libro Verde de los Medicamentos</h1>
-<h2 style="color:#2D6A4F">${cap?.name}</h2>
+<h2 style="color:#1D4ED8">${cap?.name}</h2>
 <p style="color:#666;font-size:11px">${meds.length} medicamentos autorizados · ${today()}</p>
 <table><thead><tr><th>Nombre comercial</th><th>Principio activo</th><th>Concentración</th>
 <th>Forma farm.</th><th>Vía</th><th>Laboratorio</th><th>RS</th><th>CUM</th><th>ATC</th><th>PVP</th></tr></thead>
