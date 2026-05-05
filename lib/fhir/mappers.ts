@@ -1,3 +1,4 @@
+import { generateSPORId } from '@/lib/spor/types';
 // SIMI → FHIR R4 Resource Mappers
 // Basado en HL7 FHIR R4 specification (https://hl7.org/fhir/R4/)
 
@@ -16,6 +17,10 @@ export function toFHIRMedication(med: Record<string, any>, baseUrl: string) {
     },
     identifier: [
       { system: 'https://simi.ec/medicamentos', value: med.docId || med.id },
+      { system: 'https://simi.ec/spor/amp', value: generateSPORId('amp', med.amp || med.nombre || med.vtm || '') },
+      ...(med.rs ? [{ system: 'https://www.arcsa.gob.ec/rs', value: med.rs }] : []),
+      ...(med.cum ? [{ system: 'https://www.arcsa.gob.ec/cum', value: med.cum }] : []),
+      ...(med.gtin ? [{ system: 'https://www.gs1.org/gtin', value: med.gtin }] : []),
     ],
     code: {
       coding: [
