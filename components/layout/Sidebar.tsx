@@ -108,6 +108,7 @@ export default function Sidebar() {
           { href: '/dashboard',         icon: '⌂', label: 'Dashboard' },
           { href: '/medicamentos',       icon: '⊞', label: 'Base de datos' },
           { href: '/arbol',              icon: '⊤', label: 'Árbol SPMS' },
+        { href: '/busqueda-semantica', icon: '✦', label: 'Búsqueda IA' },
           { href: '/avances',            icon: '◎', label: 'Panel de avances' },
         ].map(item => (
           <Link key={item.href} href={item.href} style={{
