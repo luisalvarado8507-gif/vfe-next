@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
+import { CHAPS } from '@/lib/capitulos-tree';
 import AtcHierarchy from '@/components/ui/AtcHierarchy';
 import RxNormLookup from '@/components/ui/RxNormLookup';
 import SNOMEDValidator from '@/components/ui/SNOMEDValidator';
@@ -218,18 +219,42 @@ export default function MedicamentoDetalle() {
         {/* ── CABECERA DARK ── */}
         <div style={{ background: 'var(--green-dark, #1B4332)', padding: '20px 32px 0', flexShrink: 0 }}>
 
-          {/* Breadcrumb */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-            <Link href="/medicamentos" style={{ fontSize: 12, color: 'rgba(255,255,255,.5)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4, transition: 'color .15s' }}
-              onMouseEnter={e => (e.currentTarget.style.color = 'rgba(255,255,255,.85)')}
-              onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,.5)')}>
-              ← Base de datos
-            </Link>
-            <span style={{ color: 'rgba(255,255,255,.25)', fontSize: 12 }}>/</span>
-            <span style={{ fontSize: 12, color: 'rgba(255,255,255,.5)', maxWidth: 300, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {med.amp || med.nombre || med.vtm}
-            </span>
-          </div>
+          {/* Breadcrumb semántico con ATC y capítulo */}
+          {(() => {
+            const cap = med.chapId ? CHAPS.find(c => c.id === med.chapId) : null;
+            const atcL1 = med.atc ? med.atc[0]?.toUpperCase() : null;
+            const atcL2 = med.atc?.length >= 3 ? med.atc.substring(0, 3).toUpperCase() : null;
+            const crumbs = [
+              { label: 'SIMI', href: '/dashboard', icon: '⌂' },
+              { label: 'Base de datos', href: '/medicamentos', icon: null },
+              ...(cap ? [{ label: `${cap.n}. ${cap.name}`, href: `/capitulos/${cap.id}`, icon: null, atc: atcL1 }] : []),
+              ...(atcL2 && med.atclbl ? [{ label: med.atclbl, href: `/medicamentos?q=${atcL2}&tipo=atc`, icon: null, atc: atcL2 }] : []),
+              { label: med.vtm, href: null, icon: null, atc: med.atc || null, current: true },
+            ];
+            return (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 14, flexWrap: 'wrap' }}>
+                {crumbs.map((crumb, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                    {i > 0 && <span style={{ color: 'rgba(255,255,255,.2)', fontSize: 11 }}>›</span>}
+                    {crumb.href && !crumb.current ? (
+                      <Link href={crumb.href} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: 'rgba(255,255,255,.5)', textDecoration: 'none', transition: 'color .15s' }}
+                        onMouseEnter={e => (e.currentTarget.style.color = 'rgba(255,255,255,.85)')}
+                        onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,.5)')}>
+                        {crumb.icon && <span>{crumb.icon}</span>}
+                        <span>{crumb.label}</span>
+                        {crumb.atc && <span style={{ fontSize: 9, fontFamily: 'var(--mono)', padding: '1px 5px', borderRadius: 4, background: 'rgba(255,255,255,.1)', color: 'rgba(255,255,255,.5)', letterSpacing: 0.5 }}>{crumb.atc}</span>}
+                      </Link>
+                    ) : (
+                      <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: crumb.current ? 'rgba(255,255,255,.85)' : 'rgba(255,255,255,.5)', fontWeight: crumb.current ? 600 : 400, maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {crumb.label}
+                        {crumb.current && crumb.atc && <span style={{ fontSize: 9, fontFamily: 'var(--mono)', padding: '1px 5px', borderRadius: 4, background: 'rgba(255,255,255,.15)', color: 'rgba(255,255,255,.7)', letterSpacing: 0.5 }}>{crumb.atc}</span>}
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
 
           {/* Nombre e info principal */}
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16, marginBottom: 18 }}>
