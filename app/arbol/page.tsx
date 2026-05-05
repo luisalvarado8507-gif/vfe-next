@@ -19,17 +19,17 @@ interface VTMNode { label: string; esCombo: boolean; vmps: Record<string, VMP>; 
 type ArbolLevel = 'all' | 'vtm' | 'vmp' | 'amp';
 
 // ── Nivel badges ──────────────────────────────────────────────────────────
-const NIVEL_STYLES: Record<string, { bg: string; color: string }> = {
-  VTM:  { bg: '#1B4332', color: '#fff' },
-  VMP:  { bg: '#2D6A4F', color: '#fff' },
-  VMPP: { bg: '#1D4ED8', color: '#fff' },
-  AMP:  { bg: '#6D28D9', color: '#fff' },
+const NIVEL_STYLES: Record<string, { bg: string; color: string; border: string }> = {
+  VTM:  { bg: '#0F2D5E', color: '#fff', border: '#1D4ED8' },
+  VMP:  { bg: '#1D4ED8', color: '#fff', border: '#3B82F6' },
+  VMPP: { bg: '#2563EB', color: '#fff', border: '#60A5FA' },
+  AMP:  { bg: '#6D28D9', color: '#fff', border: '#A78BFA' },
 };
 
 function NivelBadge({ nivel }: { nivel: string }) {
-  const s = NIVEL_STYLES[nivel] || { bg: '#6B7280', color: '#fff' };
+  const s = NIVEL_STYLES[nivel] || { bg: '#6B7280', color: '#fff', border: '#9CA3AF' };
   return (
-    <span style={{ padding: '2px 7px', borderRadius: 4, background: s.bg, color: s.color, fontSize: 10, fontWeight: 700, fontFamily: 'var(--mono)', flexShrink: 0, letterSpacing: 0.5 }}>
+    <span style={{ padding: '2px 7px', borderRadius: 4, background: s.bg, color: s.color, fontSize: 10, fontWeight: 700, fontFamily: 'var(--mono)', flexShrink: 0, letterSpacing: 0.5, border: `1px solid ${s.border}` }}>
       {nivel}
     </span>
   );
