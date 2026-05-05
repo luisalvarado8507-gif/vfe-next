@@ -2,6 +2,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import AlertasTerapeuticas from '@/components/ui/AlertasTerapeuticas';
 import { useAuth } from '@/lib/auth-context';
 import Sidebar from '@/components/layout/Sidebar';
 import { CHAPS, CapituloTree, SubCapitulo } from '@/lib/capitulos-tree';
