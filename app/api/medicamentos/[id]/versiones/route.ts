@@ -7,12 +7,13 @@ async function verificarAuth(req: NextRequest) {
   try { return await adminAuth.verifyIdToken(token); } catch { return null; }
 }
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, context: { params: Promise<{ id: string }> }) {
   const user = await verificarAuth(req);
   if (!user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
   try {
+    const { id } = await context.params;
     const snap = await adminDb
-      .collection('medicamentos').doc(params.id)
+      .collection('medicamentos').doc(id)
       .collection('versiones')
       .orderBy('savedAt', 'desc')
       .limit(50)
