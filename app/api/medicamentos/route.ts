@@ -149,8 +149,9 @@ export async function POST(req: NextRequest) {
     });
 
     return NextResponse.json({ id, ok: true });
-  } catch {
-    return NextResponse.json({ error: 'Error al guardar' }, { status: 500 });
+  } catch(e) {
+    console.error('POST ERROR:', e);
+    return NextResponse.json({ error: String(e) }, { status: 500 });
   }
 }
 
@@ -214,8 +215,9 @@ export async function PUT(req: NextRequest) {
     });
 
     return NextResponse.json({ ok: true });
-  } catch {
-    return NextResponse.json({ error: 'Error al actualizar' }, { status: 500 });
+  } catch(e) {
+    console.error('PUT ERROR:', e);
+    return NextResponse.json({ error: String(e) }, { status: 500 });
   }
 }
 
