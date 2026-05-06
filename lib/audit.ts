@@ -129,7 +129,8 @@ export async function registrarAuditEvent(params: AuditEventParams): Promise<voi
     },
   };
 
-  await adminDb.collection('auditLog').add(auditEvent);
+  const cleanEvent = JSON.parse(JSON.stringify(auditEvent, (k, v) => v === undefined ? null : v));
+  await adminDb.collection('auditLog').add(cleanEvent);
 }
 
 // Helper para obtener IP del request
