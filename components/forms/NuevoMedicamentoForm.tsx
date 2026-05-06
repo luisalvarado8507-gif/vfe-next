@@ -642,7 +642,7 @@ export default function NuevoMedicamentoForm({ initialData, editId }: { initialD
                 ))}
               </div>
             </div>
-            <div style={{ ...sec }}>Forma química y estado físico <span style={badge('rgba(26,107,8,.15)','var(--gdp)')}>ISO 11238</span></div>
+            <div style={{ ...sec }}>Forma química y estado físico <span style={badge('rgba(29,78,216,.12)','#1D4ED8')}>ISO 11238</span></div>
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16, marginBottom:16 }}>
               <div>
                 <label style={lbl}>FORMA QUÍMICA <span style={{ fontSize:10,fontWeight:400,color:'var(--tx4)',textTransform:'none',letterSpacing:0 }}>ISO 11238 — sal, base, éster</span></label>
