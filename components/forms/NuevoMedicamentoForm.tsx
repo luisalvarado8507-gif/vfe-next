@@ -170,7 +170,7 @@ export default function NuevoMedicamentoForm({ initialData, editId }: { initialD
   useEffect(() => { setSnomedFF(ff ? getSnomedFF(ff) : null); }, [ff]);
 
   const ffShort = ff.split('(')[0].trim();
-  const vtmLabel = tipoPA === 'mono' ? vtm : comboPAs.filter(p=>p.vtm).map(p=>p.vtm).join(' + ');
+  const vtmLabel = tipoPA === 'mono' ? vtm : comboPAs.filter((p:any)=>p.vtm).map((p:any)=>p.vtm).join(' + ');
   const concLabel = tipoPA === 'mono'
     ? (conc ? `${conc} ${concUnit}` : '')
     : comboPAs.filter(p=>p.vtm).map(p=>p.conc ? `${p.conc} ${p.unit}` : '').join(' + ');
