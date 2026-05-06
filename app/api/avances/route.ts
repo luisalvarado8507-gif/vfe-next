@@ -9,7 +9,18 @@ async function verificarAuth(req: NextRequest) {
 
 export async function GET(req: NextRequest) {
   const user = await verificarAuth(req);
-  if (!user) return NextResponse.json({
+  if (!user) // Campos de completitud ISO IDMP
+    const conRS   = meds.filter(m => m.data?.rs).length;
+    const conCUM  = meds.filter(m => m.data?.cum).length;
+    const conATC  = meds.filter(m => m.data?.atc).length;
+    const conFF   = meds.filter(m => m.data?.ff).length;
+    const conVia  = meds.filter(m => m.data?.vias || m.data?.via).length;
+    const conConc = meds.filter(m => m.data?.conc).length;
+    const conLab  = meds.filter(m => m.data?.laboratorio).length;
+    const conFechaRS = meds.filter(m => m.data?.rsFecha).length;
+
+    return NextResponse.json({
+      conRS, conCUM, conATC, conFF, conVia, conConc, conLab, conFechaRS,
       cnmbVersion: '9ª Edición',
       cnmbUrl: 'https://www.salud.gob.ec/cuadro-nacional-de-medicamentos-basicos/', error: 'No autorizado' }, { status: 401 });
 
