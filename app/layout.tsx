@@ -89,6 +89,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="preconnect" href="https://snowstorm.ihtsdotools.org" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <script dangerouslySetInnerHTML={{ __html: `
+          if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+              navigator.serviceWorker.register('/sw.js')
+                .then(function(reg) { console.log('[SIMI] Service Worker registrado:', reg.scope); })
+                .catch(function(err) { console.warn('[SIMI] SW error:', err); });
+            });
+          }
+        ` }} />
       </head>
       <body style={{ margin: 0, padding: 0 }}>
         <AuthProvider>
