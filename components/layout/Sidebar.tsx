@@ -12,8 +12,7 @@ const ROLE_CONFIG: Record<string, { label: string; bg: string; color: string; ic
 };
 
 export default function Sidebar() {
-  const { user, role, isAdmin, isEditor } = useAuth();
-  const { user, logout } = useAuth();
+  const { user, role, isAdmin, isEditor, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
 
