@@ -244,6 +244,12 @@ export default function NuevoMedicamentoForm({ initialData, editId }: { initialD
         phpidL1, phpidL2, phpidL3, phpid, gtin, cnmbCodigo, pmc, rsObs,
         clinData: clin,
         interacciones: JSON.stringify(interacciones),
+        esCombo: tipoPA === 'combo',
+        comboData: tipoPA === 'combo' ? {
+          pas: comboPAs.map(p => p.vtm),
+          concs: comboPAs.map(p => p.conc),
+          units: comboPAs.map(p => p.unit),
+        } : null,
         ...(editId ? { id: editId } : {}),
       };
       const res = await fetch('/api/medicamentos', {
