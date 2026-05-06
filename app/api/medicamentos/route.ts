@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { registrarAuditEvent, getClientIP } from '@/lib/audit';
 import { puedeTransicionar, EstadoRegulatorio } from '@/lib/regulatory-lifecycle';
 import { adminDb, adminAuth } from '@/lib/firebase-admin';
 import { Medicamento } from '@/types/medicamento';
@@ -133,9 +134,17 @@ export async function POST(req: NextRequest) {
       updatedAt: new Date(), updatedBy: user.email,
     });
 
-    await adminDb.collection('auditLog').add({
-      accion: 'CREATE', medId: id, vtm: data.vtm,
-      usuario: user.email, timestamp: new Date(), datosNuevos: data,
+    await registrarAuditEvent({
+      action: 'C',
+      subtype: 'CREATE',
+      resourceType: 'Medication',
+      resourceId: id,
+      resourceDisplay: data.vtm,
+      usuario: user.email,
+      usuarioUid: user.uid,
+      usuarioRol: user.admin ? 'admin' : user.editor ? 'editor' : 'viewer',
+      ip: getClientIP(req),
+      outcome: '0',
     });
 
     return NextResponse.json({ id, ok: true });
@@ -187,12 +196,20 @@ export async function PUT(req: NextRequest) {
 
     const estadoAnterior = prevDoc.data()?.estado || '';
     const cambioEstado = estadoAnterior !== estadoNuevo;
-    await adminDb.collection('auditLog').add({
-      accion: cambioEstado ? `UPDATE_ESTADO:${estadoAnterior}->${estadoNuevo}` : 'UPDATE',
-      medId: id, vtm: data.vtm,
-      usuario: user.email, timestamp: new Date(),
-      estadoAnterior, estadoNuevo, cambioEstado,
-      datosPrevios: prevDoc.data()?.data, datosNuevos: data,
+    await registrarAuditEvent({
+      action: 'U',
+      subtype: cambioEstado ? `UPDATE_ESTADO:${estadoAnterior}->${estadoNuevo}` : 'UPDATE',
+      resourceType: 'Medication',
+      resourceId: id,
+      resourceDisplay: data.vtm,
+      usuario: user.email,
+      usuarioUid: user.uid,
+      usuarioRol: user.admin ? 'admin' : user.editor ? 'editor' : 'viewer',
+      ip: getClientIP(req),
+      outcome: '0',
+      estadoAnterior,
+      estadoNuevo,
+      cambioEstado,
     });
 
     return NextResponse.json({ ok: true });
