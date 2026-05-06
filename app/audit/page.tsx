@@ -82,8 +82,7 @@ export default function AuditLog() {
   const exportCSV = () => {
     const headers = ['timestamp','accion','vtm','usuario','estadoAnterior','estadoNuevo','medId'];
     const rows = filtradas.map(e => headers.map(h => JSON.stringify((e as any)[h] || '')).join(','));
-    const csv = '﻿' + [headers.join(','), ...rows].join('
-');
+    const csv = '\uFEFF' + [headers.join(','), ...rows].join('\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a'); a.href = url;
