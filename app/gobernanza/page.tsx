@@ -1,3 +1,4 @@
+'use client';
 import Sidebar from '@/components/layout/Sidebar';
 import Link from 'next/link';
 
