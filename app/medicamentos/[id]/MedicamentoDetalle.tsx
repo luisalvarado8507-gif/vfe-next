@@ -139,7 +139,8 @@ export default function MedicamentoDetalle({ id: propId, initialData }: Medicame
     const cargarSpor = async () => {
       setLoadingSpor(true);
       try {
-        const res = await fetch(`/api/spor?id=${id}`);
+        const token = await getToken();
+        const res = await fetch(`/api/spor?id=${id}`, { headers: { Authorization: `Bearer ${token}` } });
         const data = await res.json();
         setSporData(data);
       } catch(e) { console.error(e); }
