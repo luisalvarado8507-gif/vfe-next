@@ -1,6 +1,51 @@
 'use client';
 import { getEDQMDoseForm } from '@/lib/edqm';
 
+// Mapa INN → SNOMED CT (sustancias frecuentes en SIMI)
+const SNOMED_INN: Record<string, { code: string; term: string }> = {
+  'candesartán':     { code: '372512008', term: 'Candesartan' },
+  'amlodipino':      { code: '372502001', term: 'Amlodipine' },
+  'losartán':        { code: '373567002', term: 'Losartan' },
+  'enalapril':       { code: '372658000', term: 'Enalapril' },
+  'metformina':      { code: '372567009', term: 'Metformin' },
+  'atorvastatina':   { code: '373444002', term: 'Atorvastatin' },
+  'simvastatina':    { code: '387584000', term: 'Simvastatin' },
+  'omeprazol':       { code: '372726002', term: 'Omeprazole' },
+  'metoprolol':      { code: '372826007', term: 'Metoprolol' },
+  'atenolol':        { code: '387506006', term: 'Atenolol' },
+  'hidroclorotiazida': { code: '387525002', term: 'Hydrochlorothiazide' },
+  'furosemida':      { code: '387475002', term: 'Furosemide' },
+  'espironolactona': { code: '387078006', term: 'Spironolactone' },
+  'bisoprolol':      { code: '386868003', term: 'Bisoprolol' },
+  'carvedilol':      { code: '386870007', term: 'Carvedilol' },
+  'ramipril':        { code: '386872004', term: 'Ramipril' },
+  'valsartán':       { code: '386876001', term: 'Valsartan' },
+  'irbesartán':      { code: '386877005', term: 'Irbesartan' },
+  'amlodipina':      { code: '372502001', term: 'Amlodipine' },
+  'nifedipino':      { code: '372502001', term: 'Nifedipine' },
+  'diltiazem':       { code: '372793000', term: 'Diltiazem' },
+  'warfarina':       { code: '372756006', term: 'Warfarin' },
+  'aspirina':        { code: '387458008', term: 'Aspirin' },
+  'ácido acetilsalicílico': { code: '387458008', term: 'Aspirin' },
+  'clopidogrel':     { code: '386952008', term: 'Clopidogrel' },
+  'amoxicilina':     { code: '372687004', term: 'Amoxicillin' },
+  'azitromicina':    { code: '387531004', term: 'Azithromycin' },
+  'ciprofloxacino':  { code: '372840008', term: 'Ciprofloxacin' },
+  'metronidazol':    { code: '372602008', term: 'Metronidazole' },
+  'ibuprofeno':      { code: '387207008', term: 'Ibuprofen' },
+  'paracetamol':     { code: '387517004', term: 'Paracetamol' },
+  'tramadol':        { code: '386858008', term: 'Tramadol' },
+  'prednisona':      { code: '372680007', term: 'Prednisone' },
+  'levotiroxina':    { code: '387579007', term: 'Levothyroxine' },
+  'insulina':        { code: '67866001',  term: 'Insulin' },
+  'glibenclamida':   { code: '386966003', term: 'Glibenclamide' },
+  'glimepirida':     { code: '386967007', term: 'Glimepiride' },
+  'salbutamol':      { code: '372897005', term: 'Salbutamol' },
+  'budesonida':      { code: '395726003', term: 'Budesonide' },
+  'fluticasona':     { code: '396064000', term: 'Fluticasone' },
+};
+
+
 // Roles de ingredientes según ISO 11238
 export type RolIngrediente = 'active' | 'excipient' | 'adjuvant' | 'residue';
 
@@ -122,6 +167,8 @@ export function simiToIngredientes(med: Record<string, any>): Ingrediente[] {
       rol: 'active' as RolIngrediente,
       concentracion: med.comboData.concs?.[i] ? String(med.comboData.concs[i]) : undefined,
       unidad: med.comboData.units?.[i] || 'mg',
+      snomedCode: SNOMED_INN[pa?.toLowerCase()]?.code,
+      snomedTerm: SNOMED_INN[pa?.toLowerCase()]?.term,
       referencia: i === 0,
     }));
   }
