@@ -223,16 +223,16 @@ export default function Dashboard() {
             </Link>
 
           {/* Acciones rápidas */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', minWidth: '180px' }}>
+            <div style={{ display: 'flex', flexDirection: 'row', gap: '8px', flexWrap: 'wrap' }}>
               <Link href="/medicamentos/nuevo" style={{
                 display: 'flex', alignItems: 'center', gap: '8px',
-                padding: '10px 16px', background: 'var(--green, #2D6A4F)',
+                padding: '9px 16px', background: 'var(--primary, #1D4ED8)',
                 color: '#fff', borderRadius: 'var(--r)',
                 fontSize: '13px', fontWeight: 600, textDecoration: 'none',
                 transition: 'background .15s',
               }}
-                onMouseEnter={e => (e.currentTarget.style.background = 'var(--green-dark, #1B4332)')}
-                onMouseLeave={e => (e.currentTarget.style.background = 'var(--green, #2D6A4F)')}>
+                onMouseEnter={e => (e.currentTarget.style.background = 'var(--primary-dark, #0F2D5E)')}
+                onMouseLeave={e => (e.currentTarget.style.background = 'var(--primary, #1D4ED8)')}>
                 <span style={{ fontSize: '14px' }}>＋</span> Nuevo medicamento
               </Link>
               <Link href="/medicamentos" style={{
@@ -242,8 +242,8 @@ export default function Dashboard() {
                 borderRadius: 'var(--r)', fontSize: '13px', fontWeight: 500,
                 textDecoration: 'none', transition: 'all .15s',
               }}
-                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--green)'; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--bdr)'; }}>
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--primary)'; (e.currentTarget as HTMLElement).style.color = 'var(--primary)'; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--bdr)'; (e.currentTarget as HTMLElement).style.color = 'var(--tx2)'; }}>
                 <span>⊞</span> Base de datos
               </Link>
               <Link href="/io" style={{
@@ -253,8 +253,8 @@ export default function Dashboard() {
                 borderRadius: 'var(--r)', fontSize: '13px', fontWeight: 500,
                 textDecoration: 'none', transition: 'all .15s',
               }}
-                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--green)'; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--bdr)'; }}>
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--primary)'; (e.currentTarget as HTMLElement).style.color = 'var(--primary)'; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--bdr)'; (e.currentTarget as HTMLElement).style.color = 'var(--tx2)'; }}>
                 <span>⬇</span> Importar / Exportar
               </Link>
             </div>
