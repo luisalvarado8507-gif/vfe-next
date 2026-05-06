@@ -165,6 +165,38 @@ function SlideOver({ med, onClose, isEditor }: { med: Medicamento | null; onClos
   );
 }
 
+// Calcular score de completitud ISO IDMP por medicamento
+function calcCompletitud(m: Medicamento): number {
+  const checks = [
+    !!(m as any).vtm,           // INN/DCI — obligatorio ISO 11238
+    !!(m as any).conc,          // Concentración — obligatorio ISO IDMP
+    !!(m as any).ff,            // Forma farmacéutica — obligatorio ISO 11239
+    !!(m as any).vias,          // Vía administración — obligatorio ISO 11239
+    !!(m as any).laboratorio,   // Laboratorio — obligatorio ISO IDMP
+    !!(m as any).rs,            // Registro sanitario — obligatorio ARCSA
+    !!(m as any).cum,           // CUM — identificador ARCSA
+    !!(m as any).atc,           // Código ATC-WHO
+    !!(m as any).rsCondicion,   // Condición venta
+    !!(m as any).rsFecha,       // Fecha autorización
+  ];
+  const score = Math.round((checks.filter(Boolean).length / checks.length) * 100);
+  return score;
+}
+
+function CompletiturBadge({ m }: { m: Medicamento }) {
+  const score = calcCompletitud(m);
+  const color = score >= 80 ? '#166534' : score >= 50 ? '#92400E' : '#991B1B';
+  const bg    = score >= 80 ? '#DCFCE7' : score >= 50 ? '#FEF3C7' : '#FEE2E2';
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+      <div style={{ width: 28, height: 4, background: '#E5E7EB', borderRadius: 2, overflow: 'hidden' }}>
+        <div style={{ height: '100%', width: `${score}%`, background: color, borderRadius: 2 }} />
+      </div>
+      <span style={{ fontSize: 10, fontWeight: 700, color, fontFamily: 'var(--mono)' }}>{score}%</span>
+    </div>
+  );
+}
+
 function EstadoBadge({ estado }: { estado: string }) {
   const s = ESTADO_STYLES[estado] || { bg: 'var(--bg3)', color: 'var(--tx3)', label: estado };
   return (
@@ -394,7 +426,7 @@ function BaseDatosContent() {
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                 <thead>
                   <tr style={{ background: 'var(--bg3)' }}>
-                    {['S — Principio activo (INN)', 'P — Nombre comercial', 'Conc. / FF', 'ATC', 'O — Laboratorio', 'RS / CUM', 'Estado', ''].map(h => (
+                    {['S — Principio activo (INN)', 'P — Nombre comercial', 'Conc. / FF', 'ATC', 'O — Laboratorio', 'RS / CUM', 'Estado', 'ISO IDMP', ''].map(h => (
                       <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontSize: 10, fontWeight: 700, color: 'var(--tx3)', letterSpacing: 0.8, fontFamily: 'var(--mono)', textTransform: 'uppercase', borderBottom: '1.5px solid var(--bdr)', whiteSpace: 'nowrap' }}>
                         {h}
                       </th>
