@@ -426,9 +426,17 @@ function BaseDatosContent() {
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                 <thead>
                   <tr style={{ background: 'var(--bg3)' }}>
-                    {['S — Principio activo (INN)', 'P — Nombre comercial', 'Conc. / FF', 'ATC', 'O — Laboratorio', 'RS / CUM', 'Estado', 'ISO IDMP', ''].map(h => (
-                      <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontSize: 10, fontWeight: 700, color: 'var(--tx3)', letterSpacing: 0.8, fontFamily: 'var(--mono)', textTransform: 'uppercase', borderBottom: '1.5px solid var(--bdr)', whiteSpace: 'nowrap' }}>
-                        {h}
+                    {[
+                      { label: 'Principio activo (INN/DCI)', hint: 'ISO 11238 — Sustancia' },
+                      { label: 'Nombre comercial', hint: 'ISO 11615 — Producto' },
+                      { label: 'Concentración · Forma', hint: 'EDQM Standard Terms' },
+                      { label: 'ATC', hint: 'WHO-ATC 2025' },
+                      { label: 'RS · Laboratorio', hint: 'ARCSA Ecuador' },
+                      { label: 'Estado', hint: 'Ciclo regulatorio' },
+                      { label: '', hint: '' },
+                    ].map(({ label, hint }) => (
+                      <th key={label} style={{ padding: '10px 14px', textAlign: 'left', fontSize: 10, fontWeight: 700, color: 'var(--tx3)', letterSpacing: 0.8, fontFamily: 'var(--mono)', textTransform: 'uppercase', borderBottom: '2px solid var(--bdr)', whiteSpace: 'nowrap' }} title={hint}>
+                        {label}
                       </th>
                     ))}
                   </tr>
@@ -459,21 +467,31 @@ function BaseDatosContent() {
                         style={{ borderTop: '1px solid var(--bdr)', background: i % 2 === 0 ? 'var(--bg2)' : 'var(--bg)', cursor: 'pointer', transition: 'background .1s' }}
                         onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--bg3)'}
                         onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = i % 2 === 0 ? 'var(--bg2)' : 'var(--bg)'}>
-                        <td style={{ padding: '10px 14px', fontWeight: 600, color: 'var(--tx)' }}>
-                          {m.vtm}
+                        {/* S — Sustancia */}
+                        <td style={{ padding: '10px 14px', maxWidth: 220 }}>
+                          <div style={{ fontWeight: 600, color: 'var(--tx)', fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={m.vtm}>{m.vtm}</div>
+                          {(m as any).generico === 'Sí' && <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--primary, #1D4ED8)', background: 'var(--blue-bg)', padding: '1px 5px', borderRadius: 3, marginTop: 2, display: 'inline-block', fontFamily: 'var(--mono)', letterSpacing: 0.5 }}>GEN</span>}
                         </td>
-                        <td style={{ padding: '10px 14px', color: 'var(--tx2)', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {amp || <span style={{ color: 'var(--tx4)', fontStyle: 'italic', fontSize: 11 }}>—</span>}
+                        {/* P — Producto */}
+                        <td style={{ padding: '10px 14px', maxWidth: 180 }}>
+                          <div style={{ color: 'var(--tx2)', fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={amp}>{amp || <span style={{ color: 'var(--tx4)', fontStyle: 'italic', fontSize: 11 }}>Sin nombre</span>}</div>
+                          {(m as any).cnmb === 'Sí' && <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--amber)', background: 'var(--amber-bg)', padding: '1px 5px', borderRadius: 3, marginTop: 2, display: 'inline-block', fontFamily: 'var(--mono)', letterSpacing: 0.5 }}>CNMB</span>}
                         </td>
-                        <td style={{ padding: '10px 14px', color: 'var(--tx3)', fontSize: 12 }}>
-                          <div style={{ fontFamily: 'var(--mono)', fontSize: 11 }}>{m.conc || '—'}</div>
-                          <div style={{ fontSize: 11, color: 'var(--tx4)', marginTop: 1 }}>{m.ff || ''}</div>
+                        {/* Concentración + FF */}
+                        <td style={{ padding: '10px 14px', maxWidth: 160 }}>
+                          <div style={{ fontFamily: 'var(--mono)', fontSize: 11, fontWeight: 600, color: 'var(--tx)', letterSpacing: 0.3 }}>{m.conc || '—'}</div>
+                          <div style={{ fontSize: 11, color: 'var(--tx4-label, #64748B)', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 150 }}>{m.ff || ''}</div>
                         </td>
-                        <td style={{ padding: '10px 14px', fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--blue, #1D4ED8)', fontWeight: 600 }}>
-                          {(m as any).atc || '—'}
+                        {/* ATC */}
+                        <td style={{ padding: '10px 14px' }}>
+                          {(m as any).atc ? (
+                            <span className="chip-atc" style={{ fontSize: 11, padding: '2px 7px', borderRadius: 5, background: 'var(--blue-bg)', color: 'var(--blue)', fontFamily: 'var(--mono)', fontWeight: 700, letterSpacing: 0.5 }}>{(m as any).atc}</span>
+                          ) : <span style={{ color: 'var(--tx4)', fontSize: 11 }}>—</span>}
                         </td>
-                        <td style={{ padding: '10px 14px', color: 'var(--tx2)', fontSize: 12 }}>
-                          {m.laboratorio || '—'}
+                        {/* RS + Laboratorio */}
+                        <td style={{ padding: '10px 14px', maxWidth: 180 }}>
+                          <div style={{ fontSize: 12, color: 'var(--tx2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={m.laboratorio}>{m.laboratorio || '—'}</div>
+                          {(m as any).rs && <div style={{ fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--tx4-label, #64748B)', marginTop: 2 }}>{(m as any).rs}</div>}
                         </td>
                         <td style={{ padding: '10px 14px' }}>
                           <EstadoBadge estado={m.estado} />
