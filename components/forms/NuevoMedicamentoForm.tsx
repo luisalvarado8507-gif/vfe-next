@@ -225,9 +225,9 @@ export default function NuevoMedicamentoForm({ initialData, editId }: { initialD
 
     // Validar combo: cada PA debe tener concentración
     if (tipoPA === 'combo') {
-      const pasVacios = comboPAs.filter(p => p.vtm && !p.conc);
+      const pasVacios = comboPAs.filter((p:any) => p.vtm && !p.conc);
       if (pasVacios.length > 0) validationErrors.push('Todos los principios activos de la combinación deben tener concentración');
-      const sinVtm = comboPAs.filter(p => !p.vtm.trim());
+      const sinVtm = comboPAs.filter((p:any) => !p.vtm.trim());
       if (sinVtm.length > 0) validationErrors.push('Todos los principios activos de la combinación deben tener nombre');
     }
 
@@ -256,9 +256,9 @@ export default function NuevoMedicamentoForm({ initialData, editId }: { initialD
         interacciones: JSON.stringify(interacciones),
         esCombo: tipoPA === 'combo',
         comboData: tipoPA === 'combo' ? {
-          pas: comboPAs.map(p => p.vtm),
-          concs: comboPAs.map(p => p.conc),
-          units: comboPAs.map(p => p.unit),
+          pas: comboPAs.map((p:any) => p.vtm),
+          concs: comboPAs.map((p:any) => p.conc),
+          units: comboPAs.map((p:any) => p.unit),
         } : null,
         ...(editId ? { id: editId } : {}),
       };
@@ -341,7 +341,7 @@ export default function NuevoMedicamentoForm({ initialData, editId }: { initialD
                     ))}
                   </div>
                 </div>
-                {comboPAs.map((pa, i) => (
+                {comboPAs.map((pa:any, i:number) => (
                   <div key={i} style={{ border: '1.5px solid var(--bdr)', borderRadius: 8, padding: '14px', marginBottom: 8, background: 'var(--bg3)' }}>
                     <div style={{ display: 'inline-block', fontSize: 11, fontWeight: 700, color: '#fff', background: 'var(--green)', padding: '2px 10px', borderRadius: 20, marginBottom: 10 }}>PA {i+1}</div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
