@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import AtcAutocomplete from '@/components/ui/AtcAutocomplete';
 import PdfUploader from '@/components/ui/PdfUploader';
 import EstadoSelector from '@/components/ui/EstadoSelector';
+import { validarRS } from '@/lib/rs-validator';
 import type { EstadoRegulatorio } from '@/lib/regulatory-lifecycle';
 import { getSnomedVTM, getSnomedFF } from '@/lib/snomed-db';
 import { CHAPS, getSubcaps } from '@/lib/capitulos-tree';
@@ -101,6 +102,7 @@ export default function NuevoMedicamentoForm({ initialData, editId }: { initialD
   const [units, setUnits] = useState(initialData?.units || '');
   const [envase, setEnvase] = useState(initialData?.envase || '');
   const [rs, setRs] = useState(initialData?.rs || '');
+  const rsValidation = validarRS(rs);
   const [cum, setCum] = useState(initialData?.cum || '');
   const [estado, setEstado] = useState<EstadoRegulatorio>((initialData?.estado as EstadoRegulatorio) || 'arcsa_pendiente');
   const [upres, setUpres] = useState(initialData?.upres || '');
