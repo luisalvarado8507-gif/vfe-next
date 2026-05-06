@@ -282,7 +282,7 @@ export default function Dashboard() {
               <table className="med-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                 <thead>
                   <tr>
-                    {['Nombre comercial', 'Principio activo', 'Concentración', 'Laboratorio', 'Estado'].map(h => (
+                    {['Nombre comercial', 'Principio activo (DCI)', 'Concentración · FF', 'Laboratorio', 'Estado'].map(h => (
                       <th key={h} style={{ textAlign: 'left', padding: '10px 16px', fontSize: '10px', fontWeight: 700, color: 'var(--tx3)', letterSpacing: '0.8px', textTransform: 'uppercase', fontFamily: 'var(--mono)', background: 'var(--bg3)', borderBottom: '1.5px solid var(--bdr)' }}>
                         {h}
                       </th>

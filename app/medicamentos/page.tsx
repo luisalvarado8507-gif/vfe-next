@@ -459,7 +459,7 @@ function BaseDatosContent() {
                     </td></tr>
                   ) : paginados.map((m, i) => {
                     const id = m.docId || m.id;
-                    const amp = m.amp || m.nombre || '';
+                    const amp = m.nombre || m.amp || '';
                     return (
                       <tr key={id}
                         onClick={() => setSelectedMed(m)}
@@ -491,7 +491,6 @@ function BaseDatosContent() {
                         {/* Laboratorio */}
                         <td style={{ padding: '10px 14px', maxWidth: 180 }}>
                           <div style={{ fontSize: 12, color: 'var(--tx2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={m.laboratorio}>{m.laboratorio || '—'}</div>
-                          {(m as any).rs && <div style={{ fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--tx4-label, #64748B)', marginTop: 2 }}>{(m as any).rs}</div>}
                         </td>
                         {/* Estado */}
                         <td style={{ padding: '10px 14px', whiteSpace: 'nowrap' }}>
