@@ -15,6 +15,12 @@
   --green-light: #60A5FA;   /* verde claro — borders, chips */
   --green-pale:  #DBEAFE;   /* verde pálido — backgrounds */
 
+  /* ── Tokens semánticos correctos (uso recomendado) ── */
+  --primary:       #1D4ED8;   /* color institucional principal */
+  --primary-dark:  #0F2D5E;   /* headers, sidebar */
+  --primary-mid:   #2563EB;   /* hover, accents */
+  --primary-light: #60A5FA;   /* borders, chips */
+  --primary-pale:  #DBEAFE;   /* fondos sutiles */
   /* ── Alias legacy (compatibilidad con código existente) ── */
   --gd:          #1D4ED8;
   --gdp:         #0F2D5E;
@@ -32,8 +38,9 @@
   /* ── Texto ── */
   --tx:          #0F172A;          /* texto primario (oscuro, no negro puro) */
   --tx2:         #1E3A6E;          /* texto secundario */
-  --tx3:         #3B6CC7;          /* texto terciario */
-  --tx4:         #93C5FD;          /* texto cuaternario / placeholder */
+  --tx3:         #1E40AF;          /* texto terciario — WCAG AA 5.1:1 sobre blanco */
+  --tx4:         #93C5FD;          /* decorativo — NO usar para texto legible */
+  --tx4-label:   #64748B;          /* labels/placeholders — WCAG AA 5.9:1 sobre blanco */
 
   /* ── Semánticos ── */
   --amber:    #B45309;
@@ -67,9 +74,9 @@
   --rxl: 18px;
 
   /* ── Sombras ── */
-  --sh:  0 1px 3px rgba(28,43,34,.06), 0 1px 2px rgba(28,43,34,.04);
-  --shm: 0 4px 16px rgba(28,43,34,.08), 0 2px 4px rgba(28,43,34,.04);
-  --shl: 0 10px 40px rgba(28,43,34,.10), 0 4px 8px rgba(28,43,34,.05);
+  --sh:  0 1px 3px rgba(15,45,94,.06), 0 1px 2px rgba(15,45,94,.04);
+  --shm: 0 4px 16px rgba(15,45,94,.08), 0 2px 4px rgba(15,45,94,.04);
+  --shl: 0 10px 40px rgba(15,45,94,.10), 0 4px 8px rgba(15,45,94,.05);
 
   /* ── Transiciones ── */
   --t: .15s ease;
@@ -385,3 +392,258 @@ input::placeholder, textarea::placeholder {
    SELECCIÓN DE TEXTO
    ═══════════════════════════════════════════════════════════════ */
 ::selection { background: var(--green-pale); color: var(--green-dark); }
+
+/* ═══════════════════════════════════════════════════════════════
+   TIPOGRAFÍA OPTIMIZADA PARA LECTURA CLÍNICA
+   ═══════════════════════════════════════════════════════════════ */
+body {
+  font-family: var(--sans);
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--tx);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Texto clínico — mayor legibilidad */
+.clinical-text {
+  font-size: 13px;
+  line-height: 1.7;
+  letter-spacing: 0.01em;
+}
+
+/* Códigos farmacológicos — monoespaciado con contraste */
+.pharma-code {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  color: var(--primary);
+  background: var(--primary-pale);
+  padding: 1px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--bdr);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   COMPONENTES UI MÉDICOS ESTÁNDAR
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Tabla clínica — estándar NHS/CIMA */
+.table-clinical {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 13px;
+}
+.table-clinical thead th {
+  background: var(--bg3);
+  color: var(--tx3);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 10px 14px;
+  border-bottom: 2px solid var(--bdr);
+  white-space: nowrap;
+  font-family: var(--mono);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+.table-clinical tbody tr {
+  transition: background var(--t);
+  cursor: pointer;
+}
+.table-clinical tbody tr:hover {
+  background: var(--bg3);
+}
+.table-clinical tbody tr:not(:last-child) td {
+  border-bottom: 1px solid var(--bdr);
+}
+.table-clinical td {
+  padding: 10px 14px;
+  vertical-align: middle;
+  color: var(--tx);
+}
+
+/* Botón primario institucional */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 18px;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--r);
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--t), transform var(--t), box-shadow var(--t);
+  letter-spacing: 0.01em;
+}
+.btn-primary:hover { background: var(--primary-dark); box-shadow: var(--shm); }
+.btn-primary:active { transform: translateY(1px); }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Botón secundario */
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: var(--bg2);
+  color: var(--primary);
+  border: 1.5px solid var(--bdr);
+  border-radius: var(--r);
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--t);
+}
+.btn-secondary:hover { background: var(--bg3); border-color: var(--primary); }
+
+/* Badge de estado regulatorio — crítico en sistemas médicos */
+.estado-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.estado-badge::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.estado-autorizado  { background: var(--estado-autorizado-bg);  color: var(--estado-autorizado); }
+.estado-pendiente   { background: var(--estado-pendiente-bg);   color: var(--estado-pendiente); }
+.estado-suspendido  { background: var(--estado-suspendido-bg);  color: var(--estado-suspendido); }
+.estado-retirado    { background: var(--estado-retirado-bg);    color: var(--estado-retirado); }
+
+/* Card institucional */
+.card {
+  background: var(--bg2);
+  border: 1.5px solid var(--bdr);
+  border-radius: var(--rl);
+  box-shadow: var(--sh);
+  transition: box-shadow var(--t);
+}
+.card:hover { box-shadow: var(--shm); }
+
+/* Input clínico */
+.input-clinical {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1.5px solid var(--bdr);
+  border-radius: var(--r);
+  font-family: var(--sans);
+  font-size: 13px;
+  color: var(--tx);
+  background: var(--bg2);
+  outline: none;
+  transition: border-color var(--t), box-shadow var(--t);
+}
+.input-clinical:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(29,78,216,.1);
+}
+.input-clinical::placeholder {
+  color: var(--tx4-label);
+}
+
+/* Label clínico */
+.label-clinical {
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--tx3);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-family: var(--mono);
+  margin-bottom: 5px;
+}
+
+/* Chip ATC/código farmacológico */
+.chip-atc {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  background: var(--primary-pale);
+  color: var(--primary);
+  border: 1px solid var(--bdr);
+  border-radius: 4px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+/* Chip CNMB */
+.chip-cnmb {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  background: var(--amber-bg);
+  color: var(--amber);
+  border: 1px solid #FCD34D;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  font-family: var(--mono);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ACCESIBILIDAD
+   ═══════════════════════════════════════════════════════════════ */
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Reducción de movimiento */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Alto contraste */
+@media (prefers-contrast: high) {
+  :root {
+    --bdr: #0F2D5E;
+    --tx3: #0F2D5E;
+    --tx4-label: #374151;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SCROLLBAR INSTITUCIONAL
+   ═══════════════════════════════════════════════════════════════ */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg3); }
+::-webkit-scrollbar-thumb { background: var(--bdr2); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--primary-light); }
+
+/* ═══════════════════════════════════════════════════════════════
+   PRINT — PARA FICHAS TÉCNICAS IMPRIMIBLES
+   ═══════════════════════════════════════════════════════════════ */
+@media print {
+  .no-print { display: none !important; }
+  body { background: #fff; color: #000; font-size: 12px; }
+  .card { border: 1px solid #ccc; box-shadow: none; }
+  a[href]::after { content: " (" attr(href) ")"; font-size: 10px; color: #666; }
+}
