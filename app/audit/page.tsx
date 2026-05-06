@@ -15,6 +15,9 @@ interface AuditEntry {
   estadoAnterior?: string;
   estadoNuevo?: string;
   cambioEstado?: boolean;
+  outcome?: string;
+  recorded?: string;
+  agent?: Array<{ who?: { display?: string }; role?: Array<{ coding?: Array<{ code?: string }> }> }>;
 }
 
 const ACCION_STYLES: Record<string, { bg: string; color: string; label: string }> = {
