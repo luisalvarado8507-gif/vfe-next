@@ -4,6 +4,7 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { CHAPS } from '@/lib/capitulos-tree';
 import { getEDQMDoseForm, getEDQMRoute } from '@/lib/edqm';
+import TablaIngredientes, { simiToIngredientes } from '@/components/ui/TablaIngredientes';
 import AtcHierarchy from '@/components/ui/AtcHierarchy';
 import RxNormLookup from '@/components/ui/RxNormLookup';
 import SNOMEDValidator from '@/components/ui/SNOMEDValidator';
@@ -341,6 +342,11 @@ export default function MedicamentoDetalle({ id: propId, initialData }: Medicame
                 )}
                 {/* SNOMED VTM */}
                 {sFF && !esCombo && <SNOMEDValidator conceptId={sFF.code} term={sFF.term} type="vtm" />}
+                {/* Tabla de ingredientes ISO 11238 */}
+                <div style={{ marginTop: 16 }}>
+                  <TablaIngredientes ingredientes={simiToIngredientes(med)} />
+                </div>
+
                 {/* RxNorm FDA */}
                 {med.vtm && <RxNormLookup inn={med.vtm} />}
                 {/* EMA SPOR + G-SRS */}
