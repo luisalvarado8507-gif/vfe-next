@@ -394,7 +394,7 @@ function BaseDatosContent() {
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                 <thead>
                   <tr style={{ background: 'var(--bg3)' }}>
-                    {['Principio activo (DCI)', 'Nombre comercial', 'Conc. / Forma', 'ATC', 'Laboratorio', 'Estado', 'CNMB', ''].map(h => (
+                    {['S — Principio activo (INN)', 'P — Nombre comercial', 'Conc. / FF', 'ATC', 'O — Laboratorio', 'RS / CUM', 'Estado', ''].map(h => (
                       <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontSize: 10, fontWeight: 700, color: 'var(--tx3)', letterSpacing: 0.8, fontFamily: 'var(--mono)', textTransform: 'uppercase', borderBottom: '1.5px solid var(--bdr)', whiteSpace: 'nowrap' }}>
                         {h}
                       </th>
@@ -446,12 +446,14 @@ function BaseDatosContent() {
                         <td style={{ padding: '10px 14px' }}>
                           <EstadoBadge estado={m.estado} />
                         </td>
-                        <td style={{ padding: '10px 14px' }}>
-                          {(m as any).cnmb === 'Sí' ? (
-                            <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 20, background: 'var(--amber-bg)', color: 'var(--amber)' }}>✓ CNMB</span>
-                          ) : (
-                            <span style={{ fontSize: 11, color: 'var(--tx4)' }}>—</span>
-                          )}
+                        <td style={{ padding: '8px 14px' }}>
+                          {(m as any).rs ? (
+                            <div>
+                              <div style={{ fontSize: 10, fontFamily: 'var(--mono)', color: 'var(--tx2)', fontWeight: 600 }}>{(m as any).rs}</div>
+                              {(m as any).cum && <div style={{ fontSize: 9, fontFamily: 'var(--mono)', color: 'var(--tx4)', marginTop: 1 }}>CUM: {(m as any).cum}</div>}
+                              {(m as any).cnmb === 'Sí' && <span style={{ fontSize: 9, fontWeight: 700, padding: '1px 5px', borderRadius: 20, background: 'var(--amber-bg)', color: 'var(--amber)', marginTop: 2, display: 'inline-block' }}>CNMB</span>}
+                            </div>
+                          ) : <span style={{ fontSize: 11, color: 'var(--tx4)' }}>—</span>}
                         </td>
                         <td style={{ padding: '10px 14px' }} onClick={e => e.stopPropagation()}>
                           <div style={{ display: 'flex', gap: 4 }}>
