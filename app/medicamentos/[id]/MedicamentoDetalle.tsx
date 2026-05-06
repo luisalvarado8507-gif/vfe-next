@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { CHAPS } from '@/lib/capitulos-tree';
+import { getEDQMDoseForm, getEDQMRoute } from '@/lib/edqm';
 import AtcHierarchy from '@/components/ui/AtcHierarchy';
 import RxNormLookup from '@/components/ui/RxNormLookup';
 import SNOMEDValidator from '@/components/ui/SNOMEDValidator';
@@ -351,6 +352,21 @@ export default function MedicamentoDetalle({ id: propId, initialData }: Medicame
               <Field label="Laboratorio / Fabricante" value={med.laboratorio || '—'} />
               <Field label="Concentración / Dosis" value={med.conc || '—'} mono />
 
+              {/* FF con EDQM Standard Terms */}
+              {(() => {
+                const edqmFF = getEDQMDoseForm(med.ff || '');
+                if (!edqmFF) return null;
+                return (
+                  <a href={`https://standardterms.edqm.eu/standardterms/TermsList`}
+                    target="_blank" rel="noreferrer"
+                    title={`EDQM Standard Terms: ${edqmFF.term} (${edqmFF.code}) · ${edqmFF.isoStandard}`}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '2px 8px', borderRadius: 20, fontSize: 11, fontWeight: 600, fontFamily: 'var(--mono)', background: '#ECFDF5', color: '#065F46', border: '1px solid #6EE7B7', textDecoration: 'none', marginTop: 4 }}>
+                    EDQM {edqmFF.code} · {edqmFF.term}
+                    <span style={{ fontSize: 9, opacity: 0.7 }}>{edqmFF.isoStandard}</span>
+                    <span style={{ fontSize: 10, opacity: 0.6 }}>↗</span>
+                  </a>
+                );
+              })()}
               {/* FF con SNOMED */}
               <div style={{ background: 'var(--bg2)', border: '1.5px solid var(--bdr)', borderRadius: 'var(--r)', padding: '10px 14px' }}>
                 <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--tx3)', letterSpacing: 1, fontFamily: 'var(--mono)', textTransform: 'uppercase', marginBottom: 4 }}>Forma farmacéutica</div>
