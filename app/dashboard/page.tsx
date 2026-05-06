@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { useAuth } from '@/lib/auth-context';
 import { useRouter } from 'next/navigation';
 import Sidebar from '@/components/layout/Sidebar';
-import Link from 'next/link';
 
 interface RecentMed {
   docId: string;
