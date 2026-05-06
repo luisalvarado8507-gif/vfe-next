@@ -52,7 +52,7 @@ export default function NuevoMedicamentoForm({ initialData, editId }: { initialD
   const [tab, setTab] = useState(0);
 
   // Detectar combinación al cargar initialData
-  const initEsCombo = initialData?.esCombo === true || (initialData?.esCombo as any) === 'true' || !!(initialData?.comboData?.pas?.length) || !!(initialData?.vtm && initialData.vtm.includes(' + '));
+  const initEsCombo = !!(initialData as any)?.esCombo || !!(initialData as any)?.comboData?.pas?.length || !!(initialData?.vtm && initialData.vtm.includes(' + '));
   const initComboPAs = initEsCombo
     ? (() => {
         // Prioridad: cargar desde comboData si existe
