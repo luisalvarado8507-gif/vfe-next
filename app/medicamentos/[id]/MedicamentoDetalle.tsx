@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { getAuth } from 'firebase/auth';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { CHAPS } from '@/lib/capitulos-tree';
@@ -139,7 +140,7 @@ export default function MedicamentoDetalle({ id: propId, initialData }: Medicame
     const cargarSpor = async () => {
       setLoadingSpor(true);
       try {
-        const token = await getToken();
+        const token = await getAuth().currentUser?.getIdToken() ?? '';
         const res = await fetch(`/api/spor?id=${id}`, { headers: { Authorization: `Bearer ${token}` } });
         const data = await res.json();
         setSporData(data);
