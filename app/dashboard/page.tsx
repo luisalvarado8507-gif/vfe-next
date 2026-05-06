@@ -310,7 +310,7 @@ export default function Dashboard() {
                           {m.nombre || m.vtm}
                         </td>
                         <td style={{ padding: '10px 16px', color: 'var(--tx2)', borderTop: '1px solid var(--bdr)' }}>
-                          {m.vtm} {m.conc && <small style={{ color: 'var(--tx3)', marginLeft: '4px' }}>{m.conc}</small>}
+                          {m.vtm || <span style={{color:"var(--tx4)",fontStyle:"italic"}}>—</span>}
                         </td>
                         <td style={{ padding: '10px 16px', color: 'var(--tx3)', fontFamily: 'var(--mono)', fontSize: '12px', borderTop: '1px solid var(--bdr)' }}>
                           {m.conc || '—'}
