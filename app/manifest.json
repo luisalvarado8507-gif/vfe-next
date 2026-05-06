@@ -1,17 +1,22 @@
 {
   "name": "SIMI — Sistema Integral de Medicamentos Interoperables",
   "short_name": "SIMI",
-  "description": "Repositorio farmacéutico nacional de Ecuador",
+  "description": "Repositorio farmacéutico nacional de Ecuador con interoperabilidad FHIR R4 e ISO IDMP",
   "start_url": "/dashboard",
+  "scope": "/",
   "display": "standalone",
+  "orientation": "portrait-primary",
   "background_color": "#0F2D5E",
   "theme_color": "#0F2D5E",
   "lang": "es-EC",
+  "dir": "ltr",
   "categories": [
     "health",
     "medical",
     "government"
   ],
+  "iarc_rating_id": "",
+  "prefer_related_applications": false,
   "icons": [
     {
       "src": "/icon.svg",
@@ -19,5 +24,44 @@
       "type": "image/svg+xml",
       "purpose": "any maskable"
     }
-  ]
+  ],
+  "shortcuts": [
+    {
+      "name": "Base de datos",
+      "short_name": "Medicamentos",
+      "description": "Ver todos los medicamentos",
+      "url": "/medicamentos",
+      "icons": [
+        {
+          "src": "/icon.svg",
+          "sizes": "any"
+        }
+      ]
+    },
+    {
+      "name": "Búsqueda IA",
+      "short_name": "Buscar",
+      "description": "Búsqueda semántica",
+      "url": "/busqueda-semantica",
+      "icons": [
+        {
+          "src": "/icon.svg",
+          "sizes": "any"
+        }
+      ]
+    },
+    {
+      "name": "CNMB",
+      "short_name": "CNMB",
+      "description": "Medicamentos esenciales",
+      "url": "/medicamentos?cnmb=true",
+      "icons": [
+        {
+          "src": "/icon.svg",
+          "sizes": "any"
+        }
+      ]
+    }
+  ],
+  "related_applications": []
 }
