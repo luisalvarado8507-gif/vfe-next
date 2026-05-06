@@ -2,10 +2,6 @@
 import Sidebar from '@/components/layout/Sidebar';
 import Link from 'next/link';
 
-export const metadata = {
-  title: 'Gobernanza — SIMI Ecuador',
-  description: 'Política de calidad, procesos editoriales y gobernanza del dato farmacéutico de SIMI.',
-};
 
 export default function GobernanzaPage() {
   const section = (title: string, children: React.ReactNode) => (
