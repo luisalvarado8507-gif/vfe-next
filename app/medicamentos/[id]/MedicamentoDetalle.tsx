@@ -224,7 +224,7 @@ export default function MedicamentoDetalle({ id: propId, initialData }: Medicame
       <main style={{ flex: 1, marginLeft: 272, display: 'flex', flexDirection: 'column' }}>
 
         {/* ── CABECERA DARK ── */}
-        <div style={{ background: 'var(--green-dark, #1B4332)', padding: '20px 32px 0', flexShrink: 0 }}>
+        <div style={{ background: 'var(--green-dark, #0F2D5E)', padding: '20px 32px 0', flexShrink: 0 }}>
 
           {/* Breadcrumb semántico con ATC y capítulo */}
           {(() => {
@@ -265,9 +265,24 @@ export default function MedicamentoDetalle({ id: propId, initialData }: Medicame
 
           {/* Nombre e info principal */}
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16, marginBottom: 18 }}>
-            {/* Icono */}
-            <div style={{ width: 52, height: 52, borderRadius: 14, background: esCombo ? 'rgba(109,40,217,.3)' : 'rgba(116,198,157,.2)', border: `1.5px solid ${esCombo ? 'rgba(109,40,217,.4)' : 'rgba(116,198,157,.3)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0 }}>
-              {esCombo ? '⊕' : '💊'}
+            {/* Icono farmacológico — SVG profesional */}
+            <div style={{ width: 48, height: 48, borderRadius: 12, background: esCombo ? 'rgba(109,40,217,.25)' : 'rgba(96,165,250,.15)', border: `1.5px solid ${esCombo ? 'rgba(109,40,217,.4)' : 'rgba(96,165,250,.3)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              {esCombo ? (
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(196,181,253,.9)" strokeWidth="1.5" strokeLinecap="round">
+                  <circle cx="12" cy="12" r="9"/>
+                  <line x1="12" y1="3" x2="12" y2="21"/>
+                  <line x1="3" y1="12" x2="21" y2="12"/>
+                  <circle cx="12" cy="12" r="3" fill="rgba(196,181,253,.4)"/>
+                </svg>
+              ) : (
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(147,197,253,.9)" strokeWidth="1.5" strokeLinecap="round">
+                  <path d="M10.5 20H4a2 2 0 01-2-2V6a2 2 0 012-2h16a2 2 0 012 2v7"/>
+                  <path d="M8 2v4M16 2v4M2 10h20"/>
+                  <circle cx="17" cy="17" r="4"/>
+                  <line x1="17" y1="15" x2="17" y2="19"/>
+                  <line x1="15" y1="17" x2="19" y2="17"/>
+                </svg>
+              )}
             </div>
 
             <div style={{ flex: 1 }}>
@@ -277,7 +292,7 @@ export default function MedicamentoDetalle({ id: propId, initialData }: Medicame
               <div style={{ fontSize: 13, color: 'rgba(255,255,255,.6)', marginBottom: 10 }}>
                 {med.vtm || '—'}{med.conc ? ` · ${med.conc}` : ''}
               </div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, alignItems: 'center' }}>
                 <Badge text={med.estado || 'pendiente'} type={med.estado || 'pendiente'} />
                 {esCombo && <Badge text="⊕ Combinación" type="combo" />}
                 {med.ff && <Badge text={med.ff} type="ff" />}
