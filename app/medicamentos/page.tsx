@@ -527,6 +527,26 @@ function BaseDatosContent() {
                                 Editar
                               </Link>
                             )}
+                            {isEditor && (
+                              <button onClick={async e => {
+                                e.stopPropagation();
+                                const nombre = amp || m.vtm || 'este medicamento';
+                                if (!window.confirm('¿Eliminar "' + nombre + '"? Esta acción no se puede deshacer.')) return;
+                                try {
+                                  const token = await getToken();
+                                  const res = await fetch('/api/medicamentos?id=' + id, {
+                                    method: 'DELETE',
+                                    headers: { Authorization: 'Bearer ' + token }
+                                  });
+                                  if (res.ok) window.location.reload();
+                                  else alert('Error al eliminar');
+                                } catch { alert('Error de conexión'); }
+                              }} style={{ padding: '4px 10px', borderRadius: 6, fontSize: 11, fontWeight: 600, border: '1.5px solid #FCA5A5', color: '#DC2626', background: '#FEF2F2', cursor: 'pointer', fontFamily: 'var(--sans)', whiteSpace: 'nowrap', transition: 'all .13s' }}
+                              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#FEE2E2'; }}
+                              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = '#FEF2F2'; }}>
+                                Eliminar
+                              </button>
+                            )}
                           </div>
                         </td>
                       </tr>
