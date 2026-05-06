@@ -115,6 +115,7 @@ export default function MedicamentoDetalle({ id: propId, initialData }: Medicame
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [tab, setTab] = useState(0);
+  const [perfil, setPerfil] = useState<'prescriptor' | 'farmaceutico' | 'regulador'>('prescriptor');
   const [versiones, setVersiones] = useState<Record<string, any>[]>([]);
   const [sporData, setSporData] = useState<Record<string, any> | null>(null);
   const [loadingSpor, setLoadingSpor] = useState(false);
