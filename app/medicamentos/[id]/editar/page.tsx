@@ -32,12 +32,14 @@ export default function EditarMedicamento() {
               flat[k] = String(v);
             }
           });
+          // Campos booleanos — preservar como boolean
+          flat.esCombo = med.esCombo === true || med.esCombo === 'true';
+          // Campos objeto — pasar directamente
+          if (med.comboData) flat.comboData = med.comboData;
+          if (med.farmPrices) flat.farmPrices = med.farmPrices;
+          if (med.clinData) flat.clinData = med.clinData;
           // Asegurar campo vias como string separado por coma
           if (Array.isArray(med.vias)) flat.vias = med.vias.join(', ');
-          // Pasar farmPrices como objeto para que el formulario lo lea
-          if (med.farmPrices) flat.farmPrices = med.farmPrices;
-          // Pasar clinData
-          if (med.clinData) flat.clinData = med.clinData;
           setData(flat);
         }
       } catch {
