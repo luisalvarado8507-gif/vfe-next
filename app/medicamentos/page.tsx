@@ -427,13 +427,12 @@ function BaseDatosContent() {
                 <thead>
                   <tr style={{ background: 'var(--bg3)' }}>
                     {[
-                      { label: 'Principio activo (INN/DCI)', hint: 'ISO 11238 — Sustancia' },
-                      { label: 'Nombre comercial', hint: 'ISO 11615 — Producto' },
-                      { label: 'Concentración · Forma', hint: 'EDQM Standard Terms' },
-                      { label: 'ATC', hint: 'WHO-ATC 2025' },
-                      { label: 'RS · Laboratorio', hint: 'ARCSA Ecuador' },
-                      { label: 'Estado', hint: 'Ciclo regulatorio' },
-                      { label: '', hint: '' },
+                      { label: 'Nombre comercial', hint: 'Nombre de marca (AMP)' },
+                      { label: 'Principio activo (DCI)', hint: 'INN/DCI — ISO 11238' },
+                      { label: 'Concentración · FF', hint: 'EDQM Standard Terms' },
+                      { label: 'Laboratorio', hint: 'Fabricante / Titular ARCSA' },
+                      { label: 'Estado', hint: 'Estado regulatorio ARCSA' },
+                      { label: 'Acciones', hint: '' },
                     ].map(({ label, hint }) => (
                       <th key={label} style={{ padding: '10px 14px', textAlign: 'left', fontSize: 10, fontWeight: 700, color: 'var(--tx3)', letterSpacing: 0.8, fontFamily: 'var(--mono)', textTransform: 'uppercase', borderBottom: '2px solid var(--bdr)', whiteSpace: 'nowrap' }} title={hint}>
                         {label}
@@ -467,46 +466,42 @@ function BaseDatosContent() {
                         style={{ borderTop: '1px solid var(--bdr)', background: i % 2 === 0 ? 'var(--bg2)' : 'var(--bg)', cursor: 'pointer', transition: 'background .1s' }}
                         onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--bg3)'}
                         onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = i % 2 === 0 ? 'var(--bg2)' : 'var(--bg)'}>
-                        {/* S — Sustancia */}
-                        <td style={{ padding: '10px 14px', maxWidth: 220 }}>
-                          <div style={{ fontWeight: 600, color: 'var(--tx)', fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={m.vtm}>{m.vtm}</div>
-                          {(m as any).generico === 'Sí' && <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--primary, #1D4ED8)', background: 'var(--blue-bg)', padding: '1px 5px', borderRadius: 3, marginTop: 2, display: 'inline-block', fontFamily: 'var(--mono)', letterSpacing: 0.5 }}>GEN</span>}
+                        {/* Nombre comercial */}
+                        <td style={{ padding: '10px 14px', maxWidth: 200 }}>
+                          <div style={{ fontWeight: 700, color: 'var(--tx)', fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={amp}>
+                            {amp || <span style={{ color: 'var(--tx4)', fontStyle: 'italic', fontSize: 11 }}>Sin nombre</span>}
+                          </div>
+                          <div style={{ display: 'flex', gap: 4, marginTop: 2 }}>
+                            {(m as any).cnmb === 'Sí' && <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--amber)', background: 'var(--amber-bg)', padding: '1px 5px', borderRadius: 3, fontFamily: 'var(--mono)' }}>CNMB</span>}
+                            {(m as any).generico === 'Sí' && <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--primary, #1D4ED8)', background: 'var(--blue-bg)', padding: '1px 5px', borderRadius: 3, fontFamily: 'var(--mono)' }}>GEN</span>}
+                          </div>
                         </td>
-                        {/* P — Producto */}
-                        <td style={{ padding: '10px 14px', maxWidth: 180 }}>
-                          <div style={{ color: 'var(--tx2)', fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={amp}>{amp || <span style={{ color: 'var(--tx4)', fontStyle: 'italic', fontSize: 11 }}>Sin nombre</span>}</div>
-                          {(m as any).cnmb === 'Sí' && <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--amber)', background: 'var(--amber-bg)', padding: '1px 5px', borderRadius: 3, marginTop: 2, display: 'inline-block', fontFamily: 'var(--mono)', letterSpacing: 0.5 }}>CNMB</span>}
+                        {/* Principio activo DCI */}
+                        <td style={{ padding: '10px 14px', maxWidth: 200 }}>
+                          <div style={{ fontSize: 13, color: 'var(--tx2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={m.vtm}>
+                            {m.vtm || <span style={{ color: 'var(--tx4)', fontStyle: 'italic', fontSize: 11 }}>—</span>}
+                          </div>
+                          {(m as any).atc && <span style={{ fontSize: 9, padding: '1px 6px', borderRadius: 3, background: 'var(--blue-bg)', color: 'var(--blue)', fontFamily: 'var(--mono)', fontWeight: 700, marginTop: 2, display: 'inline-block' }}>{(m as any).atc}</span>}
                         </td>
                         {/* Concentración + FF */}
                         <td style={{ padding: '10px 14px', maxWidth: 160 }}>
-                          <div style={{ fontFamily: 'var(--mono)', fontSize: 11, fontWeight: 600, color: 'var(--tx)', letterSpacing: 0.3 }}>{m.conc || '—'}</div>
-                          <div style={{ fontSize: 11, color: 'var(--tx4-label, #64748B)', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 150 }}>{m.ff || ''}</div>
+                          <div style={{ fontFamily: 'var(--mono)', fontSize: 12, fontWeight: 600, color: 'var(--tx)' }}>{m.conc || '—'}</div>
+                          <div style={{ fontSize: 11, color: 'var(--tx4-label, #64748B)', marginTop: 2 }}>{m.ff || ''}</div>
                         </td>
-                        {/* ATC */}
-                        <td style={{ padding: '10px 14px' }}>
-                          {(m as any).atc ? (
-                            <span className="chip-atc" style={{ fontSize: 11, padding: '2px 7px', borderRadius: 5, background: 'var(--blue-bg)', color: 'var(--blue)', fontFamily: 'var(--mono)', fontWeight: 700, letterSpacing: 0.5 }}>{(m as any).atc}</span>
-                          ) : <span style={{ color: 'var(--tx4)', fontSize: 11 }}>—</span>}
-                        </td>
-                        {/* RS + Laboratorio */}
+                        {/* Laboratorio */}
                         <td style={{ padding: '10px 14px', maxWidth: 180 }}>
                           <div style={{ fontSize: 12, color: 'var(--tx2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={m.laboratorio}>{m.laboratorio || '—'}</div>
                           {(m as any).rs && <div style={{ fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--tx4-label, #64748B)', marginTop: 2 }}>{(m as any).rs}</div>}
                         </td>
-                        <td style={{ padding: '10px 14px' }}>
+                        {/* Estado */}
+                        <td style={{ padding: '10px 14px', whiteSpace: 'nowrap' }}>
                           <EstadoBadge estado={m.estado} />
+                          <div style={{ marginTop: 4 }}>
+                            <CompletiturBadge m={m} />
+                          </div>
                         </td>
-                        <td style={{ padding: '8px 14px' }}>
-                          {(m as any).rs ? (
-                            <div>
-                              <div style={{ fontSize: 10, fontFamily: 'var(--mono)', color: 'var(--tx2)', fontWeight: 600 }}>{(m as any).rs}</div>
-                              {(m as any).cum && <div style={{ fontSize: 9, fontFamily: 'var(--mono)', color: 'var(--tx4)', marginTop: 1 }}>CUM: {(m as any).cum}</div>}
-                              {(m as any).cnmb === 'Sí' && <span style={{ fontSize: 9, fontWeight: 700, padding: '1px 5px', borderRadius: 20, background: 'var(--amber-bg)', color: 'var(--amber)', marginTop: 2, display: 'inline-block' }}>CNMB</span>}
-                            </div>
-                          ) : <span style={{ fontSize: 11, color: 'var(--tx4)' }}>—</span>}
-                        </td>
-                        <td style={{ padding: '10px 14px' }} onClick={e => e.stopPropagation()}>
-                          <div style={{ display: 'flex', gap: 4 }}>
+                        <td style={{ padding: '8px 12px' }} onClick={e => e.stopPropagation()}>
+                          <div style={{ display: 'flex', gap: 4, flexWrap: 'nowrap' }}>
                             <Link href={`/medicamentos/${id}`} style={{ padding: '4px 10px', borderRadius: 6, fontSize: 11, fontWeight: 600, border: '1.5px solid var(--bdr)', color: 'var(--green)', background: 'var(--bg2)', textDecoration: 'none', whiteSpace: 'nowrap', transition: 'all .13s' }}
                               onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--green)'; (e.currentTarget as HTMLElement).style.background = 'var(--bg3)'; }}
                               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--bdr)'; (e.currentTarget as HTMLElement).style.background = 'var(--bg2)'; }}>
