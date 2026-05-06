@@ -52,11 +52,21 @@ export default function NuevoMedicamentoForm({ initialData, editId }: { initialD
   const [tab, setTab] = useState(0);
 
   // Detectar combinación al cargar initialData
-  const initEsCombo = !!(initialData?.vtm && initialData.vtm.includes(' + '));
+  const initEsCombo = initialData?.esCombo === true || (initialData?.esCombo as any) === 'true' || !!(initialData?.comboData?.pas?.length) || !!(initialData?.vtm && initialData.vtm.includes(' + '));
   const initComboPAs = initEsCombo
     ? (() => {
-        const pas = (initialData.vtm || '').split(' + ').map((p) => p.trim());
-        const concs = (initialData.conc || '').split(' + ').map((p) => p.trim());
+        // Prioridad: cargar desde comboData si existe
+        const cd = (initialData as any)?.comboData;
+        if (cd?.pas?.length) {
+          return cd.pas.map((pa: string, i: number) => ({
+            vtm: pa,
+            conc: cd.concs?.[i] || '',
+            unit: cd.units?.[i] || 'mg',
+          }));
+        }
+        // Fallback: parsear desde vtm y conc concatenados
+        const pas = (initialData?.vtm || '').split(' + ').map((p) => p.trim());
+        const concs = (initialData?.conc || '').split(' + ').map((p) => p.trim());
         return pas.map((p, i) => ({
           vtm: p,
           conc: concs[i] ? concs[i].replace(/[a-zA-Z]+$/, '').trim() : '',
