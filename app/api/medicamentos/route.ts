@@ -140,7 +140,7 @@ export async function POST(req: NextRequest) {
       resourceType: 'Medication',
       resourceId: id,
       resourceDisplay: data.vtm,
-      usuario: user.email,
+      usuario: user.email || user.uid,
       usuarioUid: user.uid,
       usuarioRol: user.admin ? 'admin' : user.editor ? 'editor' : 'viewer',
       ip: getClientIP(req),
@@ -202,7 +202,7 @@ export async function PUT(req: NextRequest) {
       resourceType: 'Medication',
       resourceId: id,
       resourceDisplay: data.vtm,
-      usuario: user.email,
+      usuario: user.email || user.uid,
       usuarioUid: user.uid,
       usuarioRol: user.admin ? 'admin' : user.editor ? 'editor' : 'viewer',
       ip: getClientIP(req),
@@ -232,7 +232,7 @@ export async function DELETE(req: NextRequest) {
 
     await adminDb.collection('auditLog').add({
       accion: 'DELETE', medId: id, vtm: prevDoc.data()?.vtm || '',
-      usuario: user.email, timestamp: new Date(),
+      usuario: user.email || user.uid, timestamp: new Date(),
       datosPrevios: prevDoc.data()?.data, motivo: motivo || 'Sin motivo',
     });
 
