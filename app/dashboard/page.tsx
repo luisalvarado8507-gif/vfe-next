@@ -27,7 +27,7 @@ export default function Dashboard() {
   const [busqueda, setBusqueda] = useState('');
   const [tipoB, setTipoB] = useState<'todo' | 'pa' | 'comercial' | 'atc' | 'lab'>('todo');
   const [loading, setLoading] = useState(true);
-  const { getToken, user, loading: authLoading } = useAuth();
+  const { getToken, user, role, loading: authLoading } = useAuth();
   const router = useRouter();
 
   const fecha = new Date().toLocaleDateString('es-EC', { day: 'numeric', month: 'long', year: 'numeric' });
@@ -119,8 +119,14 @@ export default function Dashboard() {
                 Sistema Integral de Medicamentos Interoperables
               </h1>
             </div>
-            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,.35)', fontFamily: 'var(--mono)', textAlign: 'right', lineHeight: 1.8 }}>
-              {fecha}
+            <div style={{ textAlign: 'right' }}>
+              <div style={{ fontSize: '11px', color: 'rgba(255,255,255,.35)', fontFamily: 'var(--mono)', marginBottom: 4 }}>{fecha}</div>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '3px 10px', borderRadius: 20, background: 'rgba(255,255,255,.1)', border: '1px solid rgba(255,255,255,.15)' }}>
+                <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#60A5FA', flexShrink: 0 }} />
+                <span style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,.7)', fontFamily: 'var(--mono)', letterSpacing: 0.5 }}>
+                  {role === 'admin' ? 'ADMINISTRADOR' : role === 'editor' ? 'EDITOR REGULATORIO' : 'VISUALIZADOR'}
+                </span>
+              </div>
             </div>
           </div>
 

@@ -5,7 +5,14 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import { CHAPS } from '@/lib/capitulos-tree';
 
+const ROLE_CONFIG: Record<string, { label: string; bg: string; color: string; icon: string }> = {
+  admin:  { label: 'Administrador', bg: '#EDE9FE', color: '#5B21B6', icon: '◈' },
+  editor: { label: 'Editor regulatorio', bg: '#DBEAFE', color: '#1D4ED8', icon: '✎' },
+  viewer: { label: 'Visualizador', bg: '#F1F5F9', color: '#475569', icon: '◉' },
+};
+
 export default function Sidebar() {
+  const { user, role, isAdmin, isEditor } = useAuth();
   const { user, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
