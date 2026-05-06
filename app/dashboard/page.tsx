@@ -101,30 +101,31 @@ export default function Dashboard() {
 
         {/* ── HERO BUSCADOR ── */}
         <div style={{
-          background: 'var(--green-dark, #1B4332)',
-          padding: '32px 40px 28px',
+          background: 'var(--green-dark, #0F2D5E)',
+          padding: '24px 36px 20px',
           position: 'relative',
           overflow: 'hidden',
+          flexShrink: 0,
         }}>
-          {/* Decoración fondo */}
-          <div style={{ position: 'absolute', right: -60, top: -60, width: 300, height: 300, borderRadius: '50%', background: 'rgba(255,255,255,.03)', pointerEvents: 'none' }} />
-          <div style={{ position: 'absolute', right: 80, bottom: -80, width: 200, height: 200, borderRadius: '50%', background: 'rgba(96,165,250,.06)', pointerEvents: 'none' }} />
+          {/* Decoración fondo — hexágono sutil */}
+          <div style={{ position: 'absolute', right: -80, top: -80, width: 360, height: 360, borderRadius: '50%', border: '1px solid rgba(255,255,255,.04)', pointerEvents: 'none' }} />
+          <div style={{ position: 'absolute', right: -20, top: 20, width: 220, height: 220, borderRadius: '50%', border: '1px solid rgba(96,165,250,.06)', pointerEvents: 'none' }} />
 
-          <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: '20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
             <div>
-              <div style={{ fontSize: '10px', fontFamily: 'var(--mono)', color: 'rgba(255,255,255,.4)', letterSpacing: '2px', marginBottom: '6px' }}>
-                SIMI · SISTEMA INTEGRAL DE MEDICAMENTOS INTEROPERABLES
+              <div style={{ fontSize: 10, fontFamily: 'var(--mono)', color: 'rgba(255,255,255,.35)', letterSpacing: '2px', marginBottom: 5, textTransform: 'uppercase' }}>
+                Repositorio farmacéutico nacional · Ecuador
               </div>
-              <h1 style={{ fontSize: '22px', fontWeight: 700, color: '#fff', letterSpacing: '-0.3px', lineHeight: 1.2 }}>
-                Sistema Integral de Medicamentos Interoperables
+              <h1 style={{ fontSize: 20, fontWeight: 700, color: '#fff', letterSpacing: '-0.3px', lineHeight: 1.2, margin: 0 }}>
+                Base de datos de medicamentos autorizados
               </h1>
             </div>
-            <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: '11px', color: 'rgba(255,255,255,.35)', fontFamily: 'var(--mono)', marginBottom: 4 }}>{fecha}</div>
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '3px 10px', borderRadius: 20, background: 'rgba(255,255,255,.1)', border: '1px solid rgba(255,255,255,.15)' }}>
-                <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#60A5FA', flexShrink: 0 }} />
-                <span style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,.7)', fontFamily: 'var(--mono)', letterSpacing: 0.5 }}>
-                  {role === 'admin' ? 'ADMINISTRADOR' : role === 'editor' ? 'EDITOR REGULATORIO' : 'VISUALIZADOR'}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 5, flexShrink: 0 }}>
+              <span style={{ fontSize: 11, color: 'rgba(255,255,255,.3)', fontFamily: 'var(--mono)' }}>{fecha}</span>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '3px 10px', borderRadius: 20, background: 'rgba(255,255,255,.08)', border: '1px solid rgba(255,255,255,.12)' }}>
+                <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#60A5FA', flexShrink: 0 }} />
+                <span style={{ fontSize: 10, fontWeight: 600, color: 'rgba(255,255,255,.65)', fontFamily: 'var(--mono)', letterSpacing: 0.5 }}>
+                  {role === 'admin' ? 'ADMIN' : role === 'editor' ? 'EDITOR' : 'VISUALIZADOR'}
                 </span>
               </div>
             </div>
@@ -158,15 +159,16 @@ export default function Dashboard() {
                 }}
               />
               <button type="submit" style={{
-                background: 'var(--green, #2D6A4F)', color: '#fff',
+                background: 'var(--primary, #1D4ED8)', color: '#fff',
                 border: 'none', padding: '0 24px',
                 fontSize: '13px', fontWeight: 600,
                 cursor: 'pointer', fontFamily: 'var(--sans)',
                 transition: 'background .15s',
+                letterSpacing: '0.01em',
               }}
-                onMouseEnter={e => (e.currentTarget.style.background = 'var(--green-dark, #1B4332)')}
-                onMouseLeave={e => (e.currentTarget.style.background = 'var(--green, #2D6A4F)')}>
-                Buscar
+                onMouseEnter={e => (e.currentTarget.style.background = 'var(--primary-dark, #0F2D5E)')}
+                onMouseLeave={e => (e.currentTarget.style.background = 'var(--primary, #1D4ED8)')}>
+                Buscar →
               </button>
             </div>
 
