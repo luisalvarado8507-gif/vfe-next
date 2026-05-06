@@ -173,7 +173,7 @@ export default function NuevoMedicamentoForm({ initialData, editId }: { initialD
   const vtmLabel = tipoPA === 'mono' ? vtm : comboPAs.filter((p:any)=>p.vtm).map((p:any)=>p.vtm).join(' + ');
   const concLabel = tipoPA === 'mono'
     ? (conc ? `${conc} ${concUnit}` : '')
-    : comboPAs.filter(p=>p.vtm).map(p=>p.conc ? `${p.conc} ${p.unit}` : '').join(' + ');
+    : comboPAs.filter((p:any)=>p.vtm).map((p:any)=>p.conc ? `${p.conc} ${p.unit}` : '').join(' + ');
   const vmpLabel = vtmLabel && ff && concLabel ? `${vtmLabel} ${concLabel} ${ffShort}` : '';
   const ampLabel = vmpLabel && lab ? (nombre ? `${nombre} ${concLabel} ${ffShort} (${lab})` : `${vmpLabel} (${lab})`) : '';
   const vtmForSnomed = tipoPA === 'mono' ? vtm : comboPAs[0]?.vtm || '';
