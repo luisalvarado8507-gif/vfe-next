@@ -210,25 +210,17 @@ export default function Dashboard() {
               </div>
             ))}
 
-            {/* CNMB Banner */}
-          <div style={{ background: 'linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%)', border: '1.5px solid #FCD34D', borderRadius: 'var(--rl)', padding: '14px 20px', display: 'flex', alignItems: 'center', gap: 16, marginBottom: 16 }}>
-            <div style={{ fontSize: 28 }}>📋</div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: '#92400E' }}>
-                Cuadro Nacional de Medicamentos Básicos — 9ª Edición
+            {/* CNMB como KPI card */}
+            <Link href="/medicamentos?cnmb=true" style={{ background: 'var(--amber-bg)', border: '1.5px solid #FCD34D', borderRadius: 'var(--rl)', padding: '16px 20px', boxShadow: 'var(--sh)', textDecoration: 'none', display: 'block', transition: 'box-shadow var(--t)' }}
+              onMouseEnter={e => (e.currentTarget as HTMLElement).style.boxShadow = 'var(--shm)'}
+              onMouseLeave={e => (e.currentTarget as HTMLElement).style.boxShadow = 'var(--sh)'}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+                <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--amber)', letterSpacing: 1, fontFamily: 'var(--mono)', textTransform: 'uppercase' }}>CNMB 9ª Ed.</div>
+                <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--amber)', opacity: 0.7 }} />
               </div>
-              <div style={{ fontSize: 12, color: '#B45309', marginTop: 2 }}>
-                Lista oficial de medicamentos esenciales del SNS Ecuador · Ministerio de Salud Pública
-              </div>
-            </div>
-            <div style={{ textAlign: 'right', flexShrink: 0 }}>
-              <div style={{ fontSize: 20, fontWeight: 800, color: '#92400E' }}>{stats.cnmb}</div>
-              <div style={{ fontSize: 10, color: '#B45309', fontFamily: 'var(--mono)', letterSpacing: 1 }}>MEDICAMENTOS CNMB</div>
-            </div>
-            <Link href="/medicamentos?cnmb=true" style={{ padding: '8px 16px', background: '#92400E', color: '#fff', borderRadius: 'var(--r)', fontSize: 12, fontWeight: 700, textDecoration: 'none', flexShrink: 0, whiteSpace: 'nowrap' }}>
-              Ver CNMB →
+              <div style={{ fontSize: 36, fontWeight: 800, color: 'var(--amber)', lineHeight: 1, letterSpacing: '-1.5px', marginBottom: 6 }}>{stats.cnmb.toLocaleString('es-EC')}</div>
+              <div style={{ fontSize: 11, color: '#B45309' }}>medicamentos esenciales</div>
             </Link>
-          </div>
 
           {/* Acciones rápidas */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', minWidth: '180px' }}>
