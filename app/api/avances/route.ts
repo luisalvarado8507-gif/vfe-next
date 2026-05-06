@@ -9,7 +9,9 @@ async function verificarAuth(req: NextRequest) {
 
 export async function GET(req: NextRequest) {
   const user = await verificarAuth(req);
-  if (!user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+  if (!user) return NextResponse.json({
+      cnmbVersion: '9ª Edición',
+      cnmbUrl: 'https://www.salud.gob.ec/cuadro-nacional-de-medicamentos-basicos/', error: 'No autorizado' }, { status: 401 });
 
   try {
     const col = adminDb.collection('medicamentos');

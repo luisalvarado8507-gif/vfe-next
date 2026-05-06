@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useAuth } from '@/lib/auth-context';
 import { useRouter } from 'next/navigation';
 import Sidebar from '@/components/layout/Sidebar';
+import Link from 'next/link';
 
 interface RecentMed {
   docId: string;
@@ -208,7 +209,27 @@ export default function Dashboard() {
               </div>
             ))}
 
-            {/* Acciones rápidas */}
+            {/* CNMB Banner */}
+          <div style={{ background: 'linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%)', border: '1.5px solid #FCD34D', borderRadius: 'var(--rl)', padding: '14px 20px', display: 'flex', alignItems: 'center', gap: 16, marginBottom: 16 }}>
+            <div style={{ fontSize: 28 }}>📋</div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: '#92400E' }}>
+                Cuadro Nacional de Medicamentos Básicos — 9ª Edición
+              </div>
+              <div style={{ fontSize: 12, color: '#B45309', marginTop: 2 }}>
+                Lista oficial de medicamentos esenciales del SNS Ecuador · Ministerio de Salud Pública
+              </div>
+            </div>
+            <div style={{ textAlign: 'right', flexShrink: 0 }}>
+              <div style={{ fontSize: 20, fontWeight: 800, color: '#92400E' }}>{stats.cnmb}</div>
+              <div style={{ fontSize: 10, color: '#B45309', fontFamily: 'var(--mono)', letterSpacing: 1 }}>MEDICAMENTOS CNMB</div>
+            </div>
+            <Link href="/medicamentos?cnmb=true" style={{ padding: '8px 16px', background: '#92400E', color: '#fff', borderRadius: 'var(--r)', fontSize: 12, fontWeight: 700, textDecoration: 'none', flexShrink: 0, whiteSpace: 'nowrap' }}>
+              Ver CNMB →
+            </Link>
+          </div>
+
+          {/* Acciones rápidas */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', minWidth: '180px' }}>
               <Link href="/medicamentos/nuevo" style={{
                 display: 'flex', alignItems: 'center', gap: '8px',
