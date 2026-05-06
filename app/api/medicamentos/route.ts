@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { registrarAuditEvent, getClientIP } from '@/lib/audit';
+import { validarRS } from '@/lib/rs-validator';
 import { puedeTransicionar, EstadoRegulatorio } from '@/lib/regulatory-lifecycle';
 import { adminDb, adminAuth } from '@/lib/firebase-admin';
 import { Medicamento } from '@/types/medicamento';
