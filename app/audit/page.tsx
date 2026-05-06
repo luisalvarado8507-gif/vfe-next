@@ -70,6 +70,27 @@ export default function AuditLog() {
     color: activo ? '#fff' : 'var(--tx2)', transition: 'all .13s',
   });
 
+  const exportJSON = () => {
+    const data = JSON.stringify(filtradas, null, 2);
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url;
+    a.download = `simi_audit_${new Date().toISOString().split('T')[0]}.json`;
+    a.click(); URL.revokeObjectURL(url);
+  };
+
+  const exportCSV = () => {
+    const headers = ['timestamp','accion','vtm','usuario','estadoAnterior','estadoNuevo','medId'];
+    const rows = filtradas.map(e => headers.map(h => JSON.stringify((e as any)[h] || '')).join(','));
+    const csv = '﻿' + [headers.join(','), ...rows].join('
+');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url;
+    a.download = `simi_audit_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click(); URL.revokeObjectURL(url);
+  };
+
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', fontFamily: 'var(--sans)' }}>
       <Sidebar />
@@ -92,7 +113,15 @@ export default function AuditLog() {
               <button key={val} onClick={() => setFiltroAccion(val)} style={chipBtn(filtroAccion === val)}>{lbl}</button>
             ))}
           </div>
-          <div style={{ marginLeft: 'auto', position: 'relative' }}>
+          <div style={{ display: 'flex', gap: 6, marginLeft: 'auto', alignItems: 'center' }}>
+            <button onClick={exportJSON} style={{ padding: '5px 12px', borderRadius: 'var(--r)', border: '1.5px solid var(--bdr)', background: 'var(--bg2)', color: 'var(--tx2)', fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: 'var(--sans)' }}>
+              ⬇ JSON
+            </button>
+            <button onClick={exportCSV} style={{ padding: '5px 12px', borderRadius: 'var(--r)', border: '1.5px solid var(--bdr)', background: 'var(--bg2)', color: 'var(--tx2)', fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: 'var(--sans)' }}>
+              ⬇ CSV
+            </button>
+          </div>
+          <div style={{ position: 'relative' }}>
             <input
               value={busqueda}
               onChange={e => setBusqueda(e.target.value)}
