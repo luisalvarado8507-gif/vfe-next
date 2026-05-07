@@ -94,6 +94,7 @@ export default function Farmacovigilancia() {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();
+      console.log('SIMI autocomplete:', data);
       setMedSugs(data.medicamentos || data || []);
     } catch { setMedSugs([]); }
     setMedBuscando(false);

@@ -92,16 +92,46 @@ export async function GET(req: NextRequest) {
     // Búsqueda por nombre (autocomplete farmacovigilancia)
     if (q && q.length >= 2) {
       const qLower = q.toLowerCase();
-      const snap = await adminDb.collection('medicamentos').limit(200).get();
-      const results = snap.docs
-        .map(d => mapDoc(d as any))
-        .filter(m =>
-          m.nombre?.toLowerCase().includes(qLower) ||
-          m.vtm?.toLowerCase().includes(qLower) ||
-          m.rs?.toLowerCase().includes(qLower)
-        )
-        .slice(0, 10);
-      return NextResponse.json({ medicamentos: results });
+      const qUpper = qLower.charAt(0).toUpperCase() + qLower.slice(1);
+
+      // Buscar por campo amp (raíz) con range query — más eficiente
+      const [snap1, snap2] = await Promise.all([
+        adminDb.collection('medicamentos')
+          .orderBy('amp')
+          .startAt(qUpper)
+          .endAt(qUpper + '\uf8ff')
+          .limit(8)
+          .get(),
+        adminDb.collection('medicamentos')
+          .orderBy('amp')
+          .startAt(qLower)
+          .endAt(qLower + '\uf8ff')
+          .limit(8)
+          .get(),
+      ]);
+
+      const seen = new Set<string>();
+      const allDocs = [...snap1.docs, ...snap2.docs].filter(d => {
+        if (seen.has(d.id)) return false;
+        seen.add(d.id);
+        return true;
+      });
+
+      // Si no hay resultados por amp, buscar en data.nombre
+      let results = allDocs.map(d => mapDoc(d as any));
+
+      if (results.length === 0) {
+        const snap3 = await adminDb.collection('medicamentos').limit(500).get();
+        results = snap3.docs
+          .map(d => mapDoc(d as any))
+          .filter(m =>
+            m.nombre?.toLowerCase().includes(qLower) ||
+            m.vtm?.toLowerCase().includes(qLower)
+          )
+          .slice(0, 10);
+      }
+
+      return NextResponse.json({ medicamentos: results.slice(0, 10) });
     }
 
     const col = adminDb.collection('medicamentos');
