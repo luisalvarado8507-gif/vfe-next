@@ -24,6 +24,7 @@ export default function Sidebar() {
   const [adminOpen, setAdminOpen] = useState(false);
   const [atcOpen, setAtcOpen] = useState(false);
   const [atcExpanded, setAtcExpanded] = useState<Record<string, boolean>>({});
+  const [atcFlyout, setAtcFlyout] = useState<string | null>(null);
 
   const toggleAtc = (code: string) =>
     setAtcExpanded(prev => ({ ...prev, [code]: !prev[code] }));
@@ -274,8 +275,8 @@ export default function Sidebar() {
           )}
         </div>
 
-        {/* Clasificación ATC */}
-        <div>
+        {/* Clasificación ATC — flyout */}
+        <div style={{ position: 'relative' }}>
           <button onClick={() => setAtcOpen(!atcOpen)} style={{
             ...groupLabelStyle, display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             width: '100%', background: 'none', border: 'none', cursor: 'pointer', padding: '10px 12px 4px',
@@ -285,10 +286,130 @@ export default function Sidebar() {
           </button>
           {atcOpen && (
             <div style={{ marginBottom: 8 }}>
-              {ATC_TREE.map(node => renderAtcNode(node, 0))}
+              {ATC_TREE.map(node => (
+                <button
+                  key={node.code}
+                  onClick={() => setAtcFlyout(atcFlyout === node.code ? null : node.code)}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 8,
+                    width: '100%', background: atcFlyout === node.code ? 'rgba(96,165,250,.15)' : 'none',
+                    border: 'none', cursor: 'pointer', padding: '6px 12px',
+                    borderRadius: 6, textAlign: 'left', transition: 'all .13s',
+                    borderLeft: `2px solid ${atcFlyout === node.code ? '#60A5FA' : 'transparent'}`,
+                  }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(96,165,250,.1)'; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = atcFlyout === node.code ? 'rgba(96,165,250,.15)' : 'transparent'; }}
+                >
+                  <span style={{ fontSize: 10, fontWeight: 800, fontFamily: 'var(--mono)', color: '#60A5FA', minWidth: 18 }}>{node.code}</span>
+                  <span style={{ fontSize: 12, color: 'rgba(255,255,255,.7)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>{node.label}</span>
+                  <span style={{ fontSize: 9, color: 'rgba(255,255,255,.3)' }}>{atcFlyout === node.code ? '◀' : '▶'}</span>
+                </button>
+              ))}
             </div>
           )}
         </div>
+
+        {/* Flyout ATC — panel lateral derecho */}
+        {atcFlyout && (() => {
+          const root = ATC_TREE.find(n => n.code === atcFlyout);
+          if (!root) return null;
+          return (
+            <div
+              style={{
+                position: 'fixed', top: 0, left: 260, bottom: 0,
+                width: 300, background: '#0A2248',
+                borderRight: '1px solid rgba(96,165,250,.2)',
+                zIndex: 99, display: 'flex', flexDirection: 'column',
+                boxShadow: '4px 0 24px rgba(0,0,0,.4)',
+                animation: 'slideIn .15s ease',
+              }}
+            >
+              <style>{`@keyframes slideIn { from { transform: translateX(-10px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }`}</style>
+              {/* Header flyout */}
+              <div style={{ padding: '16px 14px 12px', borderBottom: '1px solid rgba(255,255,255,.08)', flexShrink: 0, display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div style={{ padding: '4px 8px', borderRadius: 6, background: 'rgba(96,165,250,.15)', border: '1px solid rgba(96,165,250,.3)' }}>
+                  <div style={{ fontSize: 16, fontWeight: 800, color: '#60A5FA', fontFamily: 'var(--mono)' }}>{root.code}</div>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: '#fff', lineHeight: 1.3 }}>{root.label}</div>
+                  <div style={{ fontSize: 9, color: 'rgba(255,255,255,.3)', fontFamily: 'var(--mono)', marginTop: 2 }}>NIVEL I · WHO ATC 2025</div>
+                </div>
+                <button onClick={() => setAtcFlyout(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,.4)', fontSize: 16, padding: 4, borderRadius: 4, lineHeight: 1 }}>✕</button>
+              </div>
+              {/* Contenido niveles 2-5 */}
+              <div style={{ flex: 1, overflowY: 'auto', padding: '8px 0', scrollbarWidth: 'thin' }}>
+                {root.children?.map(l2 => (
+                  <div key={l2.code}>
+                    {/* Nivel 2 */}
+                    <button
+                      onClick={() => toggleAtc(l2.code)}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 8,
+                        width: '100%', background: 'none', border: 'none', cursor: 'pointer',
+                        padding: '7px 14px', textAlign: 'left',
+                      }}
+                    >
+                      <span style={{ fontSize: 9, fontWeight: 700, color: '#F59E0B', fontFamily: 'var(--mono)', minWidth: 40 }}>{l2.code}</span>
+                      <span style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,.8)', flex: 1 }}>{l2.label}</span>
+                      <span style={{ fontSize: 8, color: 'rgba(255,255,255,.25)', transition: 'transform .15s', transform: atcExpanded[l2.code] ? 'rotate(90deg)' : 'none' }}>▶</span>
+                    </button>
+                    {atcExpanded[l2.code] && l2.children?.map(l3 => (
+                      <div key={l3.code}>
+                        {/* Nivel 3 */}
+                        <button
+                          onClick={() => toggleAtc(l3.code)}
+                          style={{
+                            display: 'flex', alignItems: 'center', gap: 8,
+                            width: '100%', background: 'none', border: 'none', cursor: 'pointer',
+                            padding: '6px 14px 6px 24px', textAlign: 'left',
+                          }}
+                        >
+                          <span style={{ fontSize: 9, color: '#10B981', fontFamily: 'var(--mono)', minWidth: 40 }}>{l3.code}</span>
+                          <span style={{ fontSize: 11, color: 'rgba(255,255,255,.65)', flex: 1 }}>{l3.label}</span>
+                          <span style={{ fontSize: 8, color: 'rgba(255,255,255,.2)', transition: 'transform .15s', transform: atcExpanded[l3.code] ? 'rotate(90deg)' : 'none' }}>▶</span>
+                        </button>
+                        {atcExpanded[l3.code] && l3.children?.map(l4 => (
+                          <div key={l4.code}>
+                            {/* Nivel 4 */}
+                            <button
+                              onClick={() => toggleAtc(l4.code)}
+                              style={{
+                                display: 'flex', alignItems: 'center', gap: 8,
+                                width: '100%', background: 'none', border: 'none', cursor: 'pointer',
+                                padding: '5px 14px 5px 36px', textAlign: 'left',
+                              }}
+                            >
+                              <span style={{ fontSize: 9, color: '#8B5CF6', fontFamily: 'var(--mono)', minWidth: 48 }}>{l4.code}</span>
+                              <span style={{ fontSize: 11, color: 'rgba(255,255,255,.55)', flex: 1 }}>{l4.label}</span>
+                              <span style={{ fontSize: 8, color: 'rgba(255,255,255,.2)', transition: 'transform .15s', transform: atcExpanded[l4.code] ? 'rotate(90deg)' : 'none' }}>▶</span>
+                            </button>
+                            {atcExpanded[l4.code] && l4.children?.map(l5 => (
+                              <a
+                                key={l5.code}
+                                href={'/atc/' + l5.code}
+                                style={{
+                                  display: 'flex', alignItems: 'center', gap: 8,
+                                  padding: '5px 14px 5px 48px', textDecoration: 'none',
+                                  transition: 'background .12s',
+                                }}
+                                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,.05)'; }}
+                                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
+                              >
+                                <span style={{ fontSize: 8, color: '#EC4899', flexShrink: 0 }}>◆</span>
+                                <span style={{ fontSize: 11, color: 'rgba(255,255,255,.75)', flex: 1 }}>{l5.label}</span>
+                                <span style={{ fontSize: 9, color: 'rgba(255,255,255,.25)', fontFamily: 'var(--mono)', flexShrink: 0 }}>{l5.code}</span>
+                              </a>
+                            ))}
+                          </div>
+                        ))}
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
 
       </nav>
 
