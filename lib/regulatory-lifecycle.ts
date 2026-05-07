@@ -35,7 +35,7 @@ export const ESTADOS: Record<EstadoRegulatorio, EstadoInfo> = {
 // Transiciones permitidas (máquina de estados)
 export const TRANSICIONES: Record<EstadoRegulatorio, EstadoRegulatorio[]> = {
   borrador:        ['arcsa_pendiente'],
-  arcsa_pendiente: ['en_evaluacion', 'borrador'],
+  arcsa_pendiente: ['en_evaluacion', 'borrador', 'autorizado'],
   en_evaluacion:   ['autorizado', 'arcsa_pendiente', 'suspendido'],
   autorizado:      ['variacion', 'suspendido', 'retirado'],
   variacion:       ['autorizado', 'suspendido'],
