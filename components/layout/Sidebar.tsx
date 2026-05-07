@@ -41,6 +41,7 @@ export default function Sidebar() {
       { href: '/analytics', icon: '◈', label: 'Analítica' },
       { href: '/avances',   icon: '◎', label: 'Conformidad ISO' },
       { href: '/arbol',     icon: '⊤', label: 'Árbol SPMS' },
+      { href: '/fdc',       icon: '⚗', label: 'Lab. FDC' },
     ]},
     { label: 'Sistema', items: [
       { href: '/gobernanza', icon: '⊡', label: 'Gobernanza' },
