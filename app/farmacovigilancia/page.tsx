@@ -89,7 +89,7 @@ export default function Farmacovigilancia() {
     if (q.length < 2) { setMedSugs([]); return; }
     setMedBuscando(true);
     try {
-      const res = await fetch(`/api/medicamentos/buscar?q=${encodeURIComponent(q)}`);
+      const res = await fetch(`/api/search-med?q=${encodeURIComponent(q)}`);
       const data = await res.json();
       setMedSugs(Array.isArray(data) ? data : []);
     } catch { setMedSugs([]); }
