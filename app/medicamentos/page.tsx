@@ -225,6 +225,14 @@ function BaseDatosContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const capitulo = searchParams.get('capitulo');
+  const estadoParam = searchParams.get('estado');
+  const cnmbParam = searchParams.get('cnmb');
+
+  // Aplicar filtros desde URL al montar
+  useEffect(() => {
+    if (estadoParam) setFiltroEstado(estadoParam);
+    if (cnmbParam === 'true') setFiltroCNMB(true);
+  }, [estadoParam, cnmbParam]);
   const capNombre = capitulo ? CHAPS.find(c => c.id === capitulo)?.name : null;
 
   const cargarTodos = useCallback(async () => {

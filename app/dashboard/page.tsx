@@ -211,7 +211,7 @@ export default function Dashboard() {
             ))}
 
             {/* CNMB como KPI card */}
-            <Link href="/medicamentos?cnmb=true" style={{ background: 'var(--amber-bg)', border: '1.5px solid #FCD34D', borderRadius: 'var(--rl)', padding: '16px 20px', boxShadow: 'var(--sh)', textDecoration: 'none', display: 'block', transition: 'box-shadow var(--t)' }}
+            <Link href="/medicamentos?cnmb=true&estado=autorizado" style={{ background: 'var(--amber-bg)', border: '1.5px solid #FCD34D', borderRadius: 'var(--rl)', padding: '16px 20px', boxShadow: 'var(--sh)', textDecoration: 'none', display: 'block', transition: 'box-shadow var(--t)' }}
               onMouseEnter={e => (e.currentTarget as HTMLElement).style.boxShadow = 'var(--shm)'}
               onMouseLeave={e => (e.currentTarget as HTMLElement).style.boxShadow = 'var(--sh)'}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
