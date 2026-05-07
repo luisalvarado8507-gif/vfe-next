@@ -10,6 +10,7 @@ import AtcHierarchy from '@/components/ui/AtcHierarchy';
 import RxNormLookup from '@/components/ui/RxNormLookup';
 import SNOMEDValidator from '@/components/ui/SNOMEDValidator';
 import EMASPORLookup from '@/components/ui/EMASPORLookup';
+import FDCEvaluacion from '@/components/ui/FDCEvaluacion';
 import Sidebar from '@/components/layout/Sidebar';
 
 // ── SNOMED databases ──────────────────────────────────────────────────────
