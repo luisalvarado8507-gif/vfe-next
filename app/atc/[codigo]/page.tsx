@@ -2,8 +2,6 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { collection, query, where, getDocs } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
 import { findAtcNode } from '@/lib/atc-tree';
 import Sidebar from '@/components/layout/Sidebar';
 
@@ -27,38 +25,13 @@ export default function AtcPage() {
   useEffect(() => {
     if (!codigo) return;
     setLoading(true);
-
-    // Buscar medicamentos cuyo campo atc contiene el código o empieza por él
-    const col = collection(db, 'medicamentos');
-
-    // Estrategia: traer todos y filtrar client-side por prefijo ATC
-    // (Firestore no soporta LIKE; para volúmenes grandes migrar a índice)
-    getDocs(col).then(snap => {
-      const results: Med[] = [];
-      snap.forEach(d => {
-        const data = d.data();
-        const atcVal = data.atc;
-        const codes: string[] = Array.isArray(atcVal)
-          ? atcVal
-          : atcVal ? [String(atcVal)] : [];
-        const match = codes.some(a => a.toUpperCase().startsWith(codigo.toUpperCase()));
-        if (match) {
-          results.push({
-            id: d.id,
-            nombre: data.nombre || data.denominacion || d.id,
-            vtm: data.vtm,
-            laboratorio: data.laboratorio,
-            formaFarmaceutica: data.formaFarmaceutica || data.ff,
-            concentracion: data.concentracion || data.conc,
-            estado: data.estado,
-            atc: atcVal,
-          });
-        }
-      });
-      results.sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
-      setMeds(results);
-      setLoading(false);
-    }).catch(() => setLoading(false));
+    fetch(`/api/atc?code=${encodeURIComponent(codigo)}`)
+      .then(r => r.json())
+      .then(data => {
+        setMeds(data.results || []);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
   }, [codigo]);
 
   const levelColors: Record<number, string> = {
