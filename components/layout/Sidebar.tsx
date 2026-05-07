@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import { CHAPS } from '@/lib/capitulos-tree';
+import { ATC_TREE, type AtcNode } from '@/lib/atc-tree';
 
 const ROLE_CONFIG: Record<string, { label: string; bg: string; color: string; icon: string }> = {
   admin:  { label: 'Administrador',     bg: '#EDE9FE', color: '#5B21B6', icon: '◈' },
@@ -11,17 +12,8 @@ const ROLE_CONFIG: Record<string, { label: string; bg: string; color: string; ic
   viewer: { label: 'Visualizador',       bg: '#F1F5F9', color: '#475569', icon: '◉' },
 };
 
-interface NavItem {
-  href: string;
-  label: string;
-  icon: string;
-  badge?: string;
-}
-
-interface NavGroup {
-  label: string;
-  items: NavItem[];
-}
+interface NavItem { href: string; label: string; icon: string; badge?: string; }
+interface NavGroup { label: string; items: NavItem[]; }
 
 export default function Sidebar() {
   const { user, role, isAdmin, isEditor, logout } = useAuth();
@@ -30,35 +22,31 @@ export default function Sidebar() {
   const capFromUrl = pathname?.match(/\/capitulos\/(c\w+)/)?.[1] || null;
   const [capsOpen, setCapsOpen] = useState(!!capFromUrl);
   const [adminOpen, setAdminOpen] = useState(false);
+  const [atcOpen, setAtcOpen] = useState(false);
+  const [atcExpanded, setAtcExpanded] = useState<Record<string, boolean>>({});
+
+  const toggleAtc = (code: string) =>
+    setAtcExpanded(prev => ({ ...prev, [code]: !prev[code] }));
 
   const isActive = (href: string) => pathname === href || pathname?.startsWith(href + '/');
 
   const navGroups: NavGroup[] = [
-    {
-      label: 'Principal',
-      items: [
-        { href: '/dashboard',          icon: '⌂', label: 'Dashboard' },
-        { href: '/medicamentos',        icon: '⊞', label: 'Base de datos' },
-        { href: '/busqueda-semantica',  icon: '✦', label: 'Búsqueda IA' },
-      ],
-    },
-    {
-      label: 'Análisis',
-      items: [
-        { href: '/analytics',  icon: '◈', label: 'Analítica' },
-        { href: '/avances',    icon: '◎', label: 'Conformidad ISO' },
-        { href: '/arbol',      icon: '⊤', label: 'Árbol SPMS' },
-      ],
-    },
-    {
-      label: 'Sistema',
-      items: [
-        { href: '/gobernanza', icon: '⊡', label: 'Gobernanza' },
-        { href: '/docs',       icon: '⊙', label: 'API Docs' },
-        { href: '/audit',      icon: '◉', label: 'Audit log' },
-        ...(isEditor ? [{ href: '/io', icon: '⬇', label: 'Importar / Exportar' }] : []),
-      ],
-    },
+    { label: 'Principal', items: [
+      { href: '/dashboard',         icon: '⌂', label: 'Dashboard' },
+      { href: '/medicamentos',       icon: '⊞', label: 'Base de datos' },
+      { href: '/busqueda-semantica', icon: '✦', label: 'Búsqueda IA' },
+    ]},
+    { label: 'Análisis', items: [
+      { href: '/analytics', icon: '◈', label: 'Analítica' },
+      { href: '/avances',   icon: '◎', label: 'Conformidad ISO' },
+      { href: '/arbol',     icon: '⊤', label: 'Árbol SPMS' },
+    ]},
+    { label: 'Sistema', items: [
+      { href: '/gobernanza', icon: '⊡', label: 'Gobernanza' },
+      { href: '/docs',       icon: '⊙', label: 'API Docs' },
+      { href: '/audit',      icon: '◉', label: 'Audit log' },
+      ...(isEditor ? [{ href: '/io', icon: '⬇', label: 'Importar / Exportar' }] : []),
+    ]},
   ];
 
   const adminItems: NavItem[] = isAdmin ? [
@@ -67,44 +55,95 @@ export default function Sidebar() {
   ] : [];
 
   const linkStyle = (href: string): React.CSSProperties => ({
-    display: 'flex',
-    alignItems: 'center',
-    gap: 8,
-    padding: '7px 12px',
-    borderRadius: 7,
-    fontSize: 13,
+    display: 'flex', alignItems: 'center', gap: 8,
+    padding: '7px 12px', borderRadius: 7, fontSize: 13,
     fontWeight: isActive(href) ? 600 : 400,
     color: isActive(href) ? '#fff' : 'rgba(255,255,255,.65)',
     background: isActive(href) ? 'rgba(255,255,255,.12)' : 'transparent',
     borderLeft: `2px solid ${isActive(href) ? '#60A5FA' : 'transparent'}`,
-    textDecoration: 'none',
-    transition: 'all .13s',
-    cursor: 'pointer',
-    marginBottom: 1,
+    textDecoration: 'none', transition: 'all .13s', cursor: 'pointer', marginBottom: 1,
   });
 
   const groupLabelStyle: React.CSSProperties = {
-    fontSize: 9,
-    fontWeight: 700,
-    color: 'rgba(255,255,255,.3)',
-    letterSpacing: '1.5px',
-    textTransform: 'uppercase',
-    fontFamily: 'var(--mono)',
-    padding: '10px 12px 4px',
+    fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,.3)',
+    letterSpacing: '1.5px', textTransform: 'uppercase',
+    fontFamily: 'var(--mono)', padding: '10px 12px 4px',
+  };
+
+  const renderAtcNode = (node: AtcNode, depth: number = 0): React.ReactNode => {
+    const hasChildren = !!(node.children && node.children.length > 0);
+    const expanded = atcExpanded[node.code];
+    const indent = depth * 10 + 12;
+    const isL5 = node.level === 5;
+    return (
+      <div key={node.code}>
+        {isL5
+          ? (
+            <a
+              href={'/atc/' + node.code}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 6,
+                paddingTop: 4, paddingBottom: 4, paddingRight: 12,
+                paddingLeft: indent + 8,
+                fontSize: 11, color: 'rgba(255,255,255,.45)',
+                textDecoration: 'none', borderRadius: 5,
+                fontFamily: 'var(--mono)', transition: 'color .12s',
+              }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,.85)'; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,.45)'; }}
+            >
+              <span style={{ fontSize: 7, color: 'rgba(255,255,255,.2)', flexShrink: 0 }}>◆</span>
+              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{node.label}</span>
+              <span style={{ marginLeft: 'auto', fontSize: 9, color: 'rgba(255,255,255,.2)', flexShrink: 0 }}>{node.code}</span>
+            </a>
+          ) : (
+            <button
+              onClick={() => toggleAtc(node.code)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 6,
+                paddingTop: 5, paddingBottom: 5, paddingRight: 12,
+                paddingLeft: indent,
+                width: '100%', background: 'none', border: 'none', cursor: 'pointer',
+                fontSize: depth === 0 ? 12 : 11,
+                fontWeight: depth === 0 ? 600 : 400,
+                color: depth === 0 ? 'rgba(255,255,255,.75)' : 'rgba(255,255,255,.55)',
+                borderRadius: 6, textAlign: 'left', transition: 'color .12s',
+                fontFamily: depth === 0 ? 'var(--sans)' : 'var(--mono)',
+              }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,.9)'; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = depth === 0 ? 'rgba(255,255,255,.75)' : 'rgba(255,255,255,.55)'; }}
+            >
+              {depth === 0 && (
+                <span style={{ fontSize: 9, fontWeight: 800, fontFamily: 'var(--mono)', color: '#60A5FA', minWidth: 18, flexShrink: 0 }}>
+                  {node.code}
+                </span>
+              )}
+              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>{node.label}</span>
+              {hasChildren && (
+                <span style={{ fontSize: 7, color: 'rgba(255,255,255,.25)', transition: 'transform .15s', transform: expanded ? 'rotate(90deg)' : 'none', flexShrink: 0 }}>▶</span>
+              )}
+            </button>
+          )
+        }
+        {hasChildren && expanded && (
+          <div style={{ borderLeft: '1px solid rgba(255,255,255,.07)', marginLeft: indent + 8 }}>
+            {node.children!.map(child => renderAtcNode(child, depth + 1))}
+          </div>
+        )}
+      </div>
+    );
   };
 
   return (
     <aside style={{
-      position: 'fixed', top: 0, left: 0, bottom: 0,
-      width: 260,
+      position: 'fixed', top: 0, left: 0, bottom: 0, width: 260,
       background: 'var(--green-dark, #0F2D5E)',
       display: 'flex', flexDirection: 'column',
-      zIndex: 100,
-      fontFamily: 'var(--sans)',
+      zIndex: 100, fontFamily: 'var(--sans)',
       borderRight: '1px solid rgba(255,255,255,.06)',
     }}>
 
-      {/* ── Logo ──────────────────────────────────────────────────── */}
+      {/* Logo */}
       <div style={{ padding: '16px 14px 12px', borderBottom: '1px solid rgba(255,255,255,.08)', flexShrink: 0 }}>
         <Link href="/dashboard" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', marginBottom: 10 }}>
           <div style={{ width: 32, height: 32, borderRadius: 9, background: 'rgba(255,255,255,.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -120,8 +159,6 @@ export default function Sidebar() {
             <div style={{ fontSize: 9, color: 'rgba(255,255,255,.4)', letterSpacing: '1.5px', fontFamily: 'var(--mono)' }}>ECUADOR</div>
           </div>
         </Link>
-
-        {/* Usuario y rol */}
         {user ? (
           <div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
@@ -151,27 +188,24 @@ export default function Sidebar() {
         )}
       </div>
 
-      {/* ── Navegación principal ──────────────────────────────────── */}
+      {/* Navegación */}
       <nav style={{ flex: 1, overflowY: 'auto', padding: '8px 8px 0', scrollbarWidth: 'thin' }}>
 
-        {/* Botón nuevo medicamento — prominente */}
         {isEditor && (
           <div style={{ padding: '0 4px 8px' }}>
             <Link href="/medicamentos/nuevo" style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
               padding: '9px 0', background: 'rgba(96,165,250,.2)', color: '#60A5FA',
               borderRadius: 8, fontSize: 12, fontWeight: 700, textDecoration: 'none',
-              border: '1.5px solid rgba(96,165,250,.3)', transition: 'all .15s',
-              fontFamily: 'var(--sans)',
+              border: '1.5px solid rgba(96,165,250,.3)', transition: 'all .15s', fontFamily: 'var(--sans)',
             }}
-            onMouseEnter={e => (e.currentTarget.style.background = 'rgba(96,165,250,.3)')}
-            onMouseLeave={e => (e.currentTarget.style.background = 'rgba(96,165,250,.2)')}>
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(96,165,250,.3)'; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(96,165,250,.2)'; }}>
               + Nuevo medicamento
             </Link>
           </div>
         )}
 
-        {/* Grupos de navegación */}
         {navGroups.map(group => (
           <div key={group.label}>
             <div style={groupLabelStyle}>{group.label}</div>
@@ -186,7 +220,6 @@ export default function Sidebar() {
           </div>
         ))}
 
-        {/* Admin group — colapsable */}
         {isAdmin && adminItems.length > 0 && (
           <div>
             <button onClick={() => setAdminOpen(!adminOpen)} style={{
@@ -207,7 +240,7 @@ export default function Sidebar() {
           </div>
         )}
 
-        {/* Capítulos — colapsable */}
+        {/* Capítulos terapéuticos */}
         <div>
           <button onClick={() => setCapsOpen(!capsOpen)} style={{
             ...groupLabelStyle, display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -240,9 +273,26 @@ export default function Sidebar() {
             </div>
           )}
         </div>
+
+        {/* Clasificación ATC */}
+        <div>
+          <button onClick={() => setAtcOpen(!atcOpen)} style={{
+            ...groupLabelStyle, display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            width: '100%', background: 'none', border: 'none', cursor: 'pointer', padding: '10px 12px 4px',
+          }}>
+            <span>Clasificación ATC</span>
+            <span style={{ fontSize: 8, transition: 'transform .2s', transform: atcOpen ? 'rotate(90deg)' : 'none' }}>▶</span>
+          </button>
+          {atcOpen && (
+            <div style={{ marginBottom: 8 }}>
+              {ATC_TREE.map(node => renderAtcNode(node, 0))}
+            </div>
+          )}
+        </div>
+
       </nav>
 
-      {/* ── Footer ────────────────────────────────────────────────── */}
+      {/* Footer */}
       <div style={{ padding: '10px 14px', borderTop: '1px solid rgba(255,255,255,.06)', flexShrink: 0 }}>
         <div style={{ fontSize: 9, color: 'rgba(255,255,255,.2)', fontFamily: 'var(--mono)', letterSpacing: 0.5, textAlign: 'center' }}>
           SIMI v2 · ISO IDMP · FHIR R4 · Ecuador
