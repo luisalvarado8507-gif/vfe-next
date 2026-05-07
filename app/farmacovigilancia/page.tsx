@@ -89,13 +89,9 @@ export default function Farmacovigilancia() {
     if (q.length < 2) { setMedSugs([]); return; }
     setMedBuscando(true);
     try {
-      const token = await getAuth().currentUser?.getIdToken() ?? '';
-      const res = await fetch(`/api/medicamentos?q=${encodeURIComponent(q)}&limit=8`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await fetch(`/api/medicamentos/buscar?q=${encodeURIComponent(q)}`);
       const data = await res.json();
-      console.log('SIMI autocomplete:', data);
-      setMedSugs(data.medicamentos || data || []);
+      setMedSugs(Array.isArray(data) ? data : []);
     } catch { setMedSugs([]); }
     setMedBuscando(false);
   };
