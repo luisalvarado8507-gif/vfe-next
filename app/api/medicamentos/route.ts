@@ -87,6 +87,22 @@ export async function GET(req: NextRequest) {
     const cursor = searchParams.get('cursor');
     const capitulo = searchParams.get('capitulo');
     const estadoFilter = searchParams.get('estado');
+    const q = searchParams.get('q');
+
+    // Búsqueda por nombre (autocomplete farmacovigilancia)
+    if (q && q.length >= 2) {
+      const qLower = q.toLowerCase();
+      const snap = await adminDb.collection('medicamentos').limit(200).get();
+      const results = snap.docs
+        .map(d => mapDoc(d as any))
+        .filter(m =>
+          m.nombre?.toLowerCase().includes(qLower) ||
+          m.vtm?.toLowerCase().includes(qLower) ||
+          m.rs?.toLowerCase().includes(qLower)
+        )
+        .slice(0, 10);
+      return NextResponse.json({ medicamentos: results });
+    }
 
     const col = adminDb.collection('medicamentos');
     let query: Query = estadoFilter

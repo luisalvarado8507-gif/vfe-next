@@ -49,6 +49,9 @@ export default function Farmacovigilancia() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [tab, setTab] = useState<'nuevo'|'historial'>('nuevo');
+  const [medQuery, setMedQuery] = useState('');
+  const [medSugs, setMedSugs] = useState<any[]>([]);
+  const [medBuscando, setMedBuscando] = useState(false);
 
   const [rep, setRep] = useState<ReporteRAM>({
     tipo:'RAM', fechaReporte:new Date().toISOString().split('T')[0],
@@ -78,6 +81,35 @@ export default function Farmacovigilancia() {
       if(res.ok){setSaved(true);setTab('historial');}
     } catch(e){console.error(e);}
     setSaving(false);
+  };
+
+  const buscarMedicamento = async (q: string) => {
+    setMedQuery(q);
+    s('medicamentoSospechoso', q);
+    if (q.length < 2) { setMedSugs([]); return; }
+    setMedBuscando(true);
+    try {
+      const token = await getAuth().currentUser?.getIdToken() ?? '';
+      const res = await fetch(`/api/medicamentos?q=${encodeURIComponent(q)}&limit=8`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await res.json();
+      setMedSugs(data.medicamentos || data || []);
+    } catch { setMedSugs([]); }
+    setMedBuscando(false);
+  };
+
+  const seleccionarMedicamento = (med: any) => {
+    setMedQuery(med.nombre || med.amp || '');
+    setMedSugs([]);
+    setRep(p => ({
+      ...p,
+      medicamentoSospechoso: med.nombre || med.amp || '',
+      medicamentoRS:         med.rs || '',
+      medicamentoDosis:      med.conc ? `${med.conc}` : '',
+      medicamentoVia:        med.via || med.vias || 'oral',
+      medicamentoIndicacion: med.vtm || '',
+    }));
   };
 
   return (
@@ -180,7 +212,39 @@ export default function Farmacovigilancia() {
             <div style={card}>
               <div style={{fontSize:10,fontWeight:700,color:'var(--tx3)',letterSpacing:1.5,fontFamily:'var(--mono)',textTransform:'uppercase',marginBottom:12}}>Medicamento sospechoso</div>
               <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
-                {fld('Nombre comercial / DCI',<input value={rep.medicamentoSospechoso} onChange={e=>s('medicamentoSospechoso',e.target.value)} style={inp()} placeholder="Minart AM 16+2.5mg"/>,true)}
+                {fld('Nombre comercial / DCI',
+                  <div style={{position:'relative'}}>
+                    <input
+                      value={medQuery || rep.medicamentoSospechoso}
+                      onChange={e => buscarMedicamento(e.target.value)}
+                      style={inp()}
+                      placeholder="Escribe para buscar en SIMI... (ej: Minart AM)"
+                    />
+                    {medBuscando && <div style={{position:'absolute',right:10,top:8,fontSize:11,color:'var(--tx4)'}}>⟳</div>}
+                    {medSugs.length > 0 && (
+                      <div style={{position:'absolute',top:'100%',left:0,right:0,background:'var(--bg)',border:'1px solid var(--bdr)',borderRadius:8,zIndex:50,maxHeight:260,overflowY:'auto',boxShadow:'0 4px 16px rgba(0,0,0,.12)'}}>
+                        {medSugs.map((med: any, i: number) => (
+                          <button key={i} onClick={() => seleccionarMedicamento(med)}
+                            style={{display:'flex',alignItems:'flex-start',gap:10,width:'100%',padding:'10px 12px',background:'none',border:'none',cursor:'pointer',textAlign:'left',borderBottom:'1px solid var(--bdr)'}}
+                            onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--bg2)'}
+                            onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'none'}>
+                            <div style={{flex:1}}>
+                              <div style={{fontSize:12,fontWeight:700,color:'var(--tx)',marginBottom:2}}>{med.nombre || med.amp}</div>
+                              <div style={{fontSize:10,color:'var(--tx3)',fontFamily:'var(--mono)'}}>
+                                {med.vtm && <span style={{marginRight:8}}>{med.vtm}</span>}
+                                {med.conc && <span style={{marginRight:8}}>{med.conc}</span>}
+                                {med.ff && <span style={{marginRight:8}}>{med.ff}</span>}
+                              </div>
+                            </div>
+                            <div style={{textAlign:'right',flexShrink:0}}>
+                              {med.rs && <div style={{fontSize:9,fontFamily:'var(--mono)',color:'var(--tx4)',marginBottom:2}}>{med.rs}</div>}
+                              <span style={{fontSize:9,padding:'2px 6px',borderRadius:10,background: med.estado==='autorizado'?'#DCFCE7':'#FEF9C3',color:med.estado==='autorizado'?'#166534':'#854D0E',fontFamily:'var(--mono)',fontWeight:700}}>{med.estado||'pendiente'}</span>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>,true)}
                 {fld('Registro sanitario ARCSA',<input value={rep.medicamentoRS} onChange={e=>s('medicamentoRS',e.target.value)} style={inp()} placeholder="2967-MEE-0817"/>)}
                 {fld('Dosis y frecuencia',<input value={rep.medicamentoDosis} onChange={e=>s('medicamentoDosis',e.target.value)} style={inp()} placeholder="16+2.5mg cada 24h"/>)}
                 {fld('Vía de administración',<select value={rep.medicamentoVia} onChange={e=>s('medicamentoVia',e.target.value)} style={inp()}>{['oral','intravenosa','intramuscular','subcutánea','tópica','inhalatoria','oftálmica','rectal','sublingual','transdérmica'].map(v=><option key={v} value={v}>{v}</option>)}</select>)}
