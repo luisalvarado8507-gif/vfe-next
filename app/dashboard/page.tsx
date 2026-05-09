@@ -56,13 +56,15 @@ export default function Dashboard() {
           genericos: statsData.genericos ?? 0,
           cnmb: statsData.cnmb ?? 0,
         });
-        setRecientes((recentData.medicamentos || []).slice(0, 20).map((m: Record<string, string>) => ({
+        setRecientes((recentData.medicamentos || []).slice(0, 20).map((m: any) => ({
           docId: m.docId || m.id,
           nombre: m.nombre || m.vtm || '',
           vtm: m.vtm || '',
           conc: m.conc || '',
           laboratorio: m.laboratorio || '',
           estado: m.estado || 'pendiente',
+          esCombo: m.esCombo || false,
+          comboData: m.comboData || null,
         })));
       } catch(e) { console.error(e); }
       finally { setLoading(false); }
