@@ -260,40 +260,42 @@ export default function Farmacovigilancia() {
           {step===2&&(
             <div style={card}>
               <div style={{fontSize:10,fontWeight:700,color:'var(--tx3)',letterSpacing:1.5,fontFamily:'var(--mono)',textTransform:'uppercase',marginBottom:12}}>Medicamento sospechoso</div>
+              {/* Búsqueda medicamento — fuera del grid para evitar overflow */}
+              <div style={{position:'relative',marginBottom:12,zIndex:100}}>
+                {lbl('Nombre comercial / DCI',true)}
+                <input
+                  value={medQuery || rep.medicamentoSospechoso}
+                  onChange={e => buscarMedicamento(e.target.value)}
+                  style={inp()}
+                  placeholder="Escribe para buscar en SIMI... (ej: Minart AM)"
+                />
+                {medBuscando && <div style={{position:'absolute',right:10,top:30,fontSize:11,color:'var(--tx4)'}}>⟳</div>}
+                {medSugs.length > 0 && (
+                  <div style={{position:'absolute',top:'100%',left:0,right:0,background:'var(--bg)',border:'1px solid var(--bdr)',borderRadius:8,zIndex:200,maxHeight:280,overflowY:'auto',boxShadow:'0 8px 24px rgba(0,0,0,.15)'}}>
+                    {medSugs.map((med: any, i: number) => (
+                      <button key={i} onClick={() => seleccionarMedicamento(med)}
+                        style={{display:'flex',alignItems:'flex-start',gap:10,width:'100%',padding:'10px 12px',background:'none',border:'none',cursor:'pointer',textAlign:'left',borderBottom:'1px solid var(--bdr)'}}
+                        onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--bg2)'}
+                        onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'none'}>
+                        <div style={{flex:1}}>
+                          <div style={{fontSize:12,fontWeight:700,color:'var(--tx)',marginBottom:2}}>{med.nombre || med.amp}</div>
+                          <div style={{fontSize:10,color:'var(--tx3)',fontFamily:'var(--mono)'}}>
+                            {med.vtm && <span style={{marginRight:8}}>{med.vtm}</span>}
+                            {med.conc && <span style={{marginRight:8}}>{med.conc}</span>}
+                            {med.ff && <span style={{marginRight:8}}>{med.ff}</span>}
+                          </div>
+                        </div>
+                        <div style={{textAlign:'right',flexShrink:0}}>
+                          {med.rs && <div style={{fontSize:9,fontFamily:'var(--mono)',color:'var(--tx4)',marginBottom:2}}>{med.rs}</div>}
+                          <span style={{fontSize:9,padding:'2px 6px',borderRadius:10,background:med.estado==='autorizado'?'#DCFCE7':'#FEF9C3',color:med.estado==='autorizado'?'#166534':'#854D0E',fontFamily:'var(--mono)',fontWeight:700}}>{med.estado||'pendiente'}</span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
               <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
-                {fld('Nombre comercial / DCI',
-                  <div style={{position:'relative'}}>
-                    <input
-                      value={medQuery || rep.medicamentoSospechoso}
-                      onChange={e => buscarMedicamento(e.target.value)}
-                      style={inp()}
-                      placeholder="Escribe para buscar en SIMI... (ej: Minart AM)"
-                    />
-                    {medBuscando && <div style={{position:'absolute',right:10,top:8,fontSize:11,color:'var(--tx4)'}}>⟳</div>}
-                    {medSugs.length > 0 && (
-                      <div style={{position:'absolute',top:'100%',left:0,right:0,background:'var(--bg)',border:'1px solid var(--bdr)',borderRadius:8,zIndex:50,maxHeight:260,overflowY:'auto',boxShadow:'0 4px 16px rgba(0,0,0,.12)'}}>
-                        {medSugs.map((med: any, i: number) => (
-                          <button key={i} onClick={() => seleccionarMedicamento(med)}
-                            style={{display:'flex',alignItems:'flex-start',gap:10,width:'100%',padding:'10px 12px',background:'none',border:'none',cursor:'pointer',textAlign:'left',borderBottom:'1px solid var(--bdr)'}}
-                            onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--bg2)'}
-                            onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'none'}>
-                            <div style={{flex:1}}>
-                              <div style={{fontSize:12,fontWeight:700,color:'var(--tx)',marginBottom:2}}>{med.nombre || med.amp}</div>
-                              <div style={{fontSize:10,color:'var(--tx3)',fontFamily:'var(--mono)'}}>
-                                {med.vtm && <span style={{marginRight:8}}>{med.vtm}</span>}
-                                {med.conc && <span style={{marginRight:8}}>{med.conc}</span>}
-                                {med.ff && <span style={{marginRight:8}}>{med.ff}</span>}
-                              </div>
-                            </div>
-                            <div style={{textAlign:'right',flexShrink:0}}>
-                              {med.rs && <div style={{fontSize:9,fontFamily:'var(--mono)',color:'var(--tx4)',marginBottom:2}}>{med.rs}</div>}
-                              <span style={{fontSize:9,padding:'2px 6px',borderRadius:10,background: med.estado==='autorizado'?'#DCFCE7':'#FEF9C3',color:med.estado==='autorizado'?'#166534':'#854D0E',fontFamily:'var(--mono)',fontWeight:700}}>{med.estado||'pendiente'}</span>
-                            </div>
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>,true)}
                 {fld('Registro sanitario ARCSA',<input value={rep.medicamentoRS} onChange={e=>s('medicamentoRS',e.target.value)} style={inp()} placeholder="2967-MEE-0817"/>)}
                 {fld('Dosis y frecuencia',<input value={rep.medicamentoDosis} onChange={e=>s('medicamentoDosis',e.target.value)} style={inp()} placeholder="16+2.5mg cada 24h"/>)}
                 {fld('Vía de administración',<select value={rep.medicamentoVia} onChange={e=>s('medicamentoVia',e.target.value)} style={inp()}>{['oral','intravenosa','intramuscular','subcutánea','tópica','inhalatoria','oftálmica','rectal','sublingual','transdérmica'].map(v=><option key={v} value={v}>{v}</option>)}</select>)}
