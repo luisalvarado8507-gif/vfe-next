@@ -40,6 +40,8 @@ export async function GET(req: NextRequest) {
         estado: doc.data().estado || '',
         chapId: doc.data().data?.chapId || '',
         nombre: doc.data().data?.nombre || doc.data().amp || '',
+        esCombo: doc.data().data?.esCombo || false,
+        comboData: doc.data().data?.comboData || null,
       }));
       return NextResponse.json({ medicamentos, total: medicamentos.length });
     }
