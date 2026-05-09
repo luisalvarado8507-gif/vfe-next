@@ -293,6 +293,10 @@ function BaseDatosContent() {
   const ordenados = [...fuente].sort((a, b) => {
     const est = estadoOrden(a.estado) - estadoOrden(b.estado);
     if (est !== 0) return est;
+    // Ordenar por score de completitud descendente (más completos primero)
+    const scoreA = calcCompletitud(a as any);
+    const scoreB = calcCompletitud(b as any);
+    if (scoreB !== scoreA) return scoreB - scoreA;
     return ((b as any).hasPrices ? 1 : 0) - ((a as any).hasPrices ? 1 : 0);
   });
   const filtrados = ordenados.filter(m => {
