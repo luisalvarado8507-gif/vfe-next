@@ -67,6 +67,9 @@ export default function Arbol() {
           cursor = data.nextCursor;
           if (!cursor) break;
         }
+        // Debug temporal
+        const combos = all.filter((m: any) => m.esCombo);
+        console.log('Combos encontrados:', combos.length, combos.map((m: any) => ({vtm: m.vtm, esCombo: m.esCombo, pas: m.comboData?.pas})));
         setMeds(all);
       } catch(e) { console.error(e); }
       finally { setLoading(false); }
