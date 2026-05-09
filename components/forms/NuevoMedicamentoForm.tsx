@@ -78,8 +78,24 @@ export default function NuevoMedicamentoForm({ initialData, editId }: { initialD
   const [tipoPA, setTipoPA] = useState<'mono' | 'combo'>(initEsCombo ? 'combo' : 'mono');
   const [comboPAs, setComboPAs] = useState(initComboPAs);
   const [vtm, setVtm] = useState(initialData?.vtm || '');
-  const [conc, setConc] = useState(initialData?.conc || '');
-  const [concUnit, setConcUnit] = useState(initialData?.concUnit || 'mg');
+  const [conc, setConc] = useState(() => {
+    const raw = initialData?.conc || '';
+    // Si viene "40.00 mg" o "40 mg" — separar número de unidad
+    const m = raw.match(/^([\d.,]+)\s*([a-zA-Z%/]+.*)?$/);
+    if (m) {
+      // Limpiar decimales innecesarios: "40.00" → "40", "2.50" → "2.5"
+      const num = parseFloat(m[1].replace(',', '.'));
+      return isNaN(num) ? raw : (Number.isInteger(num) ? String(num) : String(num));
+    }
+    return raw;
+  });
+  const [concUnit, setConcUnit] = useState(() => {
+    if (initialData?.concUnit) return initialData.concUnit;
+    // Extraer unidad del campo conc si viene combinado: "40.00 mg" → "mg"
+    const raw = initialData?.conc || '';
+    const m = raw.match(/^[\d.,]+\s*([a-zA-Z%/]+.*)$/);
+    return m ? m[1].trim() : 'mg';
+  });
   const [lab, setLab] = useState(initialData?.laboratorio || '');
   const [ff, setFf] = useState(initialData?.ff || '');
   const [vias, setVias] = useState<string[]>(initialData?.vias ? initialData.vias.split(', ').filter(Boolean) : []);
