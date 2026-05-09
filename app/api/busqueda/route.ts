@@ -62,6 +62,8 @@ export async function GET(req: NextRequest) {
       cum: doc.data().data?.cum || '',
       generico: doc.data().data?.generico || '',
       cnmb: doc.data().data?.cnmb || '',
+      esCombo: doc.data().data?.esCombo || false,
+      comboData: doc.data().data?.comboData || null,
     });
     const todos: any[] = [];
     let lastDoc: any = null;
