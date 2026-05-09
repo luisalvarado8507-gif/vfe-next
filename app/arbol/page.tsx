@@ -46,7 +46,7 @@ export default function Arbol() {
   const [loading, setLoading] = useState(true);
   const [busqueda, setBusqueda] = useState('');
   const [open, setOpen] = useState<Set<string>>(new Set());
-  const [level, setLevel] = useState<ArbolLevel>('all');
+  const [level, setLevel] = useState<ArbolLevel>('vtm');
   const { getToken, user, loading: authLoading } = useAuth();
   const router = useRouter();
 
@@ -78,7 +78,11 @@ export default function Arbol() {
   const tree = useMemo(() => {
     const t: Record<string, VTMNode> = {};
     meds.forEach(m => {
-      const vtm = m.vtm || '(Sin VTM)';
+      // Para combos usar los principios activos reales
+      const vtmRaw = (m.esCombo === true || m.esCombo === 'true') && m.comboData?.pas?.length
+        ? m.comboData.pas.join(' + ')
+        : (m.vtm || '(Sin VTM)');
+      const vtm = vtmRaw.toLowerCase();
       const vmp = m.vmp || `${vtm} ${m.conc || ''} ${m.ff || ''}`.trim();
       const vmpp = m.vmpp || (m.units ? `${m.vmp || vtm} ${m.conc || ''}, ${m.units} ${m.envase || 'unidades'}`.trim() : '__');
       const amp = m.amp || m.nombre || m.vtm || '';
