@@ -92,7 +92,7 @@ export default function Arbol() {
       if (!t[vtm]) t[vtm] = { label: vtm, esCombo: m.esCombo === 'true' || m.esCombo === true, vmps: {} };
       if (!t[vtm].vmps[vmp]) t[vtm].vmps[vmp] = { label: vmp, ff: m.ff || '', vmpps: {} };
       if (!t[vtm].vmps[vmp].vmpps[vmpp]) t[vtm].vmps[vmp].vmpps[vmpp] = { label: vmpp, amps: [] };
-      t[vtm].vmps[vmp].vmpps[vmpp].amps.push({ id: m.id, docId: m.docId, amp, lab, estado: m.estado || '', generico: m.generico || '' });
+      t[vtm].vmps[vmp].vmpps[vmpp].amps.push({ id: m.id, docId: m.docId, amp, ampp: m.ampp || '', lab, estado: m.estado || '', generico: m.generico || '', units: m.units || '', envase: m.envase || '' });
     });
     return t;
   }, [meds]);
@@ -288,23 +288,42 @@ export default function Arbol() {
                                   </div>
                                 )}
                                 {(hasVMPP ? isVMPPOpen : true) && vmppNode.amps.map((amp, ai) => (
-                                  <div key={amp.id || ai}
-                                    onClick={() => router.push(`/medicamentos/${amp.docId || amp.id}`)}
-                                    style={{ ...rowBase, paddingLeft: hasVMPP ? 88 : 66, background: 'var(--bg)', justifyContent: 'space-between' }}
-                                    onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--bg3)'}
-                                    onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'var(--bg)'}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0 }}>
-                                      <NivelBadge nivel="AMP" />
-                                      <EstadoDot estado={amp.estado} />
-                                      <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--tx)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                        {amp.amp || '—'}
-                                      </span>
+                                  <div key={amp.id || ai}>
+                                    {/* AMP ROW */}
+                                    <div
+                                      onClick={() => togOpen(`amp:${vtm}:${vmp}:${vmpp}:${amp.id || ai}`)}
+                                      style={{ ...rowBase, paddingLeft: hasVMPP ? 88 : 66, background: 'var(--bg)', justifyContent: 'space-between' }}
+                                      onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--bg3)'}
+                                      onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'var(--bg)'}>
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0 }}>
+                                        {amp.ampp && <span style={{ fontSize: 10, color: 'var(--tx4)', transition: 'transform .2s', transform: open.has(`amp:${vtm}:${vmp}:${vmpp}:${amp.id || ai}`) ? 'rotate(90deg)' : 'none', display: 'inline-block', flexShrink: 0 }}>▶</span>}
+                                        <NivelBadge nivel="AMP" />
+                                        <EstadoDot estado={amp.estado} />
+                                        <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--tx)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                          {amp.amp || '—'}
+                                        </span>
+                                      </div>
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
+                                        <span style={{ fontSize: 11, color: 'var(--tx3)' }}>{amp.lab}</span>
+                                        {amp.generico === 'Sí' && <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--green)', background: 'var(--estado-autorizado-bg)', padding: '1px 6px', borderRadius: 20 }}>Genérico</span>}
+                                        <span onClick={e => { e.stopPropagation(); router.push(`/medicamentos/${amp.docId || amp.id}`); }} style={{ fontSize: 11, color: 'var(--green)', fontWeight: 600, cursor: 'pointer' }}>Ver →</span>
+                                      </div>
                                     </div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
-                                      <span style={{ fontSize: 11, color: 'var(--tx3)' }}>{amp.lab}</span>
-                                      {amp.generico === 'Sí' && <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--green)', background: 'var(--estado-autorizado-bg)', padding: '1px 6px', borderRadius: 20 }}>Genérico</span>}
-                                      <span style={{ fontSize: 11, color: 'var(--green)', fontWeight: 600 }}>Ver →</span>
-                                    </div>
+                                    {/* AMPP ROW */}
+                                    {amp.ampp && open.has(`amp:${vtm}:${vmp}:${vmpp}:${amp.id || ai}`) && (
+                                      <div style={{ ...rowBase, paddingLeft: hasVMPP ? 110 : 88, background: 'var(--bg2)', justifyContent: 'space-between' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0 }}>
+                                          <NivelBadge nivel="AMPP" />
+                                          <span style={{ fontSize: 12, color: 'var(--tx2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                            {amp.ampp}
+                                          </span>
+                                        </div>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+                                          {amp.units && <span style={{ fontSize: 11, color: 'var(--tx4)', fontFamily: 'var(--mono)' }}>{amp.envase} {amp.units}</span>}
+                                          <span onClick={() => router.push(`/medicamentos/${amp.docId || amp.id}`)} style={{ fontSize: 11, color: 'var(--green)', fontWeight: 600, cursor: 'pointer' }}>Ver →</span>
+                                        </div>
+                                      </div>
+                                    )}
                                   </div>
                                 ))}
                               </div>
