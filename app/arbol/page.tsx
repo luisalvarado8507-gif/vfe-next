@@ -275,7 +275,7 @@ export default function Arbol() {
                             return (
                               <div key={vmpp}>
                                 {/* VMPP ROW */}
-                                {vmpp !== '__' && (level === 'all' || level === 'amp') && (
+                                {vmpp !== '__' && (level === 'all' || level === 'amp' || open.has(`vtm:${vtm}`)) && (
                                   <div style={{ ...rowBase, paddingLeft: 66, background: 'var(--bg2)' }}>
                                     <NivelBadge nivel="VMPP" />
                                     <span style={{ flex: 1, fontSize: 12, color: 'var(--tx3)' }}>{vmppNode.label}</span>
@@ -283,7 +283,7 @@ export default function Arbol() {
                                 )}
 
                                 {/* AMP ROWS */}
-                                {(level === 'all' || level === 'amp') && vmppNode.amps.map((amp, ai) => (
+                                {(level === 'all' || level === 'amp' || open.has(`vtm:${vtm}`)) && vmppNode.amps.map((amp, ai) => (
                                   <div key={amp.id || ai}
                                     onClick={() => router.push(`/medicamentos/${amp.docId || amp.id}`)}
                                     style={{ ...rowBase, paddingLeft: vmpp !== '__' ? 88 : 66, background: 'var(--bg)', justifyContent: 'space-between' }}
