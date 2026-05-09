@@ -74,7 +74,7 @@ function SlideOver({ med, onClose, isEditor }: { med: Medicamento | null; onClos
               <div style={{ fontSize: 16, fontWeight: 700, color: '#fff', lineHeight: 1.3, marginBottom: 4 }}>
                 {(med as any).nombre || med.vtm}
               </div>
-              <div style={{ fontSize: 12, color: 'rgba(255,255,255,.65)' }}>{med.vtm}</div>
+              <div style={{ fontSize: 12, color: 'rgba(255,255,255,.65)' }}>{getVtmLabel(med)}</div>
             </div>
             <button onClick={onClose} style={{ background: 'rgba(255,255,255,.1)', border: 'none', color: '#fff', width: 28, height: 28, borderRadius: '50%', cursor: 'pointer', fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>✕</button>
           </div>
@@ -90,7 +90,7 @@ function SlideOver({ med, onClose, isEditor }: { med: Medicamento | null; onClos
 
           {/* Identificación */}
           <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--tx3)', letterSpacing: 1.5, fontFamily: 'var(--mono)', textTransform: 'uppercase', marginBottom: 10, paddingBottom: 6, borderBottom: '1px solid var(--bdr)' }}>Identificación</div>
-          {field('Principio activo (DCI/INN)', med.vtm)}
+          {field('Principio activo (DCI/INN)', getVtmLabel(med))}
           {field('Nombre comercial', (med as any).nombre || (med as any).amp)}
           {field('Concentración', med.conc, true)}
           {field('Forma farmacéutica', med.ff)}
@@ -163,6 +163,14 @@ function SlideOver({ med, onClose, isEditor }: { med: Medicamento | null; onClos
       </div>
     </>
   );
+}
+
+// Helper: texto del principio activo — para combos usa comboData.pas
+function getVtmLabel(m: any): string {
+  if (m.esCombo && m.comboData?.pas?.length) {
+    return m.comboData.pas.join(' + ');
+  }
+  return m.vtm || '';
 }
 
 // Calcular score de completitud ISO IDMP por medicamento
@@ -491,7 +499,7 @@ function BaseDatosContent() {
                         {/* Principio activo DCI */}
                         <td style={{ padding: '10px 14px', maxWidth: 200 }}>
                           <div style={{ fontSize: 13, color: 'var(--tx2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={m.vtm}>
-                            {m.vtm || <span style={{ color: 'var(--tx4)', fontStyle: 'italic', fontSize: 11 }}>—</span>}
+                            {getVtmLabel(m) || <span style={{ color: 'var(--tx4)', fontStyle: 'italic', fontSize: 11 }}>—</span>}
                           </div>
                           {(m as any).atc && <span style={{ fontSize: 9, padding: '1px 6px', borderRadius: 3, background: 'var(--blue-bg)', color: 'var(--blue)', fontFamily: 'var(--mono)', fontWeight: 700, marginTop: 2, display: 'inline-block' }}>{(m as any).atc}</span>}
                         </td>
