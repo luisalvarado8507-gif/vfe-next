@@ -46,10 +46,39 @@ export async function GET(req: NextRequest) {
 
     if (!q && !capitulo) return NextResponse.json({ medicamentos: [], total: 0 });
 
-    const snap = await adminDb.collection('medicamentos').orderBy('vtm').limit(1000).get();
-    const medicamentos = snap.docs
-      .filter(doc => doc.data().estado !== 'eliminado')
-      .map(doc => ({
+    // Cargar TODOS los medicamentos en páginas de 500 para cubrir los 16.515
+    const mapDoc = (doc: any) => ({
+      docId: doc.id,
+      id: doc.data().data?.id || doc.id,
+      vtm: doc.data().data?.vtm || doc.data().vtm || '',
+      laboratorio: doc.data().data?.laboratorio || doc.data().laboratorio || '',
+      ff: doc.data().data?.ff || '',
+      conc: doc.data().data?.conc || '',
+      estado: doc.data().estado || '',
+      chapId: doc.data().data?.chapId || '',
+      nombre: doc.data().data?.nombre || doc.data().amp || '',
+      atc: doc.data().data?.atc || '',
+      rs: doc.data().data?.rs || '',
+      cum: doc.data().data?.cum || '',
+      generico: doc.data().data?.generico || '',
+      cnmb: doc.data().data?.cnmb || '',
+    });
+    const todos: any[] = [];
+    let lastDoc: any = null;
+    while (true) {
+      let q: any = adminDb.collection('medicamentos').orderBy('vtm').limit(500);
+      if (lastDoc) q = q.startAfter(lastDoc);
+      const snap = await q.get();
+      if (snap.empty) break;
+      snap.docs.forEach((doc: any) => { if (doc.data().estado !== 'eliminado') todos.push(mapDoc(doc)); });
+      lastDoc = snap.docs[snap.docs.length - 1];
+      if (snap.docs.length < 500) break;
+    }
+    const fakeSnap = { docs: [] }; // unused below
+    const medicamentos = todos.filter(m => {
+      // inline filter below
+      return true;
+    }).map(m => m); const _unused = todos.map((doc: any) => ({
         docId: doc.id,
         id: doc.data().data?.id || doc.id,
         vtm: doc.data().data?.vtm || doc.data().vtm || '',
