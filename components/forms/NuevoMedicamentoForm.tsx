@@ -167,6 +167,47 @@ export default function NuevoMedicamentoForm({ initialData, editId }: { initialD
     const v = tipoPA === 'mono' ? vtm : comboPAs[0]?.vtm || '';
     setSnomedVTM(v ? getSnomedVTM(v) : null); 
   }, [vtm, tipoPA, comboPAs]);
+
+  // ── Auto-generación PhPID ISO 11616 ──────────────────────────────────────
+  useEffect(() => {
+    // Normaliza texto para el código: mayúsculas, sin tildes, sin espacios
+    const slug = (s: string) =>
+      s.toUpperCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^A-Z0-9]/g, '');
+
+    // Forma farmacéutica abreviada (max 5 chars)
+    const ffSlug = slug(ff.split('(')[0].trim()).slice(0, 5);
+
+    // Principio activo
+    const pa = tipoPA === 'mono'
+      ? vtm.trim()
+      : comboPAs.filter((p: any) => p.vtm).map((p: any) => p.vtm).join(' + ');
+
+    // Concentración sin espacios: "20 mg" → "20MG", "10 mg + 80 mg" → "10MG+80MG"
+    const concSlug = tipoPA === 'mono'
+      ? (conc ? slug(`${conc}${concUnit}`) : '')
+      : comboPAs.filter((p: any) => p.vtm && p.conc)
+          .map((p: any) => slug(`${p.conc}${p.unit}`)).join('+');
+
+    if (!pa || !ff) return; // No generar si faltan datos mínimos
+
+    // Nivel 1: sustancia + forma farmacéutica
+    const l1 = `${pa.toLowerCase()} + ${ff.split('(')[0].trim().toLowerCase()}`;
+    // Nivel 2: + concentración
+    const l2 = concSlug ? `${l1} + ${conc ? (tipoPA === 'mono' ? `${conc} ${concUnit}` : concLabel) : ''}`.trim() : l1;
+    // Nivel 3: + unidades de envase
+    const l3 = units ? `${l2} por ${units}`.trim() : l2;
+    // Código corto: PhPID-{ATC}-{CONC}{UNIT}-{FF}
+    const atcPart = atc ? atc.replace(/[^A-Z0-9]/gi, '').toUpperCase() : 'XATC';
+    const code = `PhPID-${atcPart}${concSlug ? '-' + concSlug : ''}${ffSlug ? '-' + ffSlug : ''}`;
+
+    setPhpidL1(l1);
+    setPhpidL2(l2);
+    setPhpidL3(l3);
+    setPhpid(code);
+  }, [vtm, ff, conc, concUnit, atc, units, tipoPA, comboPAs]);
+  // ─────────────────────────────────────────────────────────────────────────
   useEffect(() => { setSnomedFF(ff ? getSnomedFF(ff) : null); }, [ff]);
 
   const ffShort = ff.split('(')[0].trim();
@@ -772,21 +813,21 @@ export default function NuevoMedicamentoForm({ initialData, editId }: { initialD
             <div style={{ ...sec }}>Identificador farmacéutico global <span style={badge('rgba(37,99,235,.15)', '#2563eb')}>ISO 11616</span></div>
             <div style={{ marginBottom: 12 }}>
               <label style={lbl}>PhPID NIVEL 1 — Sustancia + Forma farmacéutica <span style={{ fontSize:10,fontWeight:400,color:'var(--tx4)',textTransform:'none',letterSpacing:0 }}>ISO 11616</span></label>
-              <input style={inp} placeholder="Ej. amlodipino comprimido recubierto con película" value={phpidL1} onChange={e => setPhpidL1(e.target.value)} />
+              <input style={{ ...inp, background:"var(--bg2,#f8fafc)", color:"var(--tx2)", fontStyle: phpidL1?"normal":"italic" }} readOnly value={phpidL1} placeholder="Se genera automáticamente al ingresar sustancia + forma farmacéutica" />
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 12 }}>
               <div>
                 <label style={lbl}>PhPID NIVEL 2 — + Concentración <span style={{ fontSize:10,fontWeight:400,color:'var(--tx4)',textTransform:'none',letterSpacing:0 }}>ISO 11616</span></label>
-                <input style={inp} placeholder="Ej. amlodipino comp. recubierto 5 mg" value={phpidL2} onChange={e => setPhpidL2(e.target.value)} />
+                <input style={{ ...inp, background:"var(--bg2,#f8fafc)", color:"var(--tx2)" }} readOnly value={phpidL2} placeholder="Se genera al agregar concentración" />
               </div>
               <div>
                 <label style={lbl}>PhPID NIVEL 3 — + Unidades <span style={{ fontSize:10,fontWeight:400,color:'var(--tx4)',textTransform:'none',letterSpacing:0 }}>ISO 11616</span></label>
-                <input style={inp} placeholder="Ej. amlodipino comp. recubierto 5 mg caja 30" value={phpidL3} onChange={e => setPhpidL3(e.target.value)} />
+                <input style={{ ...inp, background:"var(--bg2,#f8fafc)", color:"var(--tx2)" }} readOnly value={phpidL3} placeholder="Se genera al agregar unidades de envase" />
               </div>
             </div>
             <div style={{ marginBottom: 16 }}>
               <label style={lbl}>PhPID CÓDIGO <span style={{ fontSize:10,fontWeight:400,color:'var(--tx4)',textTransform:'none',letterSpacing:0 }}>ISO 11616</span></label>
-              <input style={{ ...inp, fontFamily:'var(--mono)' }} placeholder="Ej. PhPID-C08CA01-5MG-COMP" value={phpid} onChange={e => setPhpid(e.target.value)} />
+              <input style={{ ...inp, fontFamily:"var(--mono)", background: phpid?"#f0fdf4":"var(--bg2,#f8fafc)", color: phpid?"#15803d":"var(--tx3)", fontWeight: phpid?600:400 }} readOnly value={phpid} placeholder="PhPID-{ATC}-{CONC}-{FF} — se genera automáticamente" />
             </div>
 
             {/* Códigos */}
