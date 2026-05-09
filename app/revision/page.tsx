@@ -17,6 +17,14 @@ const ESTADO_STYLES: Record<string, { bg: string; color: string; label: string }
   arcsa_pendiente: { bg: '#eff6ff', color: '#1d4ed8', label: 'ARCSA pendiente' },
 };
 
+function calcCompletitud(m: any): number {
+  const checks = [
+    !!m.vtm, !!m.ff, !!m.conc, !!m.laboratorio,
+    !!m.rs, !!m.cum, !!m.atc, !!m.nombre,
+  ];
+  return Math.round((checks.filter(Boolean).length / checks.length) * 100);
+}
+
 function getVtmLabel(m: any): string {
   if (m.esCombo && m.comboData?.pas?.length) return m.comboData.pas.join(' + ');
   return m.vtm || '';
@@ -75,8 +83,9 @@ export default function RevisionPage() {
     return (m.vtm||'').toLowerCase().includes(q)||(m.nombre||'').toLowerCase().includes(q)||(m.laboratorio||'').toLowerCase().includes(q)||(m.rs||'').toLowerCase().includes(q);
   });
 
-  const totalPags = Math.max(1, Math.ceil(filtrados.length / PER_PAGE));
-  const paginados = filtrados.slice((pagina-1)*PER_PAGE, pagina*PER_PAGE);
+  const ordenados = [...filtrados].sort((a, b) => calcCompletitud(b as any) - calcCompletitud(a as any));
+  const totalPags = Math.max(1, Math.ceil(ordenados.length / PER_PAGE));
+  const paginados = ordenados.slice((pagina-1)*PER_PAGE, pagina*PER_PAGE);
   const chip = (active: boolean) => ({ padding: '5px 14px', borderRadius: 20, fontSize: 12, fontWeight: 600, cursor: 'pointer', border: 'none', background: active ? 'var(--green)' : 'var(--bg2)', color: active ? '#fff' : 'var(--tx3)' } as React.CSSProperties);
 
   if (!authLoading && !isEditor) return (
@@ -109,7 +118,7 @@ export default function RevisionPage() {
           <table style={{ width:'100%', borderCollapse:'collapse', fontSize:13 }}>
             <thead>
               <tr style={{ borderBottom:'1px solid var(--bdr)' }}>
-                {['Nombre comercial','Principio activo','Concentración · FF','Laboratorio','RS','Estado','Acciones'].map(h => (
+                {['%','Nombre comercial','Principio activo','Concentración · FF','Laboratorio','RS','Estado','Acciones'].map(h => (
                   <th key={h} style={{ padding:'10px 14px', textAlign:'left', fontSize:11, fontWeight:700, color:'var(--tx4)', textTransform:'uppercase', letterSpacing:'0.05em' }}>{h}</th>
                 ))}
               </tr>
@@ -119,6 +128,7 @@ export default function RevisionPage() {
                 const est = ESTADO_STYLES[m.estado] || { bg:'var(--bg3)', color:'var(--tx3)', label:m.estado };
                 return (
                   <tr key={m.docId} style={{ borderTop:i===0?'none':'1px solid var(--bdr)', background:i%2===0?'var(--bg)':'var(--bg2)' }}>
+                    <td style={{ padding:'10px 14px', fontFamily:'var(--mono)', fontSize:11, fontWeight:700, color: calcCompletitud(m)>=80?'#166534':calcCompletitud(m)>=50?'#854d0e':'#991b1b' }}>{calcCompletitud(m)}%</td>
                     <td style={{ padding:'10px 14px', fontWeight:600, color:'var(--tx)' }}>{m.nombre||m.vtm||'—'}</td>
                     <td style={{ padding:'10px 14px', color:'var(--tx2)', maxWidth:200, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{getVtmLabel(m)||'—'}</td>
                     <td style={{ padding:'10px 14px', color:'var(--tx3)', fontFamily:'var(--mono)', fontSize:12 }}>{m.conc||'—'}</td>
