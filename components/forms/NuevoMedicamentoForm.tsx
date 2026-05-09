@@ -263,15 +263,7 @@ export default function NuevoMedicamentoForm({ initialData, editId }: { initialD
 
     // Validar registro sanitario Ecuador (ARCSA) si se ingresó
     if (rs && rs.trim().length > 0) {
-      const rsPatterns = [
-        /^d{4}-MEE-d{4}$/,      // Formato ARCSA Ecuador
-        /^d{4}-MIE-d{4}$/,
-        /^d{4}-MEP-d{4}$/,
-        /^d{4}-MEN-d{4}$/,
-        /^d{4}-MEB-d{4}$/,
-        /^[A-Z0-9-/]{4,30}$/,   // Formato genérico aceptable
-      ];
-      const rsValid = rsPatterns.some(p => p.test(rs.trim().toUpperCase()));
+      const rsValid = rsValidation.valid;
       if (!rsValid) validationErrors.push('El número de registro sanitario no parece válido');
     }
 
