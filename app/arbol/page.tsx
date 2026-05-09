@@ -67,9 +67,6 @@ export default function Arbol() {
           cursor = data.nextCursor;
           if (!cursor) break;
         }
-        // Debug temporal
-        const combos = all.filter((m: any) => m.esCombo);
-        console.log('Combos encontrados:', combos.length, combos.map((m: any) => ({vtm: m.vtm, esCombo: m.esCombo, pas: m.comboData?.pas})));
         setMeds(all);
       } catch(e) { console.error(e); }
       finally { setLoading(false); }
@@ -82,8 +79,10 @@ export default function Arbol() {
     const t: Record<string, VTMNode> = {};
     meds.forEach(m => {
       // Para combos usar los principios activos reales
-      const vtmRaw = (m.esCombo === true || m.esCombo === 'true') && m.comboData?.pas?.length
-        ? m.comboData.pas.join(' + ')
+      const esCombo = m.esCombo === true || m.esCombo === 'true' || String(m.esCombo) === 'true';
+      const pasList = m.comboData?.pas || (m.comboData && JSON.parse(typeof m.comboData === 'string' ? m.comboData : '{}').pas) || [];
+      const vtmRaw = esCombo && pasList.length
+        ? pasList.join(' + ')
         : (m.vtm || '(Sin VTM)');
       const vtm = vtmRaw.toLowerCase();
       const vmp = m.vmp || `${vtm} ${m.conc || ''} ${m.ff || ''}`.trim();
