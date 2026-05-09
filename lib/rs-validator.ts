@@ -19,6 +19,8 @@ const PATRONES = [
   { regex: /^ARCSA-[A-Z]+-\d+-\d+$/i, format: 'arcsa_nuevo' as const },
   // Formato MEE: 3029-MEE-0917
   { regex: /^\d{4,6}-[A-Z]{2,4}-\d{4}$/i, format: 'arcsa_antiguo' as const },
+  // Formato con punto: 26.330-04-05
+  { regex: /^\d+\.\d+(-[A-Z0-9\-]+)*$/i, format: 'arcsa_antiguo' as const },
   // Formato solo numérico
   { regex: /^\d{8,15}$/, format: 'numerico' as const },
 ];
@@ -37,7 +39,7 @@ export function validarRS(rs: string): RSValidationResult {
   }
 
   // Si no coincide con ningún patrón pero tiene forma razonable (contiene guiones y alfanumérico)
-  if (/^[A-Z0-9][A-Z0-9\-]{6,30}$/i.test(rsTrim)) {
+  if (/^[A-Z0-9][A-Z0-9\.\-]{4,30}$/i.test(rsTrim)) {
     return { valid: true, format: 'desconocido', normalized: rsTrim, mensaje: 'Formato no estándar — verificar con ARCSA' };
   }
 
