@@ -87,6 +87,26 @@ export default function Farmacovigilancia() {
     setSaving(false);
   };
 
+  const exportarE2B = async () => {
+    try {
+      const token = await getAuth().currentUser?.getIdToken() ?? '';
+      // Exportar el reporte actual como E2B(R3) XML
+      const res = await fetch('/api/farmacovigilancia/e2b', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify(rep),
+      });
+      if (!res.ok) throw new Error('Error generando E2B');
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `E2B_SIMI_${Date.now()}.xml`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch(e) { console.error(e); }
+  };
+
   const buscarICD11 = async (q: string) => {
     s('icd11SearchQuery', q);
     if (q.length < 3) { setIcd11Sugs([]); return; }
