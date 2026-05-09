@@ -17,12 +17,22 @@ const ESTADO_STYLES: Record<string, { bg: string; color: string; label: string }
   arcsa_pendiente: { bg: '#eff6ff', color: '#1d4ed8', label: 'ARCSA pendiente' },
 };
 
-function calcCompletitud(m: any): number {
+// Calcular score de completitud ISO IDMP por medicamento
+function calcCompletitud(m: Medicamento): number {
   const checks = [
-    !!m.vtm, !!m.ff, !!m.conc, !!m.laboratorio,
-    !!m.rs, !!m.cum, !!m.atc, !!m.nombre,
+    !!(m as any).vtm,           // INN/DCI — obligatorio ISO 11238
+    !!(m as any).conc,          // Concentración — obligatorio ISO IDMP
+    !!(m as any).ff,            // Forma farmacéutica — obligatorio ISO 11239
+    !!(m as any).vias,          // Vía administración — obligatorio ISO 11239
+    !!(m as any).laboratorio,   // Laboratorio — obligatorio ISO IDMP
+    !!(m as any).rs,            // Registro sanitario — obligatorio ARCSA
+    !!(m as any).cum,           // CUM — identificador ARCSA
+    !!(m as any).atc,           // Código ATC-WHO
+    !!(m as any).rsCondicion,   // Condición venta
+    !!(m as any).rsFecha,       // Fecha autorización
   ];
-  return Math.round((checks.filter(Boolean).length / checks.length) * 100);
+  const score = Math.round((checks.filter(Boolean).length / checks.length) * 100);
+  return score;
 }
 
 function getVtmLabel(m: any): string {
