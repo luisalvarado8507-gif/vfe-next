@@ -9,9 +9,12 @@ interface AMP {
   id: string;
   docId: string;
   amp: string;
+  ampp: string;
   lab: string;
   estado: string;
   generico: string;
+  units: string;
+  envase: string;
 }
 interface VMPP { label: string; amps: AMP[]; }
 interface VMP  { label: string; ff: string; vmpps: Record<string, VMPP>; }
