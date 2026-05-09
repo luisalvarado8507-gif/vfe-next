@@ -48,7 +48,7 @@ export default function Sidebar() {
       { href: '/gobernanza', icon: '⊡', label: 'Gobernanza' },
       { href: '/docs',       icon: '⊙', label: 'API Docs' },
       { href: '/audit',      icon: '◉', label: 'Audit log' },
-      ...(isEditor ? [{ href: '/io', icon: '⬇', label: 'Importar / Exportar' }] : []),
+      ...(isEditor ? [{ href: '/revision', icon: '⊙', label: 'Revisión pendientes' }, { href: '/io', icon: '⬇', label: 'Importar / Exportar' }] : []),
     ]},
   ];
 

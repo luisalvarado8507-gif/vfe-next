@@ -221,7 +221,7 @@ function BaseDatosContent() {
   const [cargando, setCargando] = useState(false);
   const [buscando, setBuscando] = useState(false);
   const [busqueda, setBusqueda] = useState('');
-  const [filtroEstado, setFiltroEstado] = useState('todos');
+  const [filtroEstado, setFiltroEstado] = useState('autorizado');
   const [filtroGenerico, setFiltroGenerico] = useState('todos');
   const [filtroCNMB, setFiltroCNMB] = useState(false);
   const [filtroCondicion, setFiltroCondicion] = useState('todos'); // todos | otc | prescripcion
@@ -254,7 +254,7 @@ function BaseDatosContent() {
       let intentos = 0;
       while (intentos < 50) {
         intentos++;
-        const params = new URLSearchParams({ limit: '500' });
+        const params = new URLSearchParams({ limit: '500', estado: 'autorizado' });
         if (cursorActual) params.set('cursor', cursorActual);
         if (capitulo) params.set('capitulo', capitulo);
         const res = await fetch(`/api/medicamentos?${params}`, { headers: { Authorization: `Bearer ${token}` } });
