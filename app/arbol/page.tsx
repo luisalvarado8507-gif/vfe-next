@@ -247,7 +247,8 @@ export default function Arbol() {
                       const isVMPOpen = open.has(`vmp:${vtm}:${vmp}`) || level === 'all' || level === 'amp';
                       const vmppList = Object.keys(vmpNode.vmpps);
                       const ampCountVMP = vmppList.reduce((a, k) => a + vmpNode.vmpps[k].amps.length, 0);
-                      const shouldShow = level === 'vtm' ? false : true;
+                      // Mostrar si el nivel lo permite O si el usuario abrió manualmente este VTM
+                      const shouldShow = level !== 'vtm' || open.has(`vtm:${vtm}`);
                       if (!shouldShow) return null;
 
                       return (
