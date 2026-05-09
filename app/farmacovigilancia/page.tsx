@@ -17,6 +17,7 @@ interface ReporteRAM {
   pacienteInicialesNombre: string; pacienteSexo: string; pacienteEdad: string; pacienteEdadUnidad: string; pacientePeso: string; pacienteEmbarazo: string;
   medicamentoSospechoso: string; medicamentoRS: string; medicamentoDosis: string; medicamentoVia: string; medicamentoFechaInicio: string; medicamentoFechaFin: string; medicamentoIndicacion: string; medicamentosConcomitantes: string;
   rams: RAM[]; causalidad: Causalidad; desenlace: string; accionTomada: string; reexposicion: string; informacionAdicional: string;
+  icd11Code: string; icd11Term: string; icd11SearchQuery: string;
 }
 
 const PROFESIONES = ['Médico/a','Farmacéutico/a','Enfermero/a','Odontólogo/a','Obstetra','Paciente/Consumidor','Otro'];
@@ -47,6 +48,8 @@ export default function Farmacovigilancia() {
   const [sugs, setSugs] = useState<MedDRAPT[]>([]);
   const [socOpen, setSocOpen] = useState<string|null>(null);
   const [saving, setSaving] = useState(false);
+  const [icd11Sugs, setIcd11Sugs] = useState<any[]>([]);
+  const [icd11Buscando, setIcd11Buscando] = useState(false);
   const [saved, setSaved] = useState(false);
   const [tab, setTab] = useState<'nuevo'|'historial'>('nuevo');
   const [medQuery, setMedQuery] = useState('');
@@ -60,6 +63,7 @@ export default function Farmacovigilancia() {
     medicamentoSospechoso:'', medicamentoRS:'', medicamentoDosis:'', medicamentoVia:'oral',
     medicamentoFechaInicio:'', medicamentoFechaFin:'', medicamentoIndicacion:'', medicamentosConcomitantes:'',
     rams:[], causalidad:'posible', desenlace:'recuperando', accionTomada:'', reexposicion:'desconocido', informacionAdicional:'',
+    icd11Code:'', icd11Term:'', icd11SearchQuery:'',
   });
 
   const s = (k:keyof ReporteRAM,v:any) => setRep(p=>({...p,[k]:v}));
@@ -81,6 +85,34 @@ export default function Farmacovigilancia() {
       if(res.ok){setSaved(true);setTab('historial');}
     } catch(e){console.error(e);}
     setSaving(false);
+  };
+
+  const buscarICD11 = async (q: string) => {
+    s('icd11SearchQuery', q);
+    if (q.length < 3) { setIcd11Sugs([]); return; }
+    setIcd11Buscando(true);
+    try {
+      // API pública ICD-11 OMS — no requiere token para búsqueda
+      const res = await fetch(
+        `https://id.who.int/icd/release/11/2024-01/mms/search?q=${encodeURIComponent(q)}&subtreeFilterUsage=foundationDescendants&includeKeywordResult=true&useFlexisearch=false&flatResults=true&highlightingEnabled=false`,
+        { headers: { 'Accept': 'application/json', 'Accept-Language': 'es', 'API-Version': 'v2' } }
+      );
+      const data = await res.json();
+      const items = (data.destinationEntities || []).slice(0, 8).map((e: any) => ({
+        code: e.theCode || e.id?.split('/').pop() || '',
+        term: e.title || e.fullySpecifiedName || '',
+        id: e.id || '',
+      }));
+      setIcd11Sugs(items);
+    } catch { setIcd11Sugs([]); }
+    setIcd11Buscando(false);
+  };
+
+  const seleccionarICD11 = (item: any) => {
+    s('icd11Code', item.code);
+    s('icd11Term', item.term);
+    s('icd11SearchQuery', `${item.code} — ${item.term}`);
+    setIcd11Sugs([]);
   };
 
   const buscarMedicamento = async (q: string) => {
@@ -345,6 +377,56 @@ export default function Farmacovigilancia() {
                 {fld('Desenlace del paciente',<select value={rep.desenlace} onChange={e=>s('desenlace',e.target.value)} style={inp()}><option value="recuperado">Recuperado completamente</option><option value="recuperando">En recuperación</option><option value="no_recuperado">No recuperado</option><option value="secuela">Con secuelas</option><option value="fallecido">Fallecido</option><option value="desconocido">Desconocido</option></select>)}
                 {fld('Acción tomada',<select value={rep.accionTomada} onChange={e=>s('accionTomada',e.target.value)} style={inp()}><option value="">Seleccionar...</option><option value="suspendido">Suspendido</option><option value="dosis_reducida">Dosis reducida</option><option value="sin_cambios">Sin cambios</option><option value="desconocido">Desconocido</option></select>)}
                 {fld('Reexposición',<select value={rep.reexposicion} onChange={e=>s('reexposicion',e.target.value)} style={inp()}><option value="desconocido">Desconocido</option><option value="si_reaparece">Sí — RAM reaparece</option><option value="si_no_reaparece">Sí — RAM no reaparece</option><option value="no">No se reexpuso</option></select>)}
+                <div style={{gridColumn:'1/-1'}}>
+                  {fld('Diagnóstico que motivó el uso del medicamento — ICD-11 OMS',
+                    <div style={{position:'relative'}}>
+                      <div style={{display:'flex',gap:6,alignItems:'center'}}>
+                        <div style={{position:'relative',flex:1}}>
+                          <input
+                            value={rep.icd11SearchQuery}
+                            onChange={e => buscarICD11(e.target.value)}
+                            style={inp()}
+                            placeholder="Buscar diagnóstico ICD-11... (ej: hipertensión, diabetes, infección urinaria)"
+                          />
+                          {icd11Buscando && <div style={{position:'absolute',right:10,top:8,fontSize:11,color:'var(--tx4)'}}>⟳</div>}
+                        </div>
+                        {rep.icd11Code && (
+                          <div style={{padding:'6px 10px',borderRadius:7,background:'#EEEDFE',border:'1px solid #C4B5FD',fontSize:11,fontFamily:'var(--mono)',color:'#5B21B6',whiteSpace:'nowrap',fontWeight:700}}>
+                            {rep.icd11Code}
+                          </div>
+                        )}
+                        {rep.icd11Code && (
+                          <button onClick={()=>{s('icd11Code','');s('icd11Term','');s('icd11SearchQuery','');}} style={{fontSize:11,color:'var(--tx4)',background:'none',border:'none',cursor:'pointer'}}>✕</button>
+                        )}
+                      </div>
+                      {icd11Sugs.length > 0 && (
+                        <div style={{position:'absolute',top:'100%',left:0,right:0,background:'var(--bg)',border:'1px solid var(--bdr)',borderRadius:8,zIndex:50,maxHeight:240,overflowY:'auto',boxShadow:'0 4px 16px rgba(0,0,0,.12)'}}>
+                          <div style={{padding:'6px 12px',fontSize:9,fontWeight:700,color:'var(--tx4)',fontFamily:'var(--mono)',letterSpacing:1,borderBottom:'1px solid var(--bdr)',background:'var(--bg2)'}}>
+                            ICD-11 · WHO 2024-01 · Clasificación Internacional de Enfermedades
+                          </div>
+                          {icd11Sugs.map((item:any,i:number) => (
+                            <button key={i} onClick={() => seleccionarICD11(item)}
+                              style={{display:'flex',alignItems:'flex-start',gap:10,width:'100%',padding:'9px 12px',background:'none',border:'none',cursor:'pointer',textAlign:'left',borderBottom:'1px solid var(--bdr)'}}
+                              onMouseEnter={e=>(e.currentTarget as HTMLElement).style.background='var(--bg2)'}
+                              onMouseLeave={e=>(e.currentTarget as HTMLElement).style.background='none'}>
+                              <span style={{fontSize:11,fontWeight:700,fontFamily:'var(--mono)',color:'#5B21B6',minWidth:60,flexShrink:0}}>{item.code}</span>
+                              <span style={{fontSize:12,color:'var(--tx)',lineHeight:1.4}}>{item.term}</span>
+                            </button>
+                          ))}
+                          <div style={{padding:'6px 12px',fontSize:9,color:'var(--tx4)',fontFamily:'var(--mono)',background:'var(--bg2)'}}>
+                            Fuente: WHO ICD-11 API · id.who.int · Colaboración ICD-11 ↔ MedDRA (WHO-FIC Hub)
+                          </div>
+                        </div>
+                      )}
+                      {rep.icd11Term && (
+                        <div style={{marginTop:6,fontSize:11,color:'var(--tx3)',fontFamily:'var(--mono)'}}>
+                          ✓ {rep.icd11Code} — {rep.icd11Term}
+                        </div>
+                      )}
+                    </div>,
+                    false
+                  )}
+                </div>
                 <div style={{gridColumn:'1/-1'}}>{fld('Información adicional',<textarea value={rep.informacionAdicional} onChange={e=>s('informacionAdicional',e.target.value)} style={{...inp(),height:80,resize:'vertical'}} placeholder="Antecedentes, alergias, exámenes de laboratorio, observaciones clínicas..."/>)}</div>
               </div>
             </div>
@@ -359,7 +441,7 @@ export default function Farmacovigilancia() {
               </div>
               <div style={card}>
                 <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:6,fontSize:12}}>
-                  {[['Tipo','rep.tipo'],['Fecha',rep.fechaReporte],['Notificador',rep.notificadorNombre||'—'],['Paciente',`${rep.pacienteInicialesNombre||'—'}, ${rep.pacienteEdad||'?'} ${rep.pacienteEdadUnidad}`],['Medicamento',rep.medicamentoSospechoso||'—'],['Causalidad',rep.causalidad],['Desenlace',rep.desenlace]].map(([k,v])=>(
+                  {[['Tipo','rep.tipo'],['Fecha',rep.fechaReporte],['Notificador',rep.notificadorNombre||'—'],['Paciente',`${rep.pacienteInicialesNombre||'—'}, ${rep.pacienteEdad||'?'} ${rep.pacienteEdadUnidad}`],['Medicamento',rep.medicamentoSospechoso||'—'],['Causalidad',rep.causalidad],['Desenlace',rep.desenlace],['Diagnóstico ICD-11',rep.icd11Code?`${rep.icd11Code} — ${rep.icd11Term}`:'No especificado']].map(([k,v])=>(
                     <div key={k} style={{padding:'8px 10px',background:'var(--bg)',borderRadius:6,border:'1px solid var(--bdr)'}}>
                       <div style={{fontSize:9,color:'var(--tx4)',fontFamily:'var(--mono)',marginBottom:2}}>{k}</div>
                       <div style={{color:'var(--tx)',fontWeight:500}}>{typeof v==='string'&&v.startsWith('rep.')?'':v}</div>
