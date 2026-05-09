@@ -64,7 +64,7 @@ export default function RevisionPage() {
     await fetch('/api/medicamentos', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ id: docId, ...med, estado: nuevoEstado }),
+      body: JSON.stringify({ ...med, id: docId, estado: nuevoEstado }),
     });
     setMeds(prev => prev.filter(m => m.docId !== docId));
   };
