@@ -267,26 +267,30 @@ export default function Arbol() {
                             </span>
                           </div>
 
-                          {/* VMPP + AMP */}
+                          {/* VMPP + AMP — toggle paso a paso */}
                           {isVMPOpen && vmppList.map((vmpp, vi3) => {
                             const vmppNode = vmpNode.vmpps[vmpp];
-                            const isLastVMPP = vi3 === vmppList.length - 1;
-
+                            const vmppKey = `vmpp:${vtm}:${vmp}:${vmpp}`;
+                            const isVMPPOpen = open.has(vmppKey);
+                            const hasVMPP = vmpp !== '__';
                             return (
                               <div key={vmpp}>
-                                {/* VMPP ROW */}
-                                {vmpp !== '__' && (level === 'all' || level === 'amp' || open.has(`vtm:${vtm}`)) && (
-                                  <div style={{ ...rowBase, paddingLeft: 66, background: 'var(--bg2)' }}>
+                                {hasVMPP && (
+                                  <div
+                                    onClick={() => togOpen(vmppKey)}
+                                    style={{ ...rowBase, paddingLeft: 66, background: 'var(--bg2)', cursor: 'pointer' }}
+                                    onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--bg3)'}
+                                    onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'var(--bg2)'}>
+                                    <span style={{ fontSize: 10, color: 'var(--tx4)', transition: 'transform .2s', transform: isVMPPOpen ? 'rotate(90deg)' : 'none', display: 'inline-block', flexShrink: 0 }}>▶</span>
                                     <NivelBadge nivel="VMPP" />
                                     <span style={{ flex: 1, fontSize: 12, color: 'var(--tx3)' }}>{vmppNode.label}</span>
+                                    <span style={{ fontSize: 11, color: 'var(--tx4)', fontFamily: 'var(--mono)' }}>{vmppNode.amps.length} AMP</span>
                                   </div>
                                 )}
-
-                                {/* AMP ROWS */}
-                                {(level === 'all' || level === 'amp' || open.has(`vtm:${vtm}`)) && vmppNode.amps.map((amp, ai) => (
+                                {(hasVMPP ? isVMPPOpen : true) && vmppNode.amps.map((amp, ai) => (
                                   <div key={amp.id || ai}
                                     onClick={() => router.push(`/medicamentos/${amp.docId || amp.id}`)}
-                                    style={{ ...rowBase, paddingLeft: vmpp !== '__' ? 88 : 66, background: 'var(--bg)', justifyContent: 'space-between' }}
+                                    style={{ ...rowBase, paddingLeft: hasVMPP ? 88 : 66, background: 'var(--bg)', justifyContent: 'space-between' }}
                                     onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--bg3)'}
                                     onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'var(--bg)'}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0 }}>
