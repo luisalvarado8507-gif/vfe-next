@@ -224,6 +224,7 @@ function BaseDatosContent() {
   const [filtroEstado, setFiltroEstado] = useState('autorizado');
   const [filtroGenerico, setFiltroGenerico] = useState('todos');
   const [filtroCNMB, setFiltroCNMB] = useState(false);
+  const [filtroEML, setFiltroEML] = useState(false);
   const [filtroCondicion, setFiltroCondicion] = useState('todos'); // todos | otc | prescripcion
   const [pagina, setPagina] = useState(1);
   const [busquedaResults, setBusquedaResults] = useState<Medicamento[] | null>(null);
@@ -235,6 +236,7 @@ function BaseDatosContent() {
   const capitulo = searchParams.get('capitulo');
   const estadoParam = searchParams.get('estado');
   const cnmbParam = searchParams.get('cnmb');
+  const emlParam = searchParams.get('eml');
 
   // Aplicar filtros desde URL al montar
   useEffect(() => {
@@ -312,6 +314,7 @@ function BaseDatosContent() {
     if (filtroGenerico === 'si' && m.generico !== 'Sí') return false;
     if (filtroGenerico === 'no' && m.generico !== 'No') return false;
     if (filtroCNMB && (m as any).cnmb !== 'Sí') return false;
+    if (filtroEML && !(m as any).eml) return false;
     if (filtroCondicion === 'otc' && (m as any).rsCondicion !== 'Venta libre') return false;
     if (filtroCondicion === 'prescripcion' && (m as any).rsCondicion === 'Venta libre') return false;
     return true;

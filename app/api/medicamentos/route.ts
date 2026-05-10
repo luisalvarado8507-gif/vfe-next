@@ -43,6 +43,7 @@ function mapDoc(doc: FirebaseFirestore.QueryDocumentSnapshot) {
     pp: data.pp || '',
     generico: data.generico || '',
     cnmb: data.cnmb || '',
+    eml: data.eml === true,
     atc: data.atc || '',
     atclbl: data.atclbl || '',
     chapId: data.chapId || '',
