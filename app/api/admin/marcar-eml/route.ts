@@ -72,19 +72,25 @@ const EML_INNs = new Set([
 
 function esEML(vtm: string, comboData: any): boolean {
   const vtmNorm = norm(vtm);
+  // Match estricto: el VTM debe ser exactamente igual al INN (no substring)
   for (const inn of EML_INNs) {
-    if (vtmNorm.includes(norm(inn)) || norm(inn).includes(vtmNorm)) return true;
+    const innNorm = norm(inn);
+    if (vtmNorm === innNorm) return true;
+    // Solo acepta si el INN tiene más de 6 chars Y coincide exactamente como palabra completa
+    if (innNorm.length > 6 && vtmNorm === innNorm) return true;
   }
+  // Para combos: CADA principio activo debe estar en EML
   if (comboData?.pas?.length) {
     return comboData.pas.some((pa: string) => {
       const paNorm = norm(pa);
       for (const inn of EML_INNs) {
-        if (paNorm.includes(norm(inn)) || norm(inn).includes(paNorm)) return true;
+        if (paNorm === norm(inn)) return true;
       }
       return false;
     });
   }
   return false;
+}
 }
 
 export async function POST(req: NextRequest) {
