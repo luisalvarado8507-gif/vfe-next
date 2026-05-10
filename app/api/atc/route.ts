@@ -18,8 +18,8 @@ export async function GET(req: NextRequest) {
     for (const row of rows) {
       const cells = row.match(/<td[^>]*>([\s\S]*?)<\/td>/g) || [];
       if (cells.length >= 2) {
-        const codeMatch = cells[0].replace(/<[^>]+>/g, '').trim();
-        const desc = cells[1].replace(/<[^>]+>/g, '').trim();
+        const codeMatch = (cells[0] || '').replace(/<[^>]+>/g, '').trim();
+        const desc = (cells[1] || '').replace(/<[^>]+>/g, '').trim();
         if (codeMatch && desc && /^[A-Z][0-9A-Z]{0,6}$/.test(codeMatch)) {
           const lvl = codeMatch.length === 1 ? 1 : codeMatch.length === 3 ? 2 : codeMatch.length === 4 ? 3 : codeMatch.length === 5 ? 4 : 5;
           levels.push({ code: codeMatch, level: lvl, description: desc });
