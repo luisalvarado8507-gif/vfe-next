@@ -279,8 +279,8 @@ export function getATCHierarchy(code: string, fallbackLabel?: string): Array<{
     levels.push({ code: c.substring(0,4), level: 3, description: ATC_L3[c.substring(0,4)] });
   if (c.length >= 5 && (ATC_L4[c.substring(0,5)]))
     levels.push({ code: c.substring(0,5), level: 4, description: ATC_L4[c.substring(0,5)] });
-  if (c.length >= 7 && (ATC_L5[c.substring(0,7)] || fallbackLabel))
-    levels.push({ code: c.substring(0,7), level: 5, description: ATC_L5[c.substring(0,7)] || fallbackLabel || '' });
+  if (c.length >= 7 && ATC_L5[c.substring(0,7)])
+    levels.push({ code: c.substring(0,7), level: 5, description: ATC_L5[c.substring(0,7)] });
     levels.push({ code: c.substring(0,7), level: 5, description: ATC_L5[c.substring(0,7)] });
   
   return levels;
