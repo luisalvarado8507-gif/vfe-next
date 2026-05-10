@@ -12,10 +12,11 @@ export async function GET(req: NextRequest) {
   if (!user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
   try {
     const col = adminDb.collection('medicamentos');
-    const [total, genericos, cnmb, arcsa] = await Promise.all([
+    const [total, genericos, cnmb, arcsa, eml] = await Promise.all([
       col.where('estado', '==', 'autorizado').count().get(),
       col.where('estado', '==', 'autorizado').where('data.generico', '==', 'Sí').count().get(),
       col.where('estado', '==', 'autorizado').where('data.cnmb', '==', 'Sí').count().get(),
+      col.where('estado', '==', 'autorizado').where('data.eml', '==', true).count().get(),
       col.where('estado', '==', 'arcsa_pendiente').count().get(),
     ]);
     const vtmSnap = await col.where('estado', '==', 'autorizado').select('vtm').get();
@@ -42,6 +43,7 @@ export async function GET(req: NextRequest) {
       principiosActivos: pas,
       genericos: genericos.data().count,
       cnmb: cnmb.data().count,
+      eml: eml.data().count,
       autorizados: total.data().count,
       arcsa_pendiente: arcsa.data().count,
       porCapitulo,

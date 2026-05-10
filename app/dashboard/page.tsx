@@ -19,6 +19,7 @@ interface Stats {
   principiosActivos: number;
   genericos: number;
   cnmb: number;
+  eml: number;
 }
 
 // Helper: principios activos para combos
@@ -28,7 +29,7 @@ function getVtmLabel(m: any): string {
 }
 
 export default function Dashboard() {
-  const [stats, setStats] = useState<Stats>({ total: 0, principiosActivos: 0, genericos: 0, cnmb: 0 });
+  const [stats, setStats] = useState<Stats>({ total: 0, principiosActivos: 0, genericos: 0, cnmb: 0, eml: 0 });
   const [recientes, setRecientes] = useState<RecentMed[]>([]);
   const [busqueda, setBusqueda] = useState('');
   const [tipoB, setTipoB] = useState<'todo' | 'pa' | 'comercial' | 'atc' | 'lab'>('todo');
@@ -55,6 +56,7 @@ export default function Dashboard() {
           principiosActivos: statsData.principiosActivos ?? 0,
           genericos: statsData.genericos ?? 0,
           cnmb: statsData.cnmb ?? 0,
+          eml: statsData.eml ?? 0,
         });
         setRecientes((recentData.medicamentos || []).slice(0, 20).map((m: any) => ({
           docId: m.docId || m.id,
@@ -228,6 +230,18 @@ export default function Dashboard() {
               </div>
               <div style={{ fontSize: 36, fontWeight: 800, color: 'var(--amber)', lineHeight: 1, letterSpacing: '-1.5px', marginBottom: 6 }}>{stats.cnmb.toLocaleString('es-EC')}</div>
               <div style={{ fontSize: 11, color: '#B45309' }}>medicamentos esenciales</div>
+            </Link>
+
+            {/* EML-OMS como KPI card */}
+            <Link href="/medicamentos?eml=true&estado=autorizado" style={{ background: '#f0fdf4', border: '1.5px solid #86efac', borderRadius: 'var(--rl)', padding: '16px 20px', boxShadow: 'var(--sh)', textDecoration: 'none', display: 'block', transition: 'box-shadow var(--t)' }}
+              onMouseEnter={e => (e.currentTarget as HTMLElement).style.boxShadow = 'var(--sh-lg)'}
+              onMouseLeave={e => (e.currentTarget as HTMLElement).style.boxShadow = 'var(--sh)'}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
+                <div style={{ fontSize: 10, fontWeight: 700, color: '#15803d', letterSpacing: 1, fontFamily: 'var(--mono)', textTransform: 'uppercase' }}>EML · OMS 2023</div>
+                <span style={{ fontSize: 14 }}>🌍</span>
+              </div>
+              <div style={{ fontSize: 36, fontWeight: 800, color: '#15803d', lineHeight: 1, letterSpacing: '-1.5px', marginBottom: 6 }}>{stats.eml.toLocaleString('es-EC')}</div>
+              <div style={{ fontSize: 11, color: '#166534' }}>medicamentos esenciales OMS</div>
             </Link>
 
           {/* Acciones rápidas */}
