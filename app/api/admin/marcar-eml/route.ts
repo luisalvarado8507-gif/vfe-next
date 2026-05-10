@@ -97,7 +97,7 @@ export async function POST(req: NextRequest) {
 
   let marcados = 0, total = 0, lastDoc: any = null;
   while (true) {
-    let q: any = adminDb.collection('medicamentos').limit(500);
+    let q: any = adminDb.collection('medicamentos').where('estado', '==', 'autorizado').limit(500);
     if (lastDoc) q = q.startAfter(lastDoc);
     const snap = await q.get();
     if (snap.empty) break;
