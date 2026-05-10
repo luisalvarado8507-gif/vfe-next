@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
   if (!user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
   try {
     const col = adminDb.collection('medicamentos');
-    const [total, genericos, cnmb, arcsa, eml] = await Promise.all([
+    const [total, genericos, cnmb, eml, arcsa] = await Promise.all([
       col.where('estado', '==', 'autorizado').count().get(),
       col.where('estado', '==', 'autorizado').where('data.generico', '==', 'Sí').count().get(),
       col.where('estado', '==', 'autorizado').where('data.cnmb', '==', 'Sí').count().get(),
