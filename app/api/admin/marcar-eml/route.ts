@@ -103,13 +103,15 @@ export async function POST(req: NextRequest) {
   // Paso 1: limpiar TODOS los eml existentes
   let limpiados = 0, lastDoc: any = null;
   while (true) {
-    let q: any = adminDb.collection('medicamentos').where('data.eml', '==', true).limit(500);
+    let q: any = adminDb.collection('medicamentos').limit(500);
     if (lastDoc) q = q.startAfter(lastDoc);
     const snap = await q.get();
     if (snap.empty) break;
     for (const doc of snap.docs) {
-      await doc.ref.update({ 'data.eml': false });
-      limpiados++;
+      if (doc.data()?.data?.eml === true) {
+        await doc.ref.update({ 'data.eml': false });
+        limpiados++;
+      }
     }
     lastDoc = snap.docs[snap.docs.length - 1];
     if (snap.docs.length < 500) break;
