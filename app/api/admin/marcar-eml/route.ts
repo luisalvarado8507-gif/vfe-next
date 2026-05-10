@@ -91,7 +91,6 @@ function esEML(vtm: string, comboData: any): boolean {
   }
   return false;
 }
-}
 
 export async function POST(req: NextRequest) {
   const token = req.headers.get('Authorization')?.replace('Bearer ', '');
