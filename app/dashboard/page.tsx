@@ -35,6 +35,16 @@ export default function Dashboard() {
   const [tipoB, setTipoB] = useState<'todo' | 'pa' | 'comercial' | 'atc' | 'lab'>('todo');
   const [loading, setLoading] = useState(true);
   const { getToken, user, role, isAdmin, loading: authLoading } = useAuth();
+
+  const marcarEML = async () => {
+    const token = await getToken();
+    if (!token) return;
+    const res = await fetch('/api/admin/marcar-eml', { method: 'POST', headers: { Authorization: `Bearer ${token}` } });
+    const d = await res.json();
+    if (d.ok) alert(`✅ EML-OMS actualizado: ${d.marcados} medicamentos marcados de ${d.total} revisados`);
+    else alert('❌ Error: ' + (d.error || 'desconocido'));
+  };
+
   const router = useRouter();
 
   const fecha = new Date().toLocaleDateString('es-EC', { day: 'numeric', month: 'long', year: 'numeric' });
