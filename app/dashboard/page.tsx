@@ -34,7 +34,7 @@ export default function Dashboard() {
   const [busqueda, setBusqueda] = useState('');
   const [tipoB, setTipoB] = useState<'todo' | 'pa' | 'comercial' | 'atc' | 'lab'>('todo');
   const [loading, setLoading] = useState(true);
-  const { getToken, user, role, loading: authLoading } = useAuth();
+  const { getToken, user, role, isAdmin, loading: authLoading } = useAuth();
   const router = useRouter();
 
   const fecha = new Date().toLocaleDateString('es-EC', { day: 'numeric', month: 'long', year: 'numeric' });
@@ -279,6 +279,15 @@ export default function Dashboard() {
                 onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--bdr)'; (e.currentTarget as HTMLElement).style.color = 'var(--tx2)'; }}>
                 <span>⬇</span> Importar / Exportar
               </Link>
+              {isAdmin && (
+                <button
+                  onClick={marcarEML}
+                  style={{ display:'flex', alignItems:'center', gap:8, padding:'10px 18px', borderRadius:'var(--r)', border:'1.5px solid #86efac', background:'#f0fdf4', color:'#15803d', fontSize:13, fontWeight:600, cursor:'pointer', transition:'all var(--t)' }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = '#15803d'; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = '#86efac'; }}>
+                  <span>🌍</span> Actualizar EML-OMS
+                </button>
+              )}
             </div>
           </div>
 
