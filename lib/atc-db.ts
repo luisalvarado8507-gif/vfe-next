@@ -265,22 +265,22 @@ export function getATCDescription(code: string): {
 }
 
 // Función para obtener jerarquía completa
-export function getATCHierarchy(code: string): Array<{
+export function getATCHierarchy(code: string, fallbackLabel?: string): Array<{
   code: string; level: number; description: string;
 }> {
   if (!code) return [];
   const c = code.toUpperCase().trim();
   const levels = [];
-  
   if (c[0] && ATC_L1[c[0]])
     levels.push({ code: c[0], level: 1, description: ATC_L1[c[0]] });
-  if (c.length >= 3 && ATC_L2[c.substring(0,3)])
-    levels.push({ code: c.substring(0,3), level: 2, description: ATC_L2[c.substring(0,3)] });
-  if (c.length >= 4 && ATC_L3[c.substring(0,4)])
-    levels.push({ code: c.substring(0,4), level: 3, description: ATC_L3[c.substring(0,4)] });
-  if (c.length >= 5 && ATC_L4[c.substring(0,5)])
-    levels.push({ code: c.substring(0,5), level: 4, description: ATC_L4[c.substring(0,5)] });
-  if (c.length >= 7 && ATC_L5[c.substring(0,7)])
+  if (c.length >= 3)
+    levels.push({ code: c.substring(0,3), level: 2, description: ATC_L2[c.substring(0,3)] || c.substring(0,3) });
+  if (c.length >= 4)
+    levels.push({ code: c.substring(0,4), level: 3, description: ATC_L3[c.substring(0,4)] || c.substring(0,4) });
+  if (c.length >= 5)
+    levels.push({ code: c.substring(0,5), level: 4, description: ATC_L4[c.substring(0,5)] || c.substring(0,5) });
+  if (c.length >= 7)
+    levels.push({ code: c.substring(0,7), level: 5, description: ATC_L5[c.substring(0,7)] || fallbackLabel || c.substring(0,7) });
     levels.push({ code: c.substring(0,7), level: 5, description: ATC_L5[c.substring(0,7)] });
   
   return levels;
