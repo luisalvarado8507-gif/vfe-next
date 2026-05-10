@@ -497,6 +497,7 @@ function BaseDatosContent() {
                           </div>
                           <div style={{ display: 'flex', gap: 4, marginTop: 2 }}>
                             {(m as any).cnmb === 'Sí' && <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--amber)', background: 'var(--amber-bg)', padding: '1px 5px', borderRadius: 3, fontFamily: 'var(--mono)' }}>CNMB</span>}
+                            {(m as any).eml && <span style={{ fontSize: 9, fontWeight: 700, color: '#15803d', background: '#dcfce7', padding: '1px 5px', borderRadius: 3, fontFamily: 'var(--mono)' }}>OMS</span>}
                             {(m as any).generico === 'Sí' && <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--primary, #1D4ED8)', background: 'var(--blue-bg)', padding: '1px 5px', borderRadius: 3, fontFamily: 'var(--mono)' }}>GEN</span>}
                           </div>
                         </td>
