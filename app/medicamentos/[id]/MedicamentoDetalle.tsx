@@ -239,7 +239,7 @@ export default function MedicamentoDetalle({ id: propId, initialData }: Medicame
               { label: 'Base de datos', href: '/medicamentos', icon: null },
               ...(cap ? [{ label: `${cap.n}. ${cap.name}`, href: `/capitulos/${cap.id}`, icon: null, atc: atcL1 }] : []),
               ...(atcL2 && med.atclbl ? [{ label: med.atclbl, href: `/medicamentos?q=${atcL2}&tipo=atc`, icon: null, atc: atcL2 }] : []),
-              { label: med.vtm, href: null, icon: null, atc: med.atc || null, current: true },
+              { label: (med.esCombo && med.comboData?.pas?.length ? med.comboData.pas.join(' + ') : med.vtm) || med.nombre || '—', href: null, icon: null, atc: med.atc || null, current: true },
             ];
             return (
               <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 14, flexWrap: 'wrap' }}>
@@ -293,7 +293,7 @@ export default function MedicamentoDetalle({ id: propId, initialData }: Medicame
                 {med.amp || med.nombre || med.vtm || '—'}
               </h1>
               <div style={{ fontSize: 13, color: 'rgba(255,255,255,.6)', marginBottom: 10 }}>
-                {med.vtm || '—'}{med.conc ? ` · ${med.conc}` : ''}
+                {(med.esCombo && med.comboData?.pas?.length ? med.comboData.pas.join(' + ') : med.vtm) || '—'}{med.conc ? ` · ${med.conc}` : ''}
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, alignItems: 'center' }}>
                 <Badge text={med.estado || 'pendiente'} type={med.estado || 'pendiente'} />
