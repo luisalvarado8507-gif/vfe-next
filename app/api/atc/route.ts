@@ -1,47 +1,36 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { adminDb } from '@/lib/firebase-admin';
 
 export async function GET(req: NextRequest) {
-  const code = req.nextUrl.searchParams.get('code');
-  if (!code) return NextResponse.json({ error: 'code requerido' }, { status: 400 });
+  const code = new URL(req.url).searchParams.get('code');
+  if (!code) return NextResponse.json({ levels: [] });
 
   try {
-    const [snap1, snap2] = await Promise.all([
-      adminDb.collection('medicamentos')
-        .where('atc', '>=', code)
-        .where('atc', '<=', code + '\uf8ff')
-        .get(),
-      adminDb.collection('medicamentos')
-        .where('data.atc', '>=', code)
-        .where('data.atc', '<=', code + '\uf8ff')
-        .get(),
-    ]);
+    const res = await fetch(
+      `https://atcddd.fhi.no/atc_ddd_index/?code=${code.toUpperCase()}&showdescription=yes`,
+      { next: { revalidate: 86400 } }
+    );
+    const html = await res.text();
 
-    const seen = new Set<string>();
-    const allDocs = [...snap1.docs, ...snap2.docs].filter(d => {
-      if (seen.has(d.id)) return false;
-      seen.add(d.id);
-      return true;
+    // Parsear la tabla de jerarquía del HTML de WHO
+    const levels: { code: string; level: number; description: string }[] = [];
+    const rows = html.match(/<tr[^>]*>[\s\S]*?<\/tr>/g) || [];
+    
+    for (const row of rows) {
+      const cells = row.match(/<td[^>]*>([\s\S]*?)<\/td>/g) || [];
+      if (cells.length >= 2) {
+        const codeMatch = cells[0].replace(/<[^>]+>/g, '').trim();
+        const desc = cells[1].replace(/<[^>]+>/g, '').trim();
+        if (codeMatch && desc && /^[A-Z][0-9A-Z]{0,6}$/.test(codeMatch)) {
+          const lvl = codeMatch.length === 1 ? 1 : codeMatch.length === 3 ? 2 : codeMatch.length === 4 ? 3 : codeMatch.length === 5 ? 4 : 5;
+          levels.push({ code: codeMatch, level: lvl, description: desc });
+        }
+      }
+    }
+
+    return NextResponse.json({ levels }, {
+      headers: { 'Cache-Control': 'public, max-age=86400' }
     });
-
-    const results = allDocs.map(d => {
-      const raw = d.data();
-      const data = raw.data || raw;
-      return {
-        id: d.id,
-        nombre: data.nombre || data.denominacion || d.id,
-        vtm: data.vtm || null,
-        laboratorio: data.laboratorio || null,
-        formaFarmaceutica: data.formaFarmaceutica || data.ff || null,
-        concentracion: data.concentracion || data.conc || null,
-        estado: raw.estado || data.estado || null,
-        atc: data.atc || null,
-      };
-    });
-
-    results.sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
-    return NextResponse.json({ code, count: results.length, results });
-  } catch (e) {
-    return NextResponse.json({ error: String(e) }, { status: 500 });
+  } catch {
+    return NextResponse.json({ levels: [] });
   }
 }
