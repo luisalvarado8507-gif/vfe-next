@@ -100,7 +100,24 @@ export async function POST(req: NextRequest) {
     if (!decoded.admin) return NextResponse.json({ error: 'Solo admin' }, { status: 403 });
   } catch { return NextResponse.json({ error: 'Token inválido' }, { status: 401 }); }
 
-  let marcados = 0, total = 0, lastDoc: any = null;
+  // Paso 1: limpiar TODOS los eml existentes
+  let limpiados = 0, lastDoc: any = null;
+  while (true) {
+    let q: any = adminDb.collection('medicamentos').where('data.eml', '==', true).limit(500);
+    if (lastDoc) q = q.startAfter(lastDoc);
+    const snap = await q.get();
+    if (snap.empty) break;
+    for (const doc of snap.docs) {
+      await doc.ref.update({ 'data.eml': false });
+      limpiados++;
+    }
+    lastDoc = snap.docs[snap.docs.length - 1];
+    if (snap.docs.length < 500) break;
+  }
+
+  // Paso 2: marcar solo autorizados que coincidan con EML
+  let marcados = 0, total = 0;
+  lastDoc = null;
   while (true) {
     let q: any = adminDb.collection('medicamentos').where('estado', '==', 'autorizado').limit(500);
     if (lastDoc) q = q.startAfter(lastDoc);
@@ -109,16 +126,14 @@ export async function POST(req: NextRequest) {
     for (const doc of snap.docs) {
       const data = doc.data()?.data || {};
       const eml = esEML(data.vtm || '', data.comboData);
-      if (eml && !data.eml) {
+      if (eml) {
         await doc.ref.update({ 'data.eml': true });
         marcados++;
-      } else if (!eml && data.eml) {
-        await doc.ref.update({ 'data.eml': false });
       }
       total++;
     }
     lastDoc = snap.docs[snap.docs.length - 1];
     if (snap.docs.length < 500) break;
   }
-  return NextResponse.json({ ok: true, marcados, total });
+  return NextResponse.json({ ok: true, limpiados, marcados, total });
 }
