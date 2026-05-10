@@ -1,5 +1,5 @@
 'use client';
-import { getATCHierarchy } from '@/lib/atc-db';
+import { getATCHierarchy, ATC_DDD } from '@/lib/atc-db';
 
 interface AtcHierarchyProps { code: string; label?: string; }
 
@@ -41,6 +41,15 @@ export default function AtcHierarchy({ code, label }: AtcHierarchyProps) {
               <span style={{ fontSize: 12, fontWeight: 700, fontFamily: 'var(--mono)', color: style.color, minWidth: 52, background: style.border, padding: '1px 6px', borderRadius: 4 }}>{lvl.code}</span>
               <span style={{ fontSize: 11, color: 'var(--tx3)', fontWeight: 500 }}>Level {lvl.level} — {LEVEL_LABELS[lvl.level - 1]}</span>
               <span style={{ fontSize: 12, color: 'var(--tx)', fontWeight: 600, marginLeft: 4 }}>{lvl.description}</span>
+              {lvl.level === 5 && ATC_DDD[lvl.code] && (
+                <span style={{ marginLeft: 8, display: 'flex', gap: 4 }}>
+                  {ATC_DDD[lvl.code].map((d, i) => (
+                    <span key={i} style={{ fontSize: 10, fontFamily: 'var(--mono)', padding: '1px 6px', borderRadius: 10, background: '#e0f2fe', color: '#0369a1', fontWeight: 600 }}>
+                      DDD {d.ddd}{d.uom} {d.adm}
+                    </span>
+                  ))}
+                </span>
+              )}
             </div>
           );
         })}
