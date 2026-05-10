@@ -22,9 +22,9 @@ const LEVEL_LABELS = [
   'Sustancia química',
 ];
 
-function parseAtcLevels(code: string): AtcLevel[] {
+function parseAtcLevels(code: string, fallbackLabel?: string): AtcLevel[] {
   if (!code || code.length < 1) return [];
-  const hierarchy = getATCHierarchy(code);
+  const hierarchy = getATCHierarchy(code, fallbackLabel);
   return hierarchy.map(h => ({
     code: h.code,
     level: h.level,
@@ -46,7 +46,7 @@ export default function AtcHierarchy({ code, label }: AtcHierarchyProps) {
     <div style={{ fontSize: 12, color: 'var(--tx4)', fontStyle: 'italic' }}>Sin código ATC asignado</div>
   );
 
-  const levels = parseAtcLevels(code);
+  const levels = parseAtcLevels(code, label);
 
   return (
     <div>
