@@ -1,7 +1,6 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { getATCHierarchy } from '@/lib/atc-db';
 
-interface AtcLevel { code: string; level: number; description: string; }
 interface AtcHierarchyProps { code: string; label?: string; }
 
 const LEVEL_LABELS = ['Anatomical main group','Therapeutic subgroup','Pharmacological subgroup','Chemical subgroup','Chemical substance'];
@@ -14,20 +13,11 @@ const LEVEL_COLORS = [
 ];
 
 export default function AtcHierarchy({ code, label }: AtcHierarchyProps) {
-  const [levels, setLevels] = useState<AtcLevel[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (!code || code === '—') { setLoading(false); return; }
-    fetch(`/api/atc?code=${code}`)
-      .then(r => r.json())
-      .then(d => { setLevels(d.levels || []); setLoading(false); })
-      .catch(() => setLoading(false));
-  }, [code]);
-
   if (!code || code === '—') return (
     <div style={{ fontSize: 12, color: 'var(--tx4)', fontStyle: 'italic' }}>Sin código ATC asignado</div>
   );
+
+  const levels = getATCHierarchy(code, label);
 
   return (
     <div>
@@ -42,25 +32,19 @@ export default function AtcHierarchy({ code, label }: AtcHierarchyProps) {
           Ver en WHO-ATC →
         </a>
       </div>
-      {loading ? (
-        <div style={{ fontSize: 12, color: 'var(--tx4)', padding: '8px 0' }}>Cargando clasificación WHO...</div>
-      ) : levels.length === 0 ? (
-        <div style={{ fontSize: 12, color: 'var(--tx4)', fontStyle: 'italic' }}>Clasificación no disponible</div>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          {levels.map((lvl, i) => {
-            const style = LEVEL_COLORS[i] || LEVEL_COLORS[4];
-            return (
-              <div key={lvl.code} style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: i * 16, padding: '6px 10px', background: style.bg, border: `1px solid ${style.border}`, borderRadius: 6, position: 'relative' }}>
-                {i > 0 && <div style={{ position: 'absolute', left: -16, top: '50%', width: 14, height: 1, background: style.border }} />}
-                <span style={{ fontSize: 12, fontWeight: 700, fontFamily: 'var(--mono)', color: style.color, minWidth: 52, background: style.border, padding: '1px 6px', borderRadius: 4 }}>{lvl.code}</span>
-                <span style={{ fontSize: 11, color: 'var(--tx3)', fontWeight: 500 }}>Level {lvl.level} — {LEVEL_LABELS[lvl.level - 1]}</span>
-                <span style={{ fontSize: 12, color: 'var(--tx)', fontWeight: 600, marginLeft: 4 }}>{lvl.description}</span>
-              </div>
-            );
-          })}
-        </div>
-      )}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        {levels.map((lvl, i) => {
+          const style = LEVEL_COLORS[i] || LEVEL_COLORS[4];
+          return (
+            <div key={lvl.code} style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: i * 16, padding: '6px 10px', background: style.bg, border: `1px solid ${style.border}`, borderRadius: 6, position: 'relative' }}>
+              {i > 0 && <div style={{ position: 'absolute', left: -16, top: '50%', width: 14, height: 1, background: style.border }} />}
+              <span style={{ fontSize: 12, fontWeight: 700, fontFamily: 'var(--mono)', color: style.color, minWidth: 52, background: style.border, padding: '1px 6px', borderRadius: 4 }}>{lvl.code}</span>
+              <span style={{ fontSize: 11, color: 'var(--tx3)', fontWeight: 500 }}>Level {lvl.level} — {LEVEL_LABELS[lvl.level - 1]}</span>
+              <span style={{ fontSize: 12, color: 'var(--tx)', fontWeight: 600, marginLeft: 4 }}>{lvl.description}</span>
+            </div>
+          );
+        })}
+      </div>
       <div style={{ fontSize: 10, color: 'var(--tx4)', marginTop: 8, fontFamily: 'var(--mono)' }}>
         WHO-ATC · Anatomical Therapeutic Chemical Classification System
       </div>
