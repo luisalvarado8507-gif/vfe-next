@@ -242,7 +242,8 @@ function BaseDatosContent() {
   useEffect(() => {
     if (estadoParam) setFiltroEstado(estadoParam);
     if (cnmbParam === 'true') setFiltroCNMB(true);
-  }, [estadoParam, cnmbParam]);
+    if (emlParam === 'true') setFiltroEML(true);
+  }, [estadoParam, cnmbParam, emlParam]);
   const capNombre = capitulo ? CHAPS.find(c => c.id === capitulo)?.name : null;
 
   const cargarTodos = useCallback(async () => {
