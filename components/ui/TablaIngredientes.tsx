@@ -1,4 +1,5 @@
 'use client';
+import { ATC_DDD } from '@/lib/atc-db';
 import { getEDQMDoseForm } from '@/lib/edqm';
 
 // Mapa INN → SNOMED CT (sustancias frecuentes en SIMI)
@@ -59,6 +60,7 @@ export interface Ingrediente {
   snomedCode?: string;         // SNOMED CT concept ID
   snomedTerm?: string;
   referencia?: boolean;        // Concentración de referencia (ISO 11238)
+  ddd?: string;                 // Dosis Diaria Definida WHO
 }
 
 const ROL_CONFIG: Record<RolIngrediente, { label: string; bg: string; color: string; desc: string }> = {
@@ -104,7 +106,7 @@ export default function TablaIngredientes({ ingredientes, editable, onChange }: 
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
           <thead>
             <tr style={{ background: 'var(--bg3)' }}>
-              {['Sustancia (INN/DCI)', 'Rol', 'Concentración', 'Unidad', 'SNOMED CT', 'Ref.'].map(h => (
+              {['Sustancia (INN/DCI)', 'Rol', 'Concentración', 'Unidad', 'SNOMED CT', 'DDD'].map(h => (
                 <th key={h} style={{ textAlign: 'left', padding: '7px 12px', fontSize: 9, fontWeight: 700, color: 'var(--tx3)', letterSpacing: 0.8, fontFamily: 'var(--mono)', textTransform: 'uppercase', borderBottom: '1px solid var(--bdr)', whiteSpace: 'nowrap' }}>{h}</th>
               ))}
             </tr>
@@ -140,8 +142,8 @@ export default function TablaIngredientes({ ingredientes, editable, onChange }: 
                     ) : <span style={{ color: 'var(--tx4)', fontSize: 11 }}>—</span>}
                   </td>
                   <td style={{ padding: '8px 12px', textAlign: 'center' }}>
-                    {ing.referencia ? (
-                      <span style={{ fontSize: 10, fontWeight: 700, color: '#1D4ED8' }} title="Concentración de referencia ISO 11238">R</span>
+                    {ing.ddd ? (
+                      <span style={{ fontSize: 10, fontWeight: 700, color: '#0891B2', fontFamily: 'var(--mono)' }} title="Dosis Diaria Definida WHO">{ing.ddd}</span>
                     ) : null}
                   </td>
                 </tr>
@@ -181,6 +183,13 @@ export function simiToIngredientes(med: Record<string, any>): Ingrediente[] {
       snomedCode: med.snomed_vtm_code,
       snomedTerm: med.vtm,
       referencia: true,
+      ddd: (() => {
+        const atc = med.atc?.trim();
+        if (!atc || atc.length < 7) return undefined;
+        const ddds = ATC_DDD[atc.substring(0,7)];
+        if (!ddds?.length) return undefined;
+        return ddds.map((d: any) => `${d.ddd}${d.uom} ${d.adm}`).join(' / ');
+      })(),
     }];
   }
   return [];
