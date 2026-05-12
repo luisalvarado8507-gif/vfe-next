@@ -79,6 +79,11 @@ export default function Avances() {
           conConc: data.conConc ?? 0,
           conLab: data.conLab ?? 0,
           conFechaRS: data.conFechaRS ?? 0,
+          conSNOMED: data.conSNOMED ?? 0,
+          conVtmEn: data.conVtmEn ?? 0,
+          conGTIN: data.conGTIN ?? 0,
+          conEML: data.conEML ?? 0,
+          conCNMB: data.conCNMB ?? 0,
           cnmbVersion: data.cnmbVersion,
         });
       } catch(e) { console.error(e); }
