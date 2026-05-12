@@ -38,6 +38,12 @@ export async function GET(req: NextRequest) {
     const conConc    = meds.filter(m => m.data?.conc).length;
     const conLab     = meds.filter(m => m.data?.laboratorio).length;
     const conFechaRS = meds.filter(m => m.data?.rsFecha).length;
+    // Nuevos campos ISO IDMP agregados
+    const conSNOMED  = meds.filter(m => m.data?.snomed_vtm_code).length;
+    const conVtmEn   = meds.filter(m => m.data?.vtmEn).length;
+    const conGTIN    = meds.filter(m => m.data?.gtin).length;
+    const conEML     = meds.filter(m => m.data?.eml).length;
+    const conCNMB    = meds.filter(m => m.data?.cnmb === 'Sí').length;
     return NextResponse.json({
       total: total.data().count,
       principiosActivos: pas,
@@ -48,6 +54,7 @@ export async function GET(req: NextRequest) {
       arcsa_pendiente: arcsa.data().count,
       porCapitulo,
       conRS, conCUM, conATC, conFF, conVia, conConc, conLab, conFechaRS,
+      conSNOMED, conVtmEn, conGTIN, conEML, conCNMB,
       cnmbVersion: '9ª Edición',
       cnmbUrl: 'https://www.salud.gob.ec/cuadro-nacional-de-medicamentos-basicos/',
     });

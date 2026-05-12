@@ -22,6 +22,11 @@ interface Stats {
   conConc: number;
   conLab: number;
   conFechaRS: number;
+  conSNOMED: number;
+  conVtmEn: number;
+  conGTIN: number;
+  conEML: number;
+  conCNMB: number;
   cnmbVersion?: string;
 }
 
@@ -107,6 +112,8 @@ export default function Avances() {
         { nombre: 'Principio activo (INN/DCI)', pct: 100, color: 'var(--green)' },
         { nombre: 'Concentración', pct: pct(stats.conConc), color: color(pct(stats.conConc)) },
         { nombre: 'Laboratorio', pct: pct(stats.conLab), color: color(pct(stats.conLab)) },
+        { nombre: 'SNOMED CT ConceptID', pct: pct(stats.conSNOMED), color: color(pct(stats.conSNOMED)) },
+        { nombre: 'INN en inglés (vtmEn)', pct: pct(stats.conVtmEn), color: color(pct(stats.conVtmEn)) },
       ],
       scorePct: Math.round((pct(stats.conConc) + pct(stats.conLab)) / 2),
     },
