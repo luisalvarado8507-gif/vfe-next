@@ -141,7 +141,6 @@ const INN_ATC: Record<string, string> = {
   'biperideno': 'N04AA02',
   // Anestésicos
   'propofol': 'N01AX10', 'ketamina': 'N01AX03',
-  'midazolam': 'N05CD08', 'fentanilo': 'N02AB03',
   'lidocaína': 'N01BB02', 'bupivacaína': 'N01BB01',
   'atropina': 'A03BA01',
   // Respiratorio
