@@ -2,6 +2,16 @@ import { NextRequest, NextResponse } from 'next/server';
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limit';
 import { adminDb, adminAuth } from '@/lib/firebase-admin';
 
+// Normalización DCI — variantes ortográficas aceptadas (INN español vs latino)
+const normalizarDCI = (s: string) => s
+  .toLowerCase()
+  .replace(/\bamlodipina\b/g, 'amlodipino')
+  .replace(/\bnifedipina\b/g, 'nifedipino')
+  .replace(/\bfurosemida\b/g, 'furosemida')
+  .replace(/\blomefantrina\b/g, 'lumefantrina')
+  .replace(/\bácido acetil salicílico\b/g, 'ácido acetilsalicílico')
+  .trim();
+
 async function verificarAuth(req: NextRequest) {
   const token = req.headers.get('Authorization')?.replace('Bearer ', '');
   if (!token) return null;
