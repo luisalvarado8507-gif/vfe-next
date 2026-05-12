@@ -20,6 +20,7 @@ interface Stats {
   genericos: number;
   cnmb: number;
   eml: number;
+  arcsa_pendiente: number;
 }
 
 // Helper: principios activos para combos
@@ -29,7 +30,7 @@ function getVtmLabel(m: any): string {
 }
 
 export default function Dashboard() {
-  const [stats, setStats] = useState<Stats>({ total: 0, principiosActivos: 0, genericos: 0, cnmb: 0, eml: 0 });
+  const [stats, setStats] = useState<Stats>({ total: 0, principiosActivos: 0, genericos: 0, cnmb: 0, eml: 0, arcsa_pendiente: 0 });
   const [recientes, setRecientes] = useState<RecentMed[]>([]);
   const [busqueda, setBusqueda] = useState('');
   const [tipoB, setTipoB] = useState<'todo' | 'pa' | 'comercial' | 'atc' | 'lab'>('todo');
@@ -67,6 +68,7 @@ export default function Dashboard() {
           genericos: statsData.genericos ?? 0,
           cnmb: statsData.cnmb ?? 0,
           eml: statsData.eml ?? 0,
+          arcsa_pendiente: statsData.arcsa_pendiente ?? 0,
         });
         setRecientes((recentData.medicamentos || []).slice(0, 20).map((m: any) => ({
           docId: m.docId || m.id,
@@ -139,6 +141,16 @@ export default function Dashboard() {
               <h1 style={{ fontSize: 20, fontWeight: 700, color: '#fff', letterSpacing: '-0.3px', lineHeight: 1.2, margin: 0 }}>
                 Base de datos de medicamentos autorizados
               </h1>
+              <div style={{ marginTop: 6, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ fontSize: 10, fontFamily: 'var(--mono)', color: 'rgba(255,255,255,.4)', padding: '2px 8px', borderRadius: 10, border: '1px solid rgba(255,255,255,.1)' }}>
+                  ✓ Autorizados visibles
+                </span>
+                {stats.arcsa_pendiente > 0 && (
+                  <span style={{ fontSize: 10, fontFamily: 'var(--mono)', color: 'rgba(255,255,255,.3)' }}>
+                    + {stats.arcsa_pendiente.toLocaleString('es-EC')} en depuración
+                  </span>
+                )}
+              </div>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 5, flexShrink: 0 }}>
               <span style={{ fontSize: 11, color: 'rgba(255,255,255,.3)', fontFamily: 'var(--mono)' }}>{fecha}</span>

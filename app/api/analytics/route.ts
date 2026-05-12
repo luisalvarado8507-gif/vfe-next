@@ -64,9 +64,16 @@ export async function GET(req: NextRequest) {
     });
 
     // Top laboratorios
+    // Sanitizar caracteres corruptos Latin-1 → UTF-8
+    const sanitize = (s: string) => s
+      .replace(/�/g, 'ñ')
+      .replace(/Compa�ia/gi, 'Compañía')
+      .replace(/se�or/gi, 'señor')
+      .replace(/[\uFFFD]/g, '?')
+      .trim();
     const porLab: Record<string, number> = {};
     meds.forEach(m => {
-      if (m.laboratorio) porLab[m.laboratorio] = (porLab[m.laboratorio] || 0) + 1;
+      if (m.laboratorio) { const lab = sanitize(m.laboratorio); porLab[lab] = (porLab[lab] || 0) + 1; }
     });
 
     // Top capítulos

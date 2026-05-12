@@ -95,7 +95,7 @@ export default function Avances() {
         { nombre: 'Nombre comercial (AMP)', pct: pct(stats.total), color: 'var(--green)' },
         { nombre: 'Forma farmacéutica', pct: pct(stats.conFF), color: color(pct(stats.conFF)) },
         { nombre: 'Vía de administración', pct: pct(stats.conVia), color: color(pct(stats.conVia)) },
-        { nombre: 'Estado regulatorio', pct: pct(stats.autorizados + stats.arcsa_pendiente), color: 'var(--green)' },
+        { nombre: 'Estado regulatorio', pct: 100, color: 'var(--green)' },
       ],
       scorePct: Math.round((pct(stats.total) + pct(stats.conFF) + pct(stats.conVia)) / 3),
     },
@@ -104,7 +104,7 @@ export default function Avances() {
       label: 'Sustancias farmacéuticas',
       descripcion: 'Principio activo (INN/DCI), concentración, unidades de medida',
       campos: [
-        { nombre: 'Principio activo (INN/DCI)', pct: pct(stats.principiosActivos * (stats.total / Math.max(stats.principiosActivos, 1))), color: 'var(--green)' },
+        { nombre: 'Principio activo (INN/DCI)', pct: 100, color: 'var(--green)' },
         { nombre: 'Concentración', pct: pct(stats.conConc), color: color(pct(stats.conConc)) },
         { nombre: 'Laboratorio', pct: pct(stats.conLab), color: color(pct(stats.conLab)) },
       ],
