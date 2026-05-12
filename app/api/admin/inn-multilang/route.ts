@@ -20,8 +20,8 @@ const INN_EN: Record<string, string> = {
   'rifampicina':'Rifampicin','isoniazida':'Isoniazid','ivermectina':'Ivermectin',
   'dutasterida':'Dutasteride','tamsulosina':'Tamsulosin','candesartán':'Candesartan',
   'hidroclorotiazida':'Hydrochlorothiazide','olmesartán':'Olmesartan','telmisartán':'Telmisartan',
-  'ramipril':'Ramipril','captopril':'Captopril','bisoprolol':'Bisoprolol',
-  'atenolol':'Atenolol','diltiazem':'Diltiazem','verapamilo':'Verapamil',
+  'ramipril':'Ramipril','captopril':'Captopril','atenolol':'Atenolol',
+  'diltiazem':'Diltiazem','verapamilo':'Verapamil',
   'clortalidona':'Chlortalidone','indapamida':'Indapamide','torasemida':'Torasemide',
 };
 
