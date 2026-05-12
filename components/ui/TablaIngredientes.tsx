@@ -273,10 +273,10 @@ const RXNORM_INN: Record<string, string> = {
   'diazepam': '3322', 'lorazepam': '6470',
   'carbamazepina': '2002', 'ácido valproico': '11118',
   'tramadol': '10689', 'morfina': '7052',
-  'insulina': '5856', 'metformina': '6809',
-  'ceftriaxona': '2193', 'vancomicina': '11124',
-  'fluconazol': '4450', 'aciclovir': '19',
-  'rifampicina': '9384', 'isoniazida': '6038',
+  'insulina': '5856', 'ceftriaxona': '2193',
+  'vancomicina': '11124', 'fluconazol': '4450',
+  'aciclovir': '19', 'rifampicina': '9384',
+  'isoniazida': '6038',
 };
 
 // Mapa texto → UCUM (ISO 11240) — Unified Code for Units of Measure
