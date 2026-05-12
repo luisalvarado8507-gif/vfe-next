@@ -340,6 +340,17 @@ export default function Dashboard() {
                   <span>🔬</span> Auto-completar ATC
                 </button>
                 <button
+                  onClick={async () => {
+                    const token = await getToken();
+                    if (!token) return;
+                    const res = await fetch('/api/admin/autocompletar-via', { method: 'POST', headers: { Authorization: `Bearer ${token}` } });
+                    const d = await res.json();
+                    alert(`✅ Vías auto-completadas:\n\nActualizados: ${d.actualizados}\nRevisados: ${d.revisados}`);
+                  }}
+                  style={{ display:'flex', alignItems:'center', gap:8, padding:'10px 18px', borderRadius:'var(--r)', border:'1.5px solid #BAE6FD', background:'#EFF6FF', color:'#1D4ED8', fontSize:13, fontWeight:600, cursor:'pointer' }}>
+                  <span>💉</span> Auto-completar vías
+                </button>
+                <button
                   onClick={marcarEML}
                   style={{ display:'flex', alignItems:'center', gap:8, padding:'10px 18px', borderRadius:'var(--r)', border:'1.5px solid #86efac', background:'#f0fdf4', color:'#15803d', fontSize:13, fontWeight:600, cursor:'pointer', transition:'all var(--t)' }}
                   onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = '#15803d'; }}
