@@ -317,6 +317,17 @@ export default function Dashboard() {
                   <span>🌐</span> Actualizar INN multilingüe
                 </button>
                 <button
+                  onClick={async () => {
+                    const token = await getToken();
+                    if (!token) return;
+                    const res = await fetch('/api/admin/diagnostico', { headers: { Authorization: `Bearer ${token}` } });
+                    const d = await res.json();
+                    alert(`📊 DIAGNÓSTICO 16.472 medicamentos:\n\nSin ATC: ${d.sinATC}\nATC incompleto (<7): ${d.atcIncompleto}\nSin FF: ${d.sinFF}\nSin vía: ${d.sinVia}\nSin concentración: ${d.sinConc}\nSin RS: ${d.sinRS}\nSin laboratorio: ${d.sinLab}\nSin VTM: ${d.sinVTM}\nSin CUM: ${d.sinCUM}\nTotal: ${d.total}`);
+                  }}
+                  style={{ display:'flex', alignItems:'center', gap:8, padding:'10px 18px', borderRadius:'var(--r)', border:'1.5px solid #E2E8F0', background:'#F8FAFC', color:'#475569', fontSize:13, fontWeight:600, cursor:'pointer' }}>
+                  <span>📊</span> Diagnóstico datos
+                </button>
+                <button
                   onClick={marcarEML}
                   style={{ display:'flex', alignItems:'center', gap:8, padding:'10px 18px', borderRadius:'var(--r)', border:'1.5px solid #86efac', background:'#f0fdf4', color:'#15803d', fontSize:13, fontWeight:600, cursor:'pointer', transition:'all var(--t)' }}
                   onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = '#15803d'; }}
