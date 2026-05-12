@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { CHAPS } from '@/lib/capitulos-tree';
 import { getEDQMDoseForm, getEDQMRoute } from '@/lib/edqm';
+import { getICD10ForATC } from '@/lib/icd10-map';
 import TablaIngredientes, { simiToIngredientes } from '@/components/ui/TablaIngredientes';
 import AtcHierarchy from '@/components/ui/AtcHierarchy';
 import RxNormLookup from '@/components/ui/RxNormLookup';
@@ -497,6 +498,30 @@ export default function MedicamentoDetalle({ id: propId, initialData }: Medicame
           {/* TAB 3: CLÍNICA */}
           {tab === 3 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {/* ICD-10 automático por ATC */}
+              {(() => {
+                const icdCodes = getICD10ForATC(med.atc);
+                if (!icdCodes.length) return null;
+                return (
+                  <div style={{ background: 'var(--bg2)', border: '1.5px solid var(--bdr)', borderRadius: 'var(--r)', overflow: 'hidden' }}>
+                    <div style={{ padding: '10px 16px', background: 'var(--bg3)', borderBottom: '1px solid var(--bdr)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--tx2)', letterSpacing: 1, fontFamily: 'var(--mono)', textTransform: 'uppercase' }}>ICD-10 · Indicaciones principales</span>
+                      <span style={{ fontSize: 9, color: 'var(--tx4)', fontFamily: 'var(--mono)' }}>WHO International Classification of Diseases</span>
+                    </div>
+                    <div style={{ padding: '12px 16px', display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                      {icdCodes.map(icd => (
+                        <a key={icd.code}
+                          href={`https://icd.who.int/browse10/2019/en#/${icd.code}`}
+                          target="_blank" rel="noreferrer"
+                          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 10px', borderRadius: 6, background: '#EFF6FF', border: '1px solid #BFDBFE', textDecoration: 'none' }}>
+                          <span style={{ fontSize: 11, fontWeight: 700, color: '#1D4ED8', fontFamily: 'var(--mono)' }}>{icd.code}</span>
+                          <span style={{ fontSize: 11, color: '#374151' }}>{icd.desc}</span>
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
               {clinKeys.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--tx4)', background: 'var(--bg2)', border: '1.5px solid var(--bdr)', borderRadius: 'var(--rl)' }}>
                   <div style={{ fontSize: 24, marginBottom: 8 }}>⚕</div>
