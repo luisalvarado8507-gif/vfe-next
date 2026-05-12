@@ -328,6 +328,18 @@ export default function Dashboard() {
                   <span>📊</span> Diagnóstico datos
                 </button>
                 <button
+                  onClick={async () => {
+                    const token = await getToken();
+                    if (!token) return;
+                    if (!confirm('¿Auto-completar ATC en medicamentos sin código ATC? Esto actualizará hasta 2.261 medicamentos.')) return;
+                    const res = await fetch('/api/admin/autocompletar-atc', { method: 'POST', headers: { Authorization: `Bearer ${token}` } });
+                    const d = await res.json();
+                    alert(`✅ ATC auto-completado:\n\nActualizados: ${d.actualizados}\nRevisados: ${d.revisados}`);
+                  }}
+                  style={{ display:'flex', alignItems:'center', gap:8, padding:'10px 18px', borderRadius:'var(--r)', border:'1.5px solid #BBF7D0', background:'#F0FDF4', color:'#15803D', fontSize:13, fontWeight:600, cursor:'pointer' }}>
+                  <span>🔬</span> Auto-completar ATC
+                </button>
+                <button
                   onClick={marcarEML}
                   style={{ display:'flex', alignItems:'center', gap:8, padding:'10px 18px', borderRadius:'var(--r)', border:'1.5px solid #86efac', background:'#f0fdf4', color:'#15803d', fontSize:13, fontWeight:600, cursor:'pointer', transition:'all var(--t)' }}
                   onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = '#15803d'; }}
