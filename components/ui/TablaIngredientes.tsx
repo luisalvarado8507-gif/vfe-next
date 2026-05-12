@@ -251,6 +251,48 @@ const SNOMED_INN: Record<string, { code: string; term: string }> = {
 };
 
 
+// Mapa texto → UCUM (ISO 11240) — Unified Code for Units of Measure
+// Fuente: https://ucum.org/ucum.html
+const UCUM_MAP: Record<string, { code: string; display: string }> = {
+  // Masa
+  'mg':    { code: 'mg',   display: 'mg' },
+  'g':     { code: 'g',    display: 'g' },
+  'mcg':   { code: 'ug',   display: 'μg' },
+  'μg':    { code: 'ug',   display: 'μg' },
+  'ug':    { code: 'ug',   display: 'μg' },
+  'kg':    { code: 'kg',   display: 'kg' },
+  'ng':    { code: 'ng',   display: 'ng' },
+  // Volumen
+  'ml':    { code: 'mL',   display: 'mL' },
+  'l':     { code: 'L',    display: 'L' },
+  'dl':    { code: 'dL',   display: 'dL' },
+  'ul':    { code: 'uL',   display: 'μL' },
+  // Unidades internacionales
+  'ui':    { code: '[IU]', display: 'UI' },
+  'iu':    { code: '[IU]', display: 'IU' },
+  'ufc':   { code: '[CFU]',display: 'UFC' },
+  // Molar
+  'mmol':  { code: 'mmol', display: 'mmol' },
+  'mol':   { code: 'mol',  display: 'mol' },
+  'meq':   { code: 'meq',  display: 'mEq' },
+  // Concentración
+  'mg/ml': { code: 'mg/mL',display: 'mg/mL' },
+  'mg/l':  { code: 'mg/L', display: 'mg/L' },
+  'g/l':   { code: 'g/L',  display: 'g/L' },
+  'g/dl':  { code: 'g/dL', display: 'g/dL' },
+  'mg/dl': { code: 'mg/dL',display: 'mg/dL' },
+  'ui/ml': { code: '[IU]/mL', display: 'UI/mL' },
+  '%':     { code: '%',    display: '%' },
+  // Otros
+  'mcg/dosis': { code: 'ug/{dose}', display: 'μg/dosis' },
+  'mg/dosis':  { code: 'mg/{dose}', display: 'mg/dosis' },
+};
+
+function toUCUM(unit?: string): { code: string; display: string } | null {
+  if (!unit) return null;
+  return UCUM_MAP[unit.toLowerCase().trim()] || null;
+}
+
 // Roles de ingredientes según ISO 11238
 export type RolIngrediente = 'active' | 'excipient' | 'adjuvant' | 'residue';
 
