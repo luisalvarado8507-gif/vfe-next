@@ -302,6 +302,7 @@ export default function Dashboard() {
                 <span>⬇</span> Importar / Exportar
               </Link>
               {isAdmin && (
+                <>
                 <button
                   onClick={async () => {
                     const token = await getToken();
@@ -322,6 +323,7 @@ export default function Dashboard() {
                   onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = '#86efac'; }}>
                   <span>🌍</span> Actualizar EML-OMS
                 </button>
+                </>
               )}
             </div>
           </div>
