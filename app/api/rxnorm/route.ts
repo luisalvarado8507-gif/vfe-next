@@ -1,51 +1,38 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { adminAuth } from '@/lib/firebase-admin';
-import { rxnormCache } from '@/lib/cache';
-
-async function verificarAuth(req: NextRequest) {
-  const token = req.headers.get('Authorization')?.replace('Bearer ', '');
-  if (!token) return null;
-  try { return await adminAuth.verifyIdToken(token); } catch { return null; }
-}
 
 export async function GET(req: NextRequest) {
-  const user = await verificarAuth(req);
-  if (!user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
-
-  const { searchParams } = new URL(req.url);
-  const inn = searchParams.get('inn');
-  if (!inn) return NextResponse.json({ error: 'inn requerido' }, { status: 400 });
+  const inn = new URL(req.url).searchParams.get('inn');
+  if (!inn) return NextResponse.json({ rxcui: null });
 
   try {
-    const term = inn.split(' + ')[0].trim();
-    const cacheKey = `rxnorm:${term.toLowerCase()}`;
-    const cached = rxnormCache.get(cacheKey);
-    if (cached) return NextResponse.json({ ...cached, fromCache: true });
-    // Buscar RxCUI exacto
+    // Buscar RxCUI por nombre INN en la API pública NLM
     const res = await fetch(
-      `https://rxnav.nlm.nih.gov/REST/rxcui.json?name=${encodeURIComponent(term)}&search=2`,
-      { headers: { Accept: 'application/json' } }
+      `https://rxnav.nlm.nih.gov/REST/rxcui.json?name=${encodeURIComponent(inn)}&search=2`,
+      { next: { revalidate: 86400 } }
     );
     const data = await res.json();
-    
-    if (data.idGroup?.rxnormId?.length > 0) {
-      const rxcui = data.idGroup.rxnormId[0];
-      const detailRes = await fetch(`https://rxnav.nlm.nih.gov/REST/rxcui/${rxcui}/properties.json`);
-      const detail = await detailRes.json();
-      const result = {
-        found: true,
-        rxcui,
-        name: detail.properties?.name || term,
-        tty: detail.properties?.tty || 'IN',
-        url: `https://www.rxnav.nlm.nih.gov/RxNav.html?search=${rxcui}`,
-      };
-      rxnormCache.set(`rxnorm:${term.toLowerCase()}`, result);
-      return NextResponse.json(result);
-    }
-    const notFoundResult = { found: false, term };
-    rxnormCache.set(`rxnorm:${term.toLowerCase()}`, notFoundResult);
-    return NextResponse.json(notFoundResult);
-  } catch(e) {
-    return NextResponse.json({ error: String(e), found: false }, { status: 500 });
+    const rxcui = data?.idGroup?.rxnormId?.[0] || null;
+
+    if (!rxcui) return NextResponse.json({ rxcui: null });
+
+    // Obtener info adicional del concepto
+    const infoRes = await fetch(
+      `https://rxnav.nlm.nih.gov/REST/rxcui/${rxcui}/properties.json`,
+      { next: { revalidate: 86400 } }
+    );
+    const infoData = await infoRes.json();
+    const props = infoData?.properties;
+
+    return NextResponse.json({
+      rxcui,
+      name: props?.name || inn,
+      synonym: props?.synonym || null,
+      tty: props?.tty || null,
+      url: `https://mor.nlm.nih.gov/RxNav/search?searchBy=RXCUI&searchTerm=${rxcui}`
+    }, {
+      headers: { 'Cache-Control': 'public, max-age=86400' }
+    });
+  } catch {
+    return NextResponse.json({ rxcui: null });
   }
 }

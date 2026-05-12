@@ -251,6 +251,34 @@ const SNOMED_INN: Record<string, { code: string; term: string }> = {
 };
 
 
+
+// Mapa INN → RxNorm RxCUI (NLM USA) — sustancias frecuentes
+const RXNORM_INN: Record<string, string> = {
+  'amlodipino': '17767', 'amlodipina': '17767',
+  'losartán': '203160', 'valsartán': '69749',
+  'enalapril': '3827', 'lisinopril': '29046',
+  'metformina': '6809', 'glibenclamida': '4815',
+  'atorvastatina': '83367', 'simvastatina': '36567',
+  'omeprazol': '7646', 'lansoprazol': '17128',
+  'amoxicilina': '723', 'azitromicina': '18631',
+  'ciprofloxacino': '2551', 'metronidazol': '6922',
+  'paracetamol': '161', 'ibuprofeno': '5640',
+  'salbutamol': '435', 'budesonida': '19831',
+  'espironolactona': '9997', 'furosemida': '4603',
+  'metoprolol': '6918', 'bisoprolol': '19484',
+  'warfarina': '11289', 'clopidogrel': '41493',
+  'levotiroxina': '10582', 'prednisona': '8638',
+  'dexametasona': '3264', 'hidrocortisona': '5311',
+  'fluoxetina': '4493', 'sertralina': '36437',
+  'diazepam': '3322', 'lorazepam': '6470',
+  'carbamazepina': '2002', 'ácido valproico': '11118',
+  'tramadol': '10689', 'morfina': '7052',
+  'insulina': '5856', 'metformina': '6809',
+  'ceftriaxona': '2193', 'vancomicina': '11124',
+  'fluconazol': '4450', 'aciclovir': '19',
+  'rifampicina': '9384', 'isoniazida': '6038',
+};
+
 // Mapa texto → UCUM (ISO 11240) — Unified Code for Units of Measure
 // Fuente: https://ucum.org/ucum.html
 const UCUM_MAP: Record<string, { code: string; display: string }> = {
@@ -307,6 +335,7 @@ export interface Ingrediente {
   snomedTerm?: string;
   referencia?: boolean;        // Concentración de referencia (ISO 11238)
   ddd?: string;                 // Dosis Diaria Definida WHO
+  rxcui?: string;               // RxNorm RxCUI (NLM USA)
 }
 
 const ROL_CONFIG: Record<RolIngrediente, { label: string; bg: string; color: string; desc: string }> = {
@@ -352,7 +381,7 @@ export default function TablaIngredientes({ ingredientes, editable, onChange }: 
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
           <thead>
             <tr style={{ background: 'var(--bg3)' }}>
-              {['Sustancia (INN/DCI)', 'Rol', 'Concentración', 'Unidad', 'SNOMED CT', 'DDD'].map(h => (
+              {['Sustancia (INN/DCI)', 'Rol', 'Concentración', 'Unidad', 'SNOMED CT', 'RxNorm', 'DDD'].map(h => (
                 <th key={h} style={{ textAlign: 'left', padding: '7px 12px', fontSize: 9, fontWeight: 700, color: 'var(--tx3)', letterSpacing: 0.8, fontFamily: 'var(--mono)', textTransform: 'uppercase', borderBottom: '1px solid var(--bdr)', whiteSpace: 'nowrap' }}>{h}</th>
               ))}
             </tr>
@@ -388,6 +417,16 @@ export default function TablaIngredientes({ ingredientes, editable, onChange }: 
                     ) : <span style={{ color: 'var(--tx4)', fontSize: 11 }}>—</span>}
                   </td>
                   <td style={{ padding: '8px 12px', textAlign: 'center' }}>
+                    {/* RxNorm */}
+                    </td>
+                    <td style={{ padding: '8px 12px' }}>
+                    {ing.rxcui ? (
+                      <a href={`https://mor.nlm.nih.gov/RxNav/search?searchBy=RXCUI&searchTerm=${ing.rxcui}`}
+                        target="_blank" rel="noreferrer"
+                        style={{ fontSize: 10, fontWeight: 700, color: '#7C3AED', textDecoration: 'none', fontFamily: 'var(--mono)', padding: '1px 5px', borderRadius: 3, background: '#F5F3FF', border: '1px solid #DDD6FE' }}>
+                        {ing.rxcui}
+                      </a>
+                    ) : <span style={{ color: 'var(--tx4)', fontSize: 10 }}>—</span>}
                     {ing.ddd ? (
                       <span style={{ fontSize: 10, fontWeight: 700, color: '#0891B2', fontFamily: 'var(--mono)' }} title="Dosis Diaria Definida WHO">{ing.ddd}</span>
                     ) : null}
@@ -429,6 +468,7 @@ export function simiToIngredientes(med: Record<string, any>): Ingrediente[] {
       snomedCode: med.snomed_vtm_code,
       snomedTerm: med.vtm,
       referencia: true,
+      rxcui: RXNORM_INN[med.vtm?.toLowerCase?.() || ''] || undefined,
       ddd: (() => {
         const atc = med.atc?.trim();
         if (!atc || atc.length < 7) return undefined;
