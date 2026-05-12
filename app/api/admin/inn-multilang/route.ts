@@ -30,8 +30,8 @@ const INN_PT: Record<string, string> = {
   'atorvastatina':'Atorvastatina','omeprazol':'Omeprazol','amoxicilina':'Amoxicilina',
   'paracetamol':'Paracetamol','ibuprofeno':'Ibuprofeno','espironolactona':'Espironolactona',
   'furosemida':'Furosemida','levotiroxina':'Levotiroxina','fluoxetina':'Fluoxetina',
-  'warfarina':'Varfarina','clopidogrel':'Clopidogrel','metformina':'Metformina',
-  'ciprofloxacino':'Ciprofloxacino','metronidazol':'Metronidazol','salbutamol':'Salbutamol',
+  'warfarina':'Varfarina','clopidogrel':'Clopidogrel','ciprofloxacino':'Ciprofloxacino',
+  'metronidazol':'Metronidazol','salbutamol':'Salbutamol',
 };
 
 export async function POST(req: NextRequest) {
