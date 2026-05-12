@@ -303,6 +303,19 @@ export default function Dashboard() {
               </Link>
               {isAdmin && (
                 <button
+                  onClick={async () => {
+                    const token = await getToken();
+                    if (!token) return;
+                    const res = await fetch('/api/admin/inn-multilang', { method: 'POST', headers: { Authorization: `Bearer ${token}` } });
+                    const d = await res.json();
+                    alert(`✅ INN multilingüe: ${d.actualizados} medicamentos actualizados de ${d.total}`);
+                  }}
+                  style={{ display:'flex', alignItems:'center', gap:8, padding:'10px 18px', borderRadius:'var(--r)', border:'1.5px solid #DDD6FE', background:'#F5F3FF', color:'#7C3AED', fontSize:13, fontWeight:600, cursor:'pointer', transition:'all var(--t)' }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = '#7C3AED'; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = '#DDD6FE'; }}>
+                  <span>🌐</span> Actualizar INN multilingüe
+                </button>
+                <button
                   onClick={marcarEML}
                   style={{ display:'flex', alignItems:'center', gap:8, padding:'10px 18px', borderRadius:'var(--r)', border:'1.5px solid #86efac', background:'#f0fdf4', color:'#15803d', fontSize:13, fontWeight:600, cursor:'pointer', transition:'all var(--t)' }}
                   onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = '#15803d'; }}
