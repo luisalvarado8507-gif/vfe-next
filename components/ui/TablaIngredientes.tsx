@@ -229,9 +229,7 @@ const SNOMED_INN: Record<string, { code: string; term: string }> = {
   'pilocarpina':     { code: '372895004', term: 'Pilocarpine' },
   'acetazolamida':   { code: '372709004', term: 'Acetazolamide' },
   // Varios
-  'ácido acetilsalicílico': { code: '387458008', term: 'Aspirin' },
   'acetilcisteína':  { code: '372528009', term: 'Acetylcysteine' },
-  'omeprazol':       { code: '372726002', term: 'Omeprazole' },
   'calcio':          { code: '5540006',   term: 'Calcium' },
   'vitamina d':      { code: '71516007',  term: 'Vitamin D' },
   'colecalciferol':  { code: '71516007',  term: 'Colecalciferol' },
