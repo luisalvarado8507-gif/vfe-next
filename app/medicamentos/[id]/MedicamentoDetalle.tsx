@@ -359,7 +359,21 @@ export default function MedicamentoDetalle({ id: propId, initialData }: Medicame
                     ))}
                   </div>
                 ) : (
-                  <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--tx)', marginBottom: 4 }}>{med.vtm || '—'}</div>
+                  <div style={{ marginBottom: 4 }}>
+                    <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--tx)' }}>{med.vtm || '—'}</div>
+                    {med.vtmEn && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 3 }}>
+                        <span style={{ fontSize: 9, fontWeight: 700, color: '#0891B2', fontFamily: 'var(--mono)', padding: '1px 5px', borderRadius: 3, background: '#E0F2FE', border: '1px solid #BAE6FD' }}>EN</span>
+                        <span style={{ fontSize: 11, color: 'var(--tx3)', fontStyle: 'italic' }}>{med.vtmEn}</span>
+                      </div>
+                    )}
+                    {med.vtmPt && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 2 }}>
+                        <span style={{ fontSize: 9, fontWeight: 700, color: '#15803D', fontFamily: 'var(--mono)', padding: '1px 5px', borderRadius: 3, background: '#DCFCE7', border: '1px solid #BBF7D0' }}>PT</span>
+                        <span style={{ fontSize: 11, color: 'var(--tx3)', fontStyle: 'italic' }}>{med.vtmPt}</span>
+                      </div>
+                    )}
+                  </div>
                 )}
                 {/* SNOMED VTM */}
                 {sFF && !esCombo && <SNOMEDValidator conceptId={sFF.code} term={sFF.term} type="vtm" />}
