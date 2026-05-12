@@ -279,6 +279,91 @@ const RXNORM_INN: Record<string, string> = {
   'isoniazida': '6038',
 };
 
+
+// Mapa INN → UNII (FDA) + CAS Number (ISO 11238)
+const UNII_MAP: Record<string, { unii: string; cas: string }> = {
+  'amlodipino':      { unii: '1J444QC288', cas: '88150-42-9' },
+  'amlodipina':      { unii: '1J444QC288', cas: '88150-42-9' },
+  'losartán':        { unii: 'JMS50MPO89', cas: '114798-26-4' },
+  'valsartán':       { unii: '80M3ZB9L6N', cas: '137862-53-4' },
+  'enalapril':       { unii: '69TE39LN4Z', cas: '75847-73-3' },
+  'lisinopril':      { unii: '7Q921NS8CT', cas: '76547-98-3' },
+  'ramipril':        { unii: 'L35D88L87Q', cas: '87333-19-5' },
+  'captopril':       { unii: '9B627AW319', cas: '62571-86-2' },
+  'candesartán':     { unii: 'S9ER07DFD1', cas: '139481-59-7' },
+  'olmesartán':      { unii: 'N7O4A6J4R7', cas: '144689-63-4' },
+  'telmisartán':     { unii: 'OL961R6O2C', cas: '144701-48-4' },
+  'irbesartán':      { unii: 'J0E2756Z7N', cas: '138402-11-6' },
+  'metformina':      { unii: '9100L32L2N', cas: '657-24-9' },
+  'glibenclamida':   { unii: 'SX6K58TVWC', cas: '10238-21-8' },
+  'glimepirida':     { unii: '6KY687524K', cas: '93479-97-1' },
+  'atorvastatina':   { unii: '48A5M73Z4Q', cas: '134523-00-5' },
+  'simvastatina':    { unii: 'AGG2FN16EV', cas: '79902-63-9' },
+  'rosuvastatina':   { unii: '83MVE049GL', cas: '287714-41-4' },
+  'omeprazol':       { unii: 'KG60484QX9', cas: '73590-58-6' },
+  'lansoprazol':     { unii: '0K5C5T2QPG', cas: '103577-45-3' },
+  'pantoprazol':     { unii: 'D8TST4O562', cas: '102625-70-7' },
+  'amoxicilina':     { unii: '804Y5328EE', cas: '26787-78-0' },
+  'azitromicina':    { unii: 'J2KLZ20U1M', cas: '83905-01-5' },
+  'ciprofloxacino':  { unii: '5E8K9I0O4U', cas: '85721-33-1' },
+  'metronidazol':    { unii: '140QMO216E', cas: '443-48-1' },
+  'levofloxacino':   { unii: '6GNT3Y5LMF', cas: '100986-85-4' },
+  'ceftriaxona':     { unii: '75J73V1629', cas: '73384-59-5' },
+  'vancomicina':     { unii: '6Q205EH1VU', cas: '1404-90-6' },
+  'paracetamol':     { unii: '362O9ITL9D', cas: '103-90-2' },
+  'ibuprofeno':      { unii: 'WK2XYI10QM', cas: '15687-27-1' },
+  'diclofenaco':     { unii: '144O8QL0L1', cas: '15307-86-5' },
+  'tramadol':        { unii: '39J1LGJ30J', cas: '27203-92-5' },
+  'morfina':         { unii: '76I7G6D29C', cas: '57-27-2' },
+  'fentanilo':       { unii: 'UF599785JZ', cas: '437-38-7' },
+  'salbutamol':      { unii: 'QF8SVZ52AP', cas: '18559-94-9' },
+  'budesonida':      { unii: 'Q3OKS62Q6X', cas: '51333-22-3' },
+  'fluticasona':     { unii: 'FU59D8348H', cas: '90566-53-3' },
+  'espironolactona': { unii: '27O7W4T232', cas: '52-01-7' },
+  'furosemida':      { unii: '7LXU5N7ZO5', cas: '54-31-9' },
+  'hidroclorotiazida': { unii: '0J48LPH2TH', cas: '58-93-5' },
+  'metoprolol':      { unii: 'GEB06NHM23', cas: '37350-58-6' },
+  'bisoprolol':      { unii: '6K2L97C0YC', cas: '66722-44-9' },
+  'carvedilol':      { unii: '0K47UL67F2', cas: '72956-09-3' },
+  'propranolol':     { unii: 'A74586SNO7', cas: '525-66-6' },
+  'warfarina':       { unii: 'Q34DP712JL', cas: '81-81-2' },
+  'clopidogrel':     { unii: 'A74586SNO7', cas: '113665-84-2' },
+  'heparina':        { unii: 'T2410KM04A', cas: '9005-49-6' },
+  'enoxaparina':     { unii: '8NZ41MIK1O', cas: '679809-58-6' },
+  'warfarina':       { unii: 'Q34DP712JL', cas: '81-81-2' },
+  'levotiroxina':    { unii: 'Q51BO43MG4', cas: '51-48-9' },
+  'prednisona':      { unii: 'VB0R961HZT', cas: '53-03-2' },
+  'prednisolona':    { unii: '9PHQ9Y1OLM', cas: '50-24-8' },
+  'dexametasona':    { unii: '7S5I7G3JQL', cas: '50-02-2' },
+  'hidrocortisona':  { unii: 'WI4X0X7BPJ', cas: '50-23-7' },
+  'fluoxetina':      { unii: '01K63SUP8D', cas: '54910-89-3' },
+  'sertralina':      { unii: 'QUC7NX6WMB', cas: '79617-96-2' },
+  'escitalopram':    { unii: '4O4S742ANY', cas: '128196-01-0' },
+  'diazepam':        { unii: 'Q3JTX2Q7TU', cas: '439-14-5' },
+  'lorazepam':       { unii: 'O26FZP769L', cas: '846-49-1' },
+  'carbamazepina':   { unii: '33CM23913M', cas: '298-46-4' },
+  'ácido valproico': { unii: '614OI1Z5WI', cas: '99-66-1' },
+  'levetiracetam':   { unii: '44YRR34555', cas: '102767-28-2' },
+  'insulina':        { unii: '2ZM8CX04RZ', cas: '11061-68-0' },
+  'aciclovir':       { unii: '959KS89SA5', cas: '59277-89-3' },
+  'fluconazol':      { unii: '8VZV102JFY', cas: '86386-73-4' },
+  'rifampicina':     { unii: 'VJT6J7R4TR', cas: '13292-46-1' },
+  'isoniazida':      { unii: 'V83O1VOZ8L', cas: '54-85-3' },
+  'ivermectina':     { unii: '4F47O9W09H', cas: '70288-86-7' },
+  'albendazol':      { unii: 'F4216019UR', cas: '54965-21-8' },
+  'cloroquina':      { unii: '886U3H6UFF', cas: '54-05-7' },
+  'metotrexato':     { unii: 'YL5FZ2Y5U1', cas: '59-05-2' },
+  'ciclosporina':    { unii: '83HN0GTJ6D', cas: '59865-13-3' },
+  'tamoxifeno':      { unii: '094ZI81Y45', cas: '10540-29-1' },
+  'ácido fólico':    { unii: '935E97BOY8', cas: '59-30-3' },
+  'calcio':          { unii: '2M83C4R6ZB', cas: '7440-70-2' },
+  'zinc':            { unii: 'J41CSQ7QDS', cas: '7440-66-6' },
+  'vitamina d':      { unii: '1C6V77QF41', cas: '67-97-0' },
+  'colecalciferol':  { unii: '1C6V77QF41', cas: '67-97-0' },
+  'oxitocina':       { unii: '1JQS135EYN', cas: '50-56-6' },
+  'misoprostol':     { unii: 'OBD445WZ5P', cas: '59122-46-2' },
+};
+
 // Mapa texto → UCUM (ISO 11240) — Unified Code for Units of Measure
 // Fuente: https://ucum.org/ucum.html
 const UCUM_MAP: Record<string, { code: string; display: string }> = {
@@ -336,6 +421,8 @@ export interface Ingrediente {
   referencia?: boolean;        // Concentración de referencia (ISO 11238)
   ddd?: string;                 // Dosis Diaria Definida WHO
   rxcui?: string;               // RxNorm RxCUI (NLM USA)
+  unii?: string;                // UNII FDA (ISO 11238)
+  cas?: string;                 // CAS Number
 }
 
 const ROL_CONFIG: Record<RolIngrediente, { label: string; bg: string; color: string; desc: string }> = {
@@ -469,6 +556,8 @@ export function simiToIngredientes(med: Record<string, any>): Ingrediente[] {
       snomedTerm: med.vtm,
       referencia: true,
       rxcui: RXNORM_INN[med.vtm?.toLowerCase?.() || ''] || undefined,
+      unii: UNII_MAP[med.vtm?.toLowerCase?.() || '']?.unii || undefined,
+      cas: UNII_MAP[med.vtm?.toLowerCase?.() || '']?.cas || undefined,
       ddd: (() => {
         const atc = med.atc?.trim();
         if (!atc || atc.length < 7) return undefined;
