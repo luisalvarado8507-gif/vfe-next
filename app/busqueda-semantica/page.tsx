@@ -18,6 +18,12 @@ export default function BusquedaSemanticaPage() {
             <p style={{ fontSize: 13, color: 'var(--tx3)' }}>
               Usa lenguaje clínico natural — Claude entiende indicaciones, mecanismos de acción y grupos terapéuticos.
             </p>
+            <div style={{ marginTop: 10, padding: '10px 14px', borderRadius: 8, background: 'var(--amber-bg)', border: '1px solid #FCD34D', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+              <span style={{ fontSize: 16, flexShrink: 0 }}>⚠️</span>
+              <div style={{ fontSize: 11, color: '#92400E', lineHeight: 1.5 }}>
+                <strong>Aviso regulatorio:</strong> Esta herramienta usa inteligencia artificial (Claude API · Anthropic) para interpretar consultas clínicas. Los resultados son orientativos y no constituyen prescripción médica ni recomendación terapéutica. Las consultas se procesan en servidores externos (Anthropic). Verifique siempre contra las fichas técnicas oficiales de ARCSA. Para uso clínico, consulte a un profesional de salud.
+              </div>
+            </div>
           </div>
           <SemanticSearch />
         </div>
