@@ -290,6 +290,7 @@ export default function MedicamentoDetalle({ id: propId, initialData }: Medicame
             </div>
 
             <div style={{ flex: 1 }}>
+              {/* Selector de idioma para INN */}
               <h1 style={{ fontSize: 20, fontWeight: 700, color: '#fff', lineHeight: 1.25, marginBottom: 4 }}>
                 {med.amp || med.nombre || med.vtm || '—'}
               </h1>
@@ -439,6 +440,19 @@ export default function MedicamentoDetalle({ id: propId, initialData }: Medicame
               <Field label="AMPP — Paquete real" value={med.ampp || '—'} />
               <Field label="Unidades por presentación" value={med.units ? `${med.units} ${med.envase || ''}`.trim() : '—'} />
               <Field label="Tipo de envase" value={med.envase || '—'} />
+              {/* GTIN/EAN — GS1 */}
+              <div style={{ background: 'var(--bg2)', border: '1.5px solid var(--bdr)', borderRadius: 'var(--r)', padding: '10px 14px' }}>
+                <div style={{ fontSize: 9, fontWeight: 700, color: 'var(--tx3)', letterSpacing: 1, fontFamily: 'var(--mono)', textTransform: 'uppercase', marginBottom: 4 }}>GTIN / EAN · GS1</div>
+                {med.gtin ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ fontSize: 13, fontWeight: 700, fontFamily: 'var(--mono)', color: 'var(--tx)' }}>{med.gtin}</span>
+                    <a href={`https://www.barcodelookup.com/${med.gtin}`} target="_blank" rel="noreferrer"
+                      style={{ fontSize: 10, color: 'var(--green)', textDecoration: 'none', fontWeight: 600 }}>↗ GS1</a>
+                  </div>
+                ) : (
+                  <span style={{ fontSize: 12, color: 'var(--tx4)', fontStyle: 'italic' }}>No registrado — campo editable</span>
+                )}
+              </div>
               {med.rango && <Field label="Rango de precios" value={med.rango} full />}
 
               {/* Precios por farmacia */}
