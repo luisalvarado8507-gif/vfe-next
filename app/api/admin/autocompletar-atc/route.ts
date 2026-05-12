@@ -184,7 +184,6 @@ const INN_ATC: Record<string, string> = {
   'tiamina': 'A11DA01', 'zinc': 'A12CB01',
   // Musculoesquelético
   'colchicina': 'M04AC01', 'alopurinol': 'M04AA01',
-  'metotrexato': 'L01BA01', 'ciclosporina': 'L04AD01',
   'tacrolimus': 'L04AD02', 'alendronato': 'M05BA04',
   'risedronato': 'M05BA07', 'baclofeno': 'M03BX01',
   // Oftalmología
