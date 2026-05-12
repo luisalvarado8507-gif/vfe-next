@@ -330,7 +330,6 @@ const UNII_MAP: Record<string, { unii: string; cas: string }> = {
   'clopidogrel':     { unii: 'A74586SNO7', cas: '113665-84-2' },
   'heparina':        { unii: 'T2410KM04A', cas: '9005-49-6' },
   'enoxaparina':     { unii: '8NZ41MIK1O', cas: '679809-58-6' },
-  'warfarina':       { unii: 'Q34DP712JL', cas: '81-81-2' },
   'levotiroxina':    { unii: 'Q51BO43MG4', cas: '51-48-9' },
   'prednisona':      { unii: 'VB0R961HZT', cas: '53-03-2' },
   'prednisolona':    { unii: '9PHQ9Y1OLM', cas: '50-24-8' },
