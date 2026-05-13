@@ -30,7 +30,9 @@ export async function GET(req: NextRequest) {
   const baseUrl = req.url.split('?')[0];
 
   try {
-    let query = adminDb.collection('medicamentos').limit(Math.min(count, 100));
+    // Si hay búsqueda por ingrediente o código, cargar más para filtrar en memoria
+    const loadCount = (ingredient || code) ? 500 : Math.min(count, 100);
+    let query = adminDb.collection('medicamentos').limit(loadCount);
     if (status) {
       const estadoMap: Record<string, string> = { active: 'autorizado', inactive: 'arcsa_pendiente' };
       query = query.where('estado', '==', estadoMap[status] || status) as any;
