@@ -153,6 +153,11 @@ export async function GET(req: NextRequest) {
     if (capitulo) {
       medicamentos = medicamentos.filter((m) => m.chapId === capitulo);
     }
+    const atcFiltro = searchParams.get("atc");
+    if (atcFiltro) {
+      const atcUpper = atcFiltro.toUpperCase();
+      medicamentos = medicamentos.filter((m) => m.atc && m.atc.toUpperCase().startsWith(atcUpper));
+    }
 
     const lastDoc = snap.docs[snap.docs.length - 1];
 
