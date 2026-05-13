@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
   // Lectura pública — FHIR R4 estándar (escritura requiere auth)
 
   // Rate limiting
-  const clientId = user.uid || getClientId(req);
+  const clientId = getClientId(req);
   const rl = checkRateLimit(`fhir:${clientId}`, RATE_LIMITS.fhir);
   if (!rl.allowed) {
     return NextResponse.json(
