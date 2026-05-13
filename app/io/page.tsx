@@ -99,7 +99,7 @@ export default function ImportarExportar() {
     try {
       const token = await getToken();
       const fields = getActiveFields();
-      let url = `/api/medicamentos?limit=500&fields=${fields.join(',')}`;
+      let url = `/api/medicamentos?limit=500&estado=autorizado&fields=${fields.join(',')}`;
       if (exportCap) url += `&capitulo=${exportCap}`;
 
       setProgress('Descargando medicamentos...');
