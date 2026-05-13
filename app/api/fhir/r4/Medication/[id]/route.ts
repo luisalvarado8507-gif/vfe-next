@@ -9,8 +9,7 @@ async function verificarAuth(req: NextRequest) {
 }
 
 export async function GET(req: NextRequest, context: { params: Promise<{ id: string }> }) {
-  const user = await verificarAuth(req);
-  if (!user) return NextResponse.json(toOperationOutcome('Unauthorized'), { status: 401 });
+  // Lectura pública — FHIR R4 estándar
   try {
     const { id } = await context.params;
     const doc = await adminDb.collection('medicamentos').doc(id).get();
