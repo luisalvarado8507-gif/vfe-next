@@ -1,4 +1,4 @@
-import { adminDb } from '@/lib/firebase-admin';
+import MedicamentosSSR from './MedicamentosSSR';
 
 export async function generateMetadata() {
   return {
@@ -14,5 +14,10 @@ export async function generateMetadata() {
 }
 
 export default function MedicamentosLayout({ children }: { children: React.ReactNode }) {
-  return <>{children}</>;
+  return (
+    <>
+      <MedicamentosSSR />
+      {children}
+    </>
+  );
 }

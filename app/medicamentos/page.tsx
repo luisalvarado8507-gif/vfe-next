@@ -1,4 +1,5 @@
 'use client';
+// SSR wrapper se carga en layout.tsx
 import { useEffect, useState, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
