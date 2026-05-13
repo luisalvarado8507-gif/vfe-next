@@ -1,10 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { adminAuth } from '@/lib/firebase-admin';
-
 export async function POST(req: NextRequest) {
-  const token = req.headers.get('Authorization')?.replace('Bearer ', '');
-  if (!token) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
-  try { await adminAuth.verifyIdToken(token); } catch { return NextResponse.json({ error: 'Token inválido' }, { status: 401 }); }
+  // Validador público — no requiere autenticación
 
   const { xml } = await req.json();
   if (!xml) return NextResponse.json({ valid: false, errors: ['XML vacío'] });
