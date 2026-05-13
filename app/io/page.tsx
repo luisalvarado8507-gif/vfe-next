@@ -82,6 +82,8 @@ export default function ImportarExportar() {
     Object.fromEntries(ALL_FIELDS.map(f => [f.key, ['vtm','nombre','conc','ff','vias','laboratorio','rs','cum','atc','generico','cnmb'].includes(f.key)]))
   );
   const [exportCap, setExportCap] = useState('');
+  const [atcFiltro, setAtcFiltro] = useState('');
+  const [cnmbFiltro, setCnmbFiltro] = useState('');
   const [formato, setFormato] = useState<'csv' | 'json' | 'xlsx'>('csv');
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState('');
@@ -101,6 +103,8 @@ export default function ImportarExportar() {
       const fields = getActiveFields();
       let url = `/api/medicamentos?limit=500&estado=autorizado&fields=${fields.join(',')}`;
       if (exportCap) url += `&capitulo=${exportCap}`;
+      if (atcFiltro.trim()) url += `&atc=${encodeURIComponent(atcFiltro.trim().toUpperCase())}`;
+      if (cnmbFiltro) url += `&cnmb=${cnmbFiltro}`;
 
       setProgress('Descargando medicamentos...');
       const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
@@ -252,10 +256,50 @@ export default function ImportarExportar() {
 
               {/* Opciones de exportación */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+                {/* Filtro por ATC */}
+                <div style={{ background: 'var(--bg2)', border: '1.5px solid var(--bdr)', borderRadius: 'var(--r)', padding: '14px 16px' }}>
+                  <label style={{ fontSize: 10, fontWeight: 700, color: 'var(--tx3)', letterSpacing: 1, fontFamily: 'var(--mono)', textTransform: 'uppercase', display: 'block', marginBottom: 8 }}>
+                    Filtrar por código ATC
+                  </label>
+                  <input
+                    value={atcFiltro}
+                    onChange={e => setAtcFiltro(e.target.value)}
+                    placeholder="Ej: N, N02, N02B, C09, J01..."
+                    style={{ width: '100%', padding: '8px 10px', border: '1.5px solid var(--bdr)', borderRadius: 'var(--r)', fontSize: 13, background: 'var(--bg2)', color: 'var(--tx)', outline: 'none', fontFamily: 'var(--mono)', boxSizing: 'border-box' as const }}
+                  />
+                  <div style={{ fontSize: 10, color: 'var(--tx4-label, #64748B)', marginTop: 6, lineHeight: 1.6 }}>
+                    <strong>N</strong> = Sistema nervioso &nbsp;·&nbsp; <strong>N02</strong> = Analgésicos<br/>
+                    <strong>C</strong> = Cardiovascular &nbsp;·&nbsp; <strong>J01</strong> = Antibióticos<br/>
+                    <strong>A10</strong> = Antidiabéticos &nbsp;·&nbsp; <strong>R03</strong> = Broncodilatadores
+                  </div>
+                </div>
+
+                {/* Filtro CNMB / OMS */}
+                <div style={{ background: 'var(--bg2)', border: '1.5px solid var(--bdr)', borderRadius: 'var(--r)', padding: '14px 16px' }}>
+                  <label style={{ fontSize: 10, fontWeight: 700, color: 'var(--tx3)', letterSpacing: 1, fontFamily: 'var(--mono)', textTransform: 'uppercase', display: 'block', marginBottom: 8 }}>
+                    Lista de medicamentos esenciales
+                  </label>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    {[
+                      { val: '', label: 'Todos los medicamentos', desc: 'Sin filtro de lista esencial' },
+                      { val: 'cnmb', label: '📋 CNMB — Ecuador 9ª Edición', desc: 'Cuadro Nacional de Medicamentos Básicos MSP' },
+                      { val: 'oms', label: '🌍 OMS — Lista Modelo Esenciales', desc: 'WHO EML v23 2023 — medicamentos prioritarios' },
+                    ].map(opt => (
+                      <label key={opt.val} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, cursor: 'pointer', padding: '6px 8px', borderRadius: 6, background: cnmbFiltro === opt.val ? 'var(--blue-bg)' : 'transparent', transition: 'background .13s' }}>
+                        <input type="radio" name="cnmb" value={opt.val} checked={cnmbFiltro === opt.val} onChange={() => setCnmbFiltro(opt.val)} style={{ marginTop: 2, accentColor: 'var(--primary, #1D4ED8)' }} />
+                        <div>
+                          <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--tx)' }}>{opt.label}</div>
+                          <div style={{ fontSize: 10, color: 'var(--tx4-label, #64748B)' }}>{opt.desc}</div>
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
                 {/* Filtro por capítulo */}
                 <div style={{ background: 'var(--bg2)', border: '1.5px solid var(--bdr)', borderRadius: 'var(--r)', padding: '14px 16px' }}>
                   <label style={{ fontSize: 10, fontWeight: 700, color: 'var(--tx3)', letterSpacing: 1, fontFamily: 'var(--mono)', textTransform: 'uppercase', display: 'block', marginBottom: 8 }}>
-                    Filtrar por capítulo
+                    Filtrar por capítulo terapéutico
                   </label>
                   <select value={exportCap} onChange={e => setExportCap(e.target.value)} style={{ width: '100%', padding: '8px 10px', border: '1.5px solid var(--bdr)', borderRadius: 'var(--r)', fontSize: 13, background: 'var(--bg2)', color: 'var(--tx)', outline: 'none', fontFamily: 'var(--sans)' }}>
                     <option value="">Todos los capítulos</option>
@@ -289,7 +333,10 @@ export default function ImportarExportar() {
                   <div style={{ fontSize: 12, color: 'var(--tx2)', lineHeight: 1.8 }}>
                     <div>{activeFields.length} campos seleccionados</div>
                     <div>Formato: <span style={{ fontWeight: 700, color: 'var(--primary)', fontFamily: 'var(--mono)' }}>{formato.toUpperCase()}</span></div>
-                    <div>{exportCap ? `Capítulo: ${CHAPS.find(c=>c.id===exportCap)?.name}` : 'Todos los capítulos'}</div>
+                    <div>{exportCap ? `Cap: ${CHAPS.find(c=>c.id===exportCap)?.name}` : 'Todos los capítulos'}</div>
+                    {atcFiltro && <div>ATC: <span style={{fontFamily:'var(--mono)',fontWeight:700,color:'var(--primary)'}}>{atcFiltro.toUpperCase()}</span></div>}
+                    {cnmbFiltro === 'cnmb' && <div style={{color:'var(--amber)',fontWeight:700}}>Solo CNMB Ecuador</div>}
+                    {cnmbFiltro === 'oms' && <div style={{color:'var(--teal)',fontWeight:700}}>Solo OMS EML</div>}
                   </div>
                 </div>
               </div>
