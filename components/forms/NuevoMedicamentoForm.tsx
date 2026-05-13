@@ -292,7 +292,7 @@ export default function NuevoMedicamentoForm({ initialData, editId }: { initialD
     try {
       const token = await getToken();
       const data = {
-        vtm, laboratorio: lab, ff, conc: concLabel, generico, cnmb, chapId, subId, atc,
+        vtm: vtmLabel, laboratorio: lab, ff, conc: concLabel, generico, cnmb, chapId, subId, atc,
         nombre, units, envase, rs, estado: marcarRevisado ? 'autorizado' : estado,
         vias: vias.join(', '), vmp: vmpLabel, amp: ampLabel, vmpp: vmppLabel, ampp: amppLabel,
         snomed_vtm_code: snomedVTM?.code || '', snomed_ff_code: snomedFF?.code || '',

@@ -3,3 +3,12 @@ node_modules/
 .next/
 .vercel
 .env*.local
+
+# Scripts privados de mantenimiento
+backfill-atclbl.cjs
+inspect-48.cjs
+inventario-l4.cjs
+verify*.cjs
+check-doc.cjs
+test-export.cjs
+apply-fix.js
