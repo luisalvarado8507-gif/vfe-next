@@ -5,400 +5,421 @@ import Sidebar from '@/components/layout/Sidebar';
 import Link from 'next/link';
 import { CHAPS } from '@/lib/capitulos-tree';
 
-const EXPORT_FIELDS = [
-  { key: 'vtm',         label: 'Principio activo (DCI/VTM)', default: true },
-  { key: 'nombre',      label: 'Nombre comercial (AMP)',      default: true },
-  { key: 'conc',        label: 'Concentración',               default: true },
-  { key: 'ff',          label: 'Forma farmacéutica',          default: true },
-  { key: 'vias',        label: 'Vía de administración',       default: true },
-  { key: 'laboratorio', label: 'Laboratorio',                 default: true },
-  { key: 'rs',          label: 'Registro sanitario',          default: true },
-  { key: 'cum',         label: 'CUM — Código único ARCSA',    default: true },
-  { key: 'units',       label: 'Unidades por presentación',   default: true },
-  { key: 'envase',      label: 'Tipo de envase',              default: false },
-  { key: 'pu',          label: 'Precio unitario (USD)',        default: true },
-  { key: 'pp',          label: 'Precio presentación (USD)',   default: true },
-  { key: 'generico',    label: 'Genérico (Sí/No)',            default: true },
-  { key: 'cnmb',        label: 'CNMB',                        default: true },
-  { key: 'atc',         label: 'Código ATC',                  default: true },
-  { key: 'atclbl',      label: 'Descripción ATC',             default: false },
-  { key: 'vmp',         label: 'VMP',                         default: false },
-  { key: 'vmpp',        label: 'VMPP',                        default: false },
-  { key: 'amp',         label: 'AMP',                         default: false },
-  { key: 'ampp',        label: 'AMPP',                        default: false },
+const EXPORT_PRESETS = [
+  {
+    id: 'regulatorio',
+    label: 'Regulatorio ARCSA',
+    desc: 'RS, CUM, titular, fechas, estado — para reporte oficial',
+    icon: '⊟',
+    fields: ['vtm','nombre','rs','cum','rsTitular','rsFecha','rsVence','rsCondicion','estado','laboratorio'],
+    color: '#5B21B6',
+    bg: '#F5F3FF',
+  },
+  {
+    id: 'clinico',
+    label: 'Clínico / Prescripción',
+    desc: 'DCI, concentración, FF, vía, CNMB — para uso clínico',
+    icon: '⚕',
+    fields: ['vtm','nombre','conc','ff','vias','generico','cnmb','atc','atclbl'],
+    color: '#1D4ED8',
+    bg: '#EFF6FF',
+  },
+  {
+    id: 'farmacia',
+    label: 'Farmacia / Dispensación',
+    desc: 'Nombre, presentación, precio, laboratorio, genérico',
+    icon: '⊞',
+    fields: ['vtm','nombre','conc','ff','laboratorio','generico','units','presentacion','cnmb'],
+    color: '#065F46',
+    bg: '#ECFDF5',
+  },
+  {
+    id: 'interoperabilidad',
+    label: 'Interoperabilidad ISO IDMP',
+    desc: 'Todos los campos + ATC + SNOMED + SPOR para intercambio',
+    icon: '⊕',
+    fields: ['vtm','nombre','conc','ff','vias','laboratorio','rs','cum','atc','atclbl','snomed_vtm_code','generico','cnmb','rsTitular','rsFecha','rsVence','estado'],
+    color: '#92400E',
+    bg: '#FEF3C7',
+  },
 ];
 
-const SNOMED_FIELDS = [
-  { key: 'snomed_vtm_code',   label: 'SNOMED — Código principio activo' },
-  { key: 'snomed_vtm_term',   label: 'SNOMED — Término principio activo' },
-  { key: 'snomed_ff_code',    label: 'SNOMED — Código forma farmacéutica' },
-  { key: 'snomed_ff_term',    label: 'SNOMED — Término forma farmacéutica' },
-  { key: 'snomed_route_code', label: 'SNOMED — Código vía administración' },
-  { key: 'snomed_route_term', label: 'SNOMED — Término vía administración' },
+const ALL_FIELDS = [
+  { key: 'vtm',          label: 'Principio activo (DCI/INN)',  group: 'Sustancia' },
+  { key: 'nombre',       label: 'Nombre comercial',             group: 'Producto' },
+  { key: 'amp',          label: 'AMP (nombre marca)',           group: 'Producto' },
+  { key: 'conc',         label: 'Concentración',                group: 'Producto' },
+  { key: 'ff',           label: 'Forma farmacéutica (EDQM)',    group: 'Producto' },
+  { key: 'vias',         label: 'Vía de administración',        group: 'Producto' },
+  { key: 'presentacion', label: 'Presentación comercial',       group: 'Producto' },
+  { key: 'units',        label: 'Unidades por presentación',    group: 'Producto' },
+  { key: 'rs',           label: 'Registro sanitario ARCSA',     group: 'Regulatorio' },
+  { key: 'cum',          label: 'CUM — Código único ARCSA',     group: 'Regulatorio' },
+  { key: 'estado',       label: 'Estado regulatorio',           group: 'Regulatorio' },
+  { key: 'rsTitular',    label: 'Titular del registro',         group: 'Regulatorio' },
+  { key: 'rsFecha',      label: 'Fecha de autorización',        group: 'Regulatorio' },
+  { key: 'rsVence',      label: 'Fecha de vencimiento',         group: 'Regulatorio' },
+  { key: 'rsCondicion',  label: 'Condición de venta',           group: 'Regulatorio' },
+  { key: 'rsPaisFab',    label: 'País de fabricación',          group: 'Regulatorio' },
+  { key: 'laboratorio',  label: 'Laboratorio / Fabricante',     group: 'Organización' },
+  { key: 'atc',          label: 'Código ATC-WHO',               group: 'Clasificación' },
+  { key: 'atclbl',       label: 'Descripción ATC',              group: 'Clasificación' },
+  { key: 'generico',     label: 'Genérico (Sí/No)',             group: 'Clasificación' },
+  { key: 'cnmb',         label: 'CNMB — Lista esencial',        group: 'Clasificación' },
+  { key: 'snomed_vtm_code', label: 'SNOMED CT — Código PA',    group: 'Interoperabilidad' },
+  { key: 'snomed_ff_code',  label: 'SNOMED CT — Código FF',    group: 'Interoperabilidad' },
+  { key: 'pu',           label: 'Precio unitario (USD)',         group: 'Precios' },
+  { key: 'pp',           label: 'Precio presentación (USD)',     group: 'Precios' },
 ];
+
+const GROUPS = [...new Set(ALL_FIELDS.map(f => f.group))];
 
 export default function ImportarExportar() {
   const { getToken, isEditor } = useAuth();
-
+  const [tab, setTab] = useState<'exportar' | 'importar' | 'fhir'>('exportar');
+  const [preset, setPreset] = useState('clinico');
+  const [customFields, setCustomFields] = useState<Record<string, boolean>>(
+    Object.fromEntries(ALL_FIELDS.map(f => [f.key, ['vtm','nombre','conc','ff','vias','laboratorio','rs','cum','atc','generico','cnmb'].includes(f.key)]))
+  );
   const [exportCap, setExportCap] = useState('');
-  const [exportVtm, setExportVtm] = useState('');
-  const [selectedFields, setSelectedFields] = useState<Record<string, boolean>>(
-    Object.fromEntries(EXPORT_FIELDS.map(f => [f.key, f.default]))
-  );
-  const [selectedSnomed, setSelectedSnomed] = useState<Record<string, boolean>>(
-    Object.fromEntries(SNOMED_FIELDS.map(f => [f.key, false]))
-  );
-  const [exportFormat, setExportFormat] = useState<'json' | 'csv' | 'html'>('json');
-  const [exportando, setExportando] = useState(false);
-  const [capLibro, setCapLibro] = useState('');
-  const [exportandoLibro, setExportandoLibro] = useState(false);
-  const [importando, setImportando] = useState(false);
-  const [drag, setDrag] = useState(false);
-  const [mensaje, setMensaje] = useState('');
-  const [progreso, setProgreso] = useState('');
+  const [formato, setFormato] = useState<'csv' | 'json' | 'xlsx'>('csv');
+  const [loading, setLoading] = useState(false);
+  const [progress, setProgress] = useState('');
+  const [importFile, setImportFile] = useState<File | null>(null);
+  const [importPreview, setImportPreview] = useState<any[]>([]);
 
-  const today = () => new Date().toISOString().split('T')[0];
-  const download = (blob: Blob, name: string) => {
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = name; a.click();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  const getActiveFields = () => {
+    if (preset === 'custom') return Object.entries(customFields).filter(([,v]) => v).map(([k]) => k);
+    return EXPORT_PRESETS.find(p => p.id === preset)?.fields || [];
   };
 
-  const fetchAllMeds = async (token: string) => {
-    let all: Record<string, any>[] = [];
-    let cursor: string | null = null;
-    while (true) {
-      const params = new URLSearchParams({ limit: '500' });
-      if (cursor) params.set('cursor', cursor);
-      const res = await fetch(`/api/medicamentos?${params}`, { headers: { Authorization: `Bearer ${token}` } });
+  const handleExport = useCallback(async () => {
+    setLoading(true);
+    setProgress('Conectando con Firestore...');
+    try {
+      const token = await getToken();
+      const fields = getActiveFields();
+      let url = `/api/medicamentos?limit=500&fields=${fields.join(',')}`;
+      if (exportCap) url += `&capitulo=${exportCap}`;
+
+      setProgress('Descargando medicamentos...');
+      const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
       const data = await res.json();
-      all = all.concat(data.medicamentos || []);
-      cursor = data.nextCursor;
-      if (!cursor) break;
+      const meds = data.medicamentos || [];
+      setProgress(`${meds.length} medicamentos obtenidos. Generando ${formato.toUpperCase()}...`);
+
+      if (formato === 'csv') {
+        const header = fields.join(',');
+        const rows = meds.map((m: any) =>
+          fields.map(f => {
+            const v = m[f] || '';
+            return typeof v === 'string' && v.includes(',') ? `"${v}"` : v;
+          }).join(',')
+        );
+        const csv = '\uFEFF' + [header, ...rows].join('\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `SIMI_medicamentos_${preset}_${new Date().toISOString().split('T')[0]}.csv`;
+        a.click();
+      } else if (formato === 'json') {
+        const json = JSON.stringify({ 
+          meta: { fuente: 'SIMI Ecuador', fecha: new Date().toISOString(), total: meds.length, campos: fields, preset },
+          medicamentos: meds 
+        }, null, 2);
+        const blob = new Blob([json], { type: 'application/json' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `SIMI_medicamentos_${preset}_${new Date().toISOString().split('T')[0]}.json`;
+        a.click();
+      }
+      setProgress(`✓ ${meds.length} medicamentos exportados correctamente`);
+    } catch(e) {
+      setProgress('Error al exportar. Intenta de nuevo.');
+    } finally {
+      setLoading(false);
     }
-    return all;
-  };
+  }, [getToken, preset, exportCap, formato, customFields]);
 
-  const filterMeds = (meds: Record<string, any>[]) => meds.filter(m => {
-    if (exportCap && m.chapId !== exportCap) return false;
-    if (exportVtm && !((m.vtm || '').toLowerCase().includes(exportVtm.toLowerCase()))) return false;
-    return true;
-  });
-
-  const exportar = async () => {
-    setExportando(true); setMensaje('');
-    try {
-      const token = await getToken();
-      if (!token) return;
-      const all = await fetchAllMeds(token);
-      const filtered = filterMeds(all);
-      const fields = ["vtm","nombre","conc","ff","vias","laboratorio","rs","cum","units","envase","pu","pp","rango","generico","cnmb","atc","atclbl","chapId","subId","estado","vmp","vmpp","amp","ampp","rsFabricante","rsPaisFab","rsImportador","rsTitular","rsTipo","rsFecha","rsVence","rsCondicion","pmc","gtin","phpid","phpidL1","phpidL2","phpidL3","prospectoUrl","packagingUrl"];
-      if (exportFormat === 'json') {
-        const data = filtered.map(m => { const row: Record<string,string> = {}; fields.forEach(k => { row[k] = m[k] !== undefined && m[k] !== null ? String(m[k]) : ''; }); return row; });
-        download(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }), `vfe_medicamentos_${today()}.json`);
-      } else if (exportFormat === 'csv') {
-        const rows = filtered.map(m => fields.map(k => `"${String(m[k] ?? '').replace(/"/g, '""')}"`).join(','));
-        download(new Blob(['\uFEFF' + [fields.join(','), ...rows].join('\n')], { type: 'text/csv;charset=utf-8' }), `vfe_medicamentos_${today()}.csv`);
-      } else {
-        const header = fields.map(k => `<th>${k}</th>`).join('');
-        const rowsHtml = filtered.map(m => `<tr>${fields.map(k => `<td>${String(m[k] ?? '')}</td>`).join('')}</tr>`).join('');
-        const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>VFE Export</title>
-<style>body{font-family:Inter,sans-serif;font-size:12px;margin:20px}table{border-collapse:collapse;width:100%}th,td{border:1px solid #BFDBFE;padding:5px 8px;text-align:left}th{background:#0F2D5E;color:#fff;font-size:11px}tr:nth-child(even){background:#EFF6FF}h2{color:#0F2D5E}</style></head>
-<body><h2>VFE — El Libro Verde · ${today()}</h2><table><thead><tr>${header}</tr></thead><tbody>${rowsHtml}</tbody></table></body></html>`;
-        download(new Blob([html], { type: 'text/html;charset=utf-8' }), `vfe_medicamentos_${today()}.html`);
-      }
-      setMensaje(`✅ Exportados ${filtered.length} registros en ${exportFormat.toUpperCase()}`);
-    } catch(e) { setMensaje('❌ Error al exportar: ' + String(e)); }
-    finally { setExportando(false); }
-  };
-
-  const exportarCapitulo = async () => {
-    if (!capLibro) { setMensaje('⚠️ Selecciona un capítulo'); return; }
-    setExportandoLibro(true); setMensaje('');
-    try {
-      const token = await getToken();
-      if (!token) return;
-      const all = await fetchAllMeds(token);
-      const cap = CHAPS.find(c => c.id === capLibro);
-      const meds = all.filter(m => m.chapId === capLibro && m.estado === 'autorizado');
-      const filas = meds.map(m => `<tr>
-        <td><strong>${m.amp || m.nombre || m.vtm || '—'}</strong></td>
-        <td>${m.vtm || '—'}</td><td>${m.conc || '—'}</td><td>${m.ff || '—'}</td>
-        <td>${m.vias || m.via || '—'}</td><td>${m.laboratorio || '—'}</td>
-        <td>${m.rs || '—'}</td><td>${m.cum || '—'}</td><td>${m.atc || '—'}</td>
-        <td>${m.pp ? '$ ' + parseFloat(m.pp).toFixed(2) : '—'}</td></tr>`).join('');
-      const html = `<!DOCTYPE html><html lang="es"><head><meta charset="utf-8">
-<title>VFE — ${cap?.name}</title>
-<style>body{font-family:Arial,sans-serif;font-size:11px;margin:40px;color:#1a3a1a}
-h1{color:#0F2D5E;font-size:22px;border-bottom:3px solid #1D4ED8;padding-bottom:8px}
-table{width:100%;border-collapse:collapse;margin-top:12px;font-size:10px}
-th{background:#0F2D5E;color:#fff;padding:6px 8px;text-align:left}
-td{border:1px solid #BFDBFE;padding:5px 8px}tr:nth-child(even){background:#EFF6FF}
-.footer{margin-top:32px;font-size:10px;color:#888;border-top:1px solid #ccc;padding-top:8px}</style>
-</head><body>
-<h1>VFE — El Libro Verde de los Medicamentos</h1>
-<h2 style="color:#1D4ED8">${cap?.name}</h2>
-<p style="color:#666;font-size:11px">${meds.length} medicamentos autorizados · ${today()}</p>
-<table><thead><tr><th>Nombre comercial</th><th>Principio activo</th><th>Concentración</th>
-<th>Forma farm.</th><th>Vía</th><th>Laboratorio</th><th>RS</th><th>CUM</th><th>ATC</th><th>PVP</th></tr></thead>
-<tbody>${filas}</tbody></table>
-<div class="footer">VFE · Ecuador · ${new Date().getFullYear()}</div></body></html>`;
-      download(new Blob([html], { type: 'text/html;charset=utf-8' }), `vfe_cap${cap?.n}_${(cap?.name || '').replace(/\s+/g, '_')}_${today()}.html`);
-      setMensaje(`✅ Capítulo exportado: ${meds.length} medicamentos`);
-    } catch(e) { setMensaje('❌ Error: ' + String(e)); }
-    finally { setExportandoLibro(false); }
-  };
-
-  const importarArchivo = async (file: File) => {
-    if (!isEditor) { setMensaje('❌ Necesitas permisos de editor'); return; }
-    setImportando(true); setMensaje('');
-    try {
-      const token = await getToken();
-      if (!token) return;
-      if (!file.name.toLowerCase().endsWith('.json')) {
-        setMensaje('❌ Por ahora solo se admite JSON. Exporta primero desde VFE.');
-        return;
-      }
-      const meds = JSON.parse(await file.text());
-      if (!Array.isArray(meds)) throw new Error('El archivo no es un array JSON válido');
-      let ok = 0;
-      for (let i = 0; i < meds.length; i++) {
-        setProgreso(`Importando ${i + 1} de ${meds.length}...`);
-        const res = await fetch('/api/medicamentos', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-          body: JSON.stringify(meds[i]),
-        });
-        if (res.ok) ok++;
-      }
-      setMensaje(`✅ Importados ${ok} de ${meds.length} medicamentos`);
-    } catch(e) { setMensaje('❌ Error: ' + String(e)); }
-    finally { setImportando(false); setProgreso(''); }
-  };
-
-  const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImportFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) importarArchivo(file);
-    e.target.value = '';
+    if (!file) return;
+    setImportFile(file);
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const text = ev.target?.result as string;
+      const lines = text.split('\n').slice(0, 4);
+      setImportPreview(lines.map(l => l.split(',').slice(0, 6)));
+    };
+    reader.readAsText(file);
   };
 
-  const onDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault(); setDrag(false);
-    const file = e.dataTransfer.files?.[0];
-    if (file) importarArchivo(file);
-  }, [isEditor]);
+  const activePreset = EXPORT_PRESETS.find(p => p.id === preset);
+  const activeFields = getActiveFields();
 
-  const totalCampos: number = 35; // todos los campos excepto clinData
-  const capNombre = CHAPS.find(c => c.id === exportCap)?.name;
-
-  // ── Estilos ──────────────────────────────────────────────────────────────
-  const card: React.CSSProperties = { background: 'var(--bg2)', border: '1.5px solid var(--bdr)', borderRadius: 'var(--rl)', padding: '20px 24px', marginBottom: 16, boxShadow: 'var(--sh)' };
-  const cardTitle: React.CSSProperties = { fontSize: 13, fontWeight: 700, color: 'var(--green)', marginBottom: 4 };
-  const cardSub: React.CSSProperties = { fontSize: 12, color: 'var(--tx3)', marginBottom: 16 };
-  const lbl: React.CSSProperties = { fontSize: 10, fontWeight: 700, color: 'var(--tx3)', letterSpacing: 1, fontFamily: 'var(--mono)', textTransform: 'uppercase', marginBottom: 6, display: 'block' };
-  const sel: React.CSSProperties = { width: '100%', padding: '9px 12px', border: '1.5px solid var(--bdr)', borderRadius: 'var(--r)', fontSize: 13, background: 'var(--bg2)', color: 'var(--tx)', outline: 'none', fontFamily: 'var(--sans)' };
-  const inp: React.CSSProperties = { ...sel, boxSizing: 'border-box' as const };
-  const chipBtn = (activo: boolean): React.CSSProperties => ({
-    padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 500, cursor: 'pointer',
-    border: `1.5px solid ${activo ? 'var(--green)' : 'var(--purple-bg, #EDE9FE)'}`,
-    background: activo ? 'var(--green)' : 'var(--bg2)',
-    color: activo ? '#fff' : 'var(--tx2)', transition: 'all .13s', fontFamily: 'var(--sans)',
+  const tabStyle = (t: string): React.CSSProperties => ({
+    padding: '10px 20px', fontSize: 13, fontWeight: tab === t ? 700 : 500,
+    color: tab === t ? 'var(--primary, #1D4ED8)' : 'var(--tx3)',
+    background: tab === t ? 'var(--blue-bg)' : 'transparent',
+    border: 'none', borderBottom: `2px solid ${tab === t ? 'var(--primary)' : 'transparent'}`,
+    cursor: 'pointer', fontFamily: 'var(--sans)', transition: 'all .15s', marginBottom: '-1.5px',
   });
-  const checkField = (key: string, checked: boolean, isSnomed = false): React.CSSProperties => ({
-    display: 'flex', alignItems: 'center', gap: 6, padding: '5px 10px',
-    border: `1px solid ${checked ? (isSnomed ? '#C4B5FD' : 'var(--green)') : (isSnomed ? '#EDE9FE' : 'var(--bdr)')}`,
-    borderRadius: 'var(--r)', cursor: 'pointer',
-    background: checked ? (isSnomed ? '#F5F3FF' : 'var(--bg3)') : 'var(--bg2)',
-    fontSize: 11, fontWeight: 500, transition: 'all .13s',
-    color: isSnomed ? 'var(--purple)' : 'var(--tx2)',
-    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-  });
-
-  const msgStyle: React.CSSProperties = {
-    marginBottom: 16, padding: '10px 16px', borderRadius: 'var(--r)', fontSize: 13, fontWeight: 600,
-    background: mensaje.startsWith('✅') ? 'var(--estado-autorizado-bg)' : mensaje.startsWith('⚠️') ? 'var(--amber-bg)' : 'var(--red-bg)',
-    color: mensaje.startsWith('✅') ? 'var(--estado-autorizado)' : mensaje.startsWith('⚠️') ? 'var(--amber)' : 'var(--red)',
-    border: `1.5px solid ${mensaje.startsWith('✅') ? '#86EFAC' : mensaje.startsWith('⚠️') ? '#FCD34D' : '#FCA5A5'}`,
-  };
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', fontFamily: 'var(--sans)' }}>
       <Sidebar />
-      <main style={{ flex: 1, marginLeft: 272, display: 'flex', flexDirection: 'column' }}>
+      <main style={{ flex: 1, marginLeft: 260, display: 'flex', flexDirection: 'column' }}>
 
-        {/* ── Header dark ── */}
-        <div style={{ background: 'var(--green-dark, #1B4332)', padding: '20px 32px', flexShrink: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-            <Link href="/dashboard" style={{ fontSize: 12, color: 'rgba(255,255,255,.5)', textDecoration: 'none', transition: 'color .15s' }}
-              onMouseEnter={e => (e.currentTarget.style.color = 'rgba(255,255,255,.85)')}
-              onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,.5)')}>
-              ← Dashboard
-            </Link>
-          </div>
-          <div style={{ fontSize: 10, fontFamily: 'var(--mono)', color: 'rgba(255,255,255,.4)', letterSpacing: '2px', marginBottom: 6 }}>GESTIÓN DE DATOS</div>
+        {/* Header */}
+        <div style={{ background: 'var(--green-dark, #0F2D5E)', padding: '20px 32px' }}>
+          <div style={{ fontSize: 10, fontFamily: 'var(--mono)', color: 'rgba(255,255,255,.4)', letterSpacing: '2px', marginBottom: 6 }}>SIMI · GESTIÓN DE DATOS</div>
           <h1 style={{ fontSize: 20, fontWeight: 700, color: '#fff', marginBottom: 4 }}>Importar / Exportar</h1>
-          <p style={{ fontSize: 12, color: 'rgba(255,255,255,.5)' }}>Gestiona los datos de la base de medicamentos</p>
+          <p style={{ fontSize: 12, color: 'rgba(255,255,255,.5)' }}>
+            Exporta en CSV o JSON · Importa desde Excel o CSV · Intercambia en FHIR R4 Bundle
+          </p>
         </div>
 
-        <div style={{ flex: 1, padding: '24px 32px', overflowY: 'auto' }}>
+        {/* Tabs */}
+        <div style={{ borderBottom: '1.5px solid var(--bdr)', background: 'var(--bg2)', padding: '0 32px', display: 'flex', gap: 4 }}>
+          {[['exportar','⬇ Exportar'],['importar','⬆ Importar'],['fhir','⊕ FHIR R4']].map(([t,l]) => (
+            <button key={t} onClick={() => setTab(t as any)} style={tabStyle(t)}>{l}</button>
+          ))}
+        </div>
 
-          {/* Mensaje */}
-          {mensaje && <div style={msgStyle}>{mensaje}</div>}
+        <div style={{ flex: 1, padding: '24px 32px', display: 'flex', flexDirection: 'column', gap: 16 }}>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, alignItems: 'start', marginBottom: 16 }}>
-
-            {/* ── IMPORTAR ── */}
-            <div style={card}>
-              <div style={cardTitle}>📥 Importar datos</div>
-              <div style={cardSub}>Carga medicamentos desde un archivo JSON exportado desde VFE</div>
-              {isEditor ? (
-                <>
-                  <label
-                    onDragOver={e => { e.preventDefault(); setDrag(true); }}
-                    onDragLeave={() => setDrag(false)}
-                    onDrop={onDrop}
-                    style={{
-                      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                      gap: 10, padding: '32px 20px',
-                      border: `2px dashed ${drag ? 'var(--green)' : 'var(--bdr)'}`,
-                      borderRadius: 'var(--rl)', cursor: 'pointer',
-                      background: drag ? 'var(--bg3)' : 'var(--bg)',
-                      transition: 'all .15s', marginBottom: 12,
+          {/* ── EXPORTAR ── */}
+          {tab === 'exportar' && (
+            <>
+              {/* Presets */}
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--tx3)', letterSpacing: 1, fontFamily: 'var(--mono)', marginBottom: 10, textTransform: 'uppercase' }}>
+                  Perfil de exportación
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
+                  {EXPORT_PRESETS.map(p => (
+                    <button key={p.id} onClick={() => setPreset(p.id)} style={{
+                      padding: '12px 14px', borderRadius: 'var(--r)', textAlign: 'left', cursor: 'pointer',
+                      border: `2px solid ${preset === p.id ? p.color : 'var(--bdr)'}`,
+                      background: preset === p.id ? p.bg : 'var(--bg2)',
+                      transition: 'all .15s', fontFamily: 'var(--sans)',
                     }}>
-                    <input type="file" accept=".json,.csv,.xlsx,.xls" onChange={onFileChange} style={{ display: 'none' }} disabled={importando} />
-                    <div style={{ fontSize: 32 }}>📂</div>
-                    <div style={{ textAlign: 'center' }}>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--tx)' }}>
-                        {importando ? progreso || 'Importando...' : 'Arrastra un archivo o haz clic para seleccionar'}
-                      </div>
-                      <div style={{ fontSize: 11, color: 'var(--tx3)', marginTop: 4 }}>
-                        Excel (.xlsx · .xls) · CSV · JSON
-                      </div>
-                    </div>
-                  </label>
-                  <p style={{ fontSize: 11, color: 'var(--tx4)', marginTop: 4 }}>Solo archivos JSON exportados desde VFE</p>
-                </>
-              ) : (
-                <div style={{ padding: 16, background: 'var(--red-bg)', borderRadius: 'var(--r)', fontSize: 13, color: 'var(--red)' }}>
-                  Necesitas permisos de editor para importar
-                </div>
-              )}
-            </div>
-
-            {/* ── EXPORTAR BASE DE DATOS ── */}
-            <div style={card}>
-              <div style={cardTitle}>📤 Exportar base de datos</div>
-              <div style={cardSub}>Descarga medicamentos con los campos que necesitas</div>
-
-              {/* Filtros */}
-              <div style={{ background: 'var(--bg)', border: '1.5px solid var(--bdr)', borderRadius: 'var(--r)', padding: '12px 14px', marginBottom: 14 }}>
-                <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--tx3)', letterSpacing: 1.5, fontFamily: 'var(--mono)', marginBottom: 10 }}>🔍 FILTROS DE EXPORTACIÓN</div>
-                <div style={{ marginBottom: 10 }}>
-                  <label style={lbl}>Grupo farmacológico (capítulo)</label>
-                  <select value={exportCap} onChange={e => setExportCap(e.target.value)} style={sel}>
-                    <option value="">— Todos los capítulos —</option>
-                    {CHAPS.map(c => <option key={c.id} value={c.id}>{c.n}. {c.name}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label style={lbl}>Principio activo (VTM) — opcional</label>
-                  <input value={exportVtm} onChange={e => setExportVtm(e.target.value)} placeholder="Ej. Omeprazol..." style={inp} />
-                </div>
-                <div style={{ fontSize: 11, color: 'var(--tx3)', marginTop: 8, fontFamily: 'var(--mono)' }}>
-                  {exportCap || exportVtm ? `Filtro: ${capNombre || ''}${exportVtm ? ` · "${exportVtm}"` : ''}` : 'Sin filtro — todos los registros'}
-                </div>
-              </div>
-
-              {/* Campos incluidos */}
-              <div style={{ marginBottom: 14, padding: '12px 14px', background: 'var(--bg3)', borderRadius: 'var(--r)', border: '1px solid var(--bdr)' }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--tx2)', marginBottom: 8 }}>
-                  ✓ Se exportan todos los campos excepto datos clínicos
-                </div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-                  {['VTM/DCI','Nombre comercial','Concentración','Forma farm.','Vías','Laboratorio',
-                    'RS','CUM','Unidades','Envase','Precio unit.','Precio pres.','Genérico','CNMB',
-                    'ATC','Descripción ATC','VMP','VMPP','AMP','AMPP','Fabricante','País fab.',
-                    'Importador','Titular RS','Tipo RS','Fecha RS','Venc. RS','Condición venta',
-                    'PMC','GTIN','PhPID','Prospecto URL','Packaging URL','SNOMED VTM','SNOMED FF'
-                  ].map(f => (
-                    <span key={f} style={{ padding: '2px 8px', borderRadius: 20, fontSize: 11, background: 'var(--bg2)', border: '1px solid var(--bdr)', color: 'var(--tx3)' }}>
-                      {f}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              {/* Formato */}
-              <div style={{ marginBottom: 14 }}>
-                <label style={lbl}>Formato de descarga</label>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
-                  {(['json', 'csv', 'html'] as const).map(fmt => (
-                    <button key={fmt} onClick={() => setExportFormat(fmt)} style={{
-                      padding: '10px 8px', borderRadius: 'var(--r)', cursor: 'pointer', fontWeight: 700,
-                      border: `1.5px solid ${exportFormat === fmt ? 'var(--green)' : 'var(--bdr)'}`,
-                      background: exportFormat === fmt ? 'var(--bg3)' : 'var(--bg2)',
-                      color: exportFormat === fmt ? 'var(--green)' : 'var(--tx3)',
-                      fontSize: 12, fontFamily: 'var(--sans)', textTransform: 'uppercase',
-                    }}>
-                      <div style={{ fontSize: 16, marginBottom: 2 }}>{fmt === 'json' ? '{ }' : fmt === 'csv' ? '⊞' : '🖨'}</div>
-                      {fmt.toUpperCase()}
-                      <div style={{ fontSize: 10, fontWeight: 400, color: 'var(--tx4)', marginTop: 2 }}>
-                        {fmt === 'json' ? 'Datos' : fmt === 'csv' ? 'Hoja cálculo' : 'Imprimible'}
+                      <div style={{ fontSize: 18, marginBottom: 6 }}>{p.icon}</div>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: preset === p.id ? p.color : 'var(--tx)', marginBottom: 3 }}>{p.label}</div>
+                      <div style={{ fontSize: 11, color: 'var(--tx4-label, #64748B)', lineHeight: 1.4 }}>{p.desc}</div>
+                      <div style={{ marginTop: 8, fontSize: 10, color: preset === p.id ? p.color : 'var(--tx4)', fontFamily: 'var(--mono)' }}>
+                        {p.fields.length} campos
                       </div>
                     </button>
                   ))}
+                  <button onClick={() => setPreset('custom')} style={{
+                    padding: '12px 14px', borderRadius: 'var(--r)', textAlign: 'left', cursor: 'pointer',
+                    border: `2px solid ${preset === 'custom' ? 'var(--primary)' : 'var(--bdr)'}`,
+                    background: preset === 'custom' ? 'var(--blue-bg)' : 'var(--bg2)',
+                    transition: 'all .15s', fontFamily: 'var(--sans)',
+                  }}>
+                    <div style={{ fontSize: 18, marginBottom: 6 }}>⊙</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: preset === 'custom' ? 'var(--primary)' : 'var(--tx)', marginBottom: 3 }}>Personalizado</div>
+                    <div style={{ fontSize: 11, color: 'var(--tx4-label, #64748B)', lineHeight: 1.4 }}>Selecciona los campos que necesitas</div>
+                  </button>
                 </div>
               </div>
 
-              <div style={{ fontSize: 11, color: 'var(--tx3)', fontFamily: 'var(--mono)', marginBottom: 12 }}>
-                35 campos incluidos · sin datos clínicos
+              {/* Selector de campos personalizado */}
+              {preset === 'custom' && (
+                <div style={{ background: 'var(--bg2)', border: '1.5px solid var(--bdr)', borderRadius: 'var(--rl)', padding: '16px 20px' }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--tx3)', letterSpacing: 1, fontFamily: 'var(--mono)', marginBottom: 12, textTransform: 'uppercase' }}>
+                    Campos a exportar
+                  </div>
+                  {GROUPS.map(group => (
+                    <div key={group} style={{ marginBottom: 12 }}>
+                      <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--tx4-label, #64748B)', letterSpacing: 0.5, fontFamily: 'var(--mono)', marginBottom: 6, textTransform: 'uppercase' }}>{group}</div>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                        {ALL_FIELDS.filter(f => f.group === group).map(f => (
+                          <button key={f.key} onClick={() => setCustomFields(prev => ({ ...prev, [f.key]: !prev[f.key] }))} style={{
+                            padding: '4px 10px', borderRadius: 20, fontSize: 12, fontWeight: 500, cursor: 'pointer',
+                            border: `1.5px solid ${customFields[f.key] ? 'var(--primary)' : 'var(--bdr)'}`,
+                            background: customFields[f.key] ? 'var(--blue-bg)' : 'var(--bg)',
+                            color: customFields[f.key] ? 'var(--primary)' : 'var(--tx3)',
+                            transition: 'all .13s', fontFamily: 'var(--sans)',
+                          }}>{f.label}</button>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Opciones de exportación */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+                {/* Filtro por capítulo */}
+                <div style={{ background: 'var(--bg2)', border: '1.5px solid var(--bdr)', borderRadius: 'var(--r)', padding: '14px 16px' }}>
+                  <label style={{ fontSize: 10, fontWeight: 700, color: 'var(--tx3)', letterSpacing: 1, fontFamily: 'var(--mono)', textTransform: 'uppercase', display: 'block', marginBottom: 8 }}>
+                    Filtrar por capítulo
+                  </label>
+                  <select value={exportCap} onChange={e => setExportCap(e.target.value)} style={{ width: '100%', padding: '8px 10px', border: '1.5px solid var(--bdr)', borderRadius: 'var(--r)', fontSize: 13, background: 'var(--bg2)', color: 'var(--tx)', outline: 'none', fontFamily: 'var(--sans)' }}>
+                    <option value="">Todos los capítulos</option>
+                    {CHAPS.map(c => <option key={c.id} value={c.id}>{c.n}. {c.name}</option>)}
+                  </select>
+                </div>
+
+                {/* Formato */}
+                <div style={{ background: 'var(--bg2)', border: '1.5px solid var(--bdr)', borderRadius: 'var(--r)', padding: '14px 16px' }}>
+                  <label style={{ fontSize: 10, fontWeight: 700, color: 'var(--tx3)', letterSpacing: 1, fontFamily: 'var(--mono)', textTransform: 'uppercase', display: 'block', marginBottom: 8 }}>
+                    Formato de salida
+                  </label>
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    {(['csv','json'] as const).map(f => (
+                      <button key={f} onClick={() => setFormato(f)} style={{
+                        flex: 1, padding: '8px', borderRadius: 'var(--r)', fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                        border: `1.5px solid ${formato === f ? 'var(--primary)' : 'var(--bdr)'}`,
+                        background: formato === f ? 'var(--blue-bg)' : 'var(--bg)',
+                        color: formato === f ? 'var(--primary)' : 'var(--tx3)',
+                        fontFamily: 'var(--mono)', transition: 'all .13s',
+                      }}>{f.toUpperCase()}</button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Resumen */}
+                <div style={{ background: 'var(--bg2)', border: '1.5px solid var(--bdr)', borderRadius: 'var(--r)', padding: '14px 16px' }}>
+                  <label style={{ fontSize: 10, fontWeight: 700, color: 'var(--tx3)', letterSpacing: 1, fontFamily: 'var(--mono)', textTransform: 'uppercase', display: 'block', marginBottom: 8 }}>
+                    Resumen
+                  </label>
+                  <div style={{ fontSize: 12, color: 'var(--tx2)', lineHeight: 1.8 }}>
+                    <div>{activeFields.length} campos seleccionados</div>
+                    <div>Formato: <span style={{ fontWeight: 700, color: 'var(--primary)', fontFamily: 'var(--mono)' }}>{formato.toUpperCase()}</span></div>
+                    <div>{exportCap ? `Capítulo: ${CHAPS.find(c=>c.id===exportCap)?.name}` : 'Todos los capítulos'}</div>
+                  </div>
+                </div>
               </div>
 
-              <button onClick={exportar} disabled={exportando || totalCampos === 0} style={{
-                width: '100%', padding: '11px 20px', borderRadius: 'var(--r)', fontSize: 13, fontWeight: 700,
-                cursor: exportando || totalCampos === 0 ? 'not-allowed' : 'pointer',
-                border: 'none', background: 'var(--green)', color: '#fff',
-                opacity: exportando || totalCampos === 0 ? 0.5 : 1, fontFamily: 'var(--sans)', transition: 'all .15s',
-              }}>
-                {exportando ? 'Exportando...' : `⬇ Exportar ${exportFormat.toUpperCase()}`}
-              </button>
-            </div>
-          </div>
-
-          {/* ── EXPORTAR CAPÍTULO COMO LIBRO ── */}
-          <div style={card}>
-            <div style={cardTitle}>📖 Exportar capítulo como libro</div>
-            <div style={cardSub}>
-              Genera un documento editorial con el contenido del capítulo al estilo del Libro Verde, incluyendo RS y CUM.
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
-              <div>
-                <label style={lbl}>Capítulo a exportar</label>
-                <select value={capLibro} onChange={e => setCapLibro(e.target.value)} style={sel}>
-                  <option value="">— Selecciona un capítulo —</option>
-                  {CHAPS.map(c => <option key={c.id} value={c.id}>{c.n}. {c.name}</option>)}
-                </select>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'flex-end' }}>
-                <button onClick={exportarCapitulo} disabled={exportandoLibro || !capLibro} style={{
-                  width: '100%', padding: '11px 20px', borderRadius: 'var(--r)', fontSize: 13, fontWeight: 700,
-                  cursor: exportandoLibro || !capLibro ? 'not-allowed' : 'pointer',
-                  border: 'none', background: 'var(--green)', color: '#fff',
-                  opacity: exportandoLibro || !capLibro ? 0.5 : 1, fontFamily: 'var(--sans)', transition: 'all .15s',
+              {/* Botón exportar */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <button onClick={handleExport} disabled={loading} style={{
+                  padding: '12px 32px', borderRadius: 'var(--r)', fontSize: 14, fontWeight: 700,
+                  background: loading ? 'var(--bdr)' : 'var(--primary, #1D4ED8)', color: '#fff',
+                  border: 'none', cursor: loading ? 'not-allowed' : 'pointer', fontFamily: 'var(--sans)',
+                  transition: 'all .15s', display: 'flex', alignItems: 'center', gap: 8,
                 }}>
-                  {exportandoLibro ? 'Generando...' : '⬇ Descargar capítulo'}
+                  {loading ? (
+                    <><div style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,.3)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin .8s linear infinite' }} />
+                    <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+                    Exportando...</>
+                  ) : `⬇ Exportar ${formato.toUpperCase()}`}
                 </button>
+                {progress && (
+                  <span style={{ fontSize: 13, color: progress.startsWith('✓') ? 'var(--estado-autorizado)' : progress.startsWith('Error') ? 'var(--red)' : 'var(--tx3)' }}>
+                    {progress}
+                  </span>
+                )}
+              </div>
+            </>
+          )}
+
+          {/* ── IMPORTAR ── */}
+          {tab === 'importar' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              {/* Instrucciones */}
+              <div style={{ background: 'var(--blue-bg)', border: '1.5px solid var(--bdr)', borderRadius: 'var(--rl)', padding: '16px 20px' }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--primary)', marginBottom: 8 }}>Requisitos del archivo CSV</div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+                  {[
+                    ['Formato', 'CSV con cabeceras en primera fila'],
+                    ['Separador', 'Coma (,) o punto y coma (;)'],
+                    ['Codificación', 'UTF-8 con BOM'],
+                    ['Columna RS', 'Requerida — Registro Sanitario ARCSA'],
+                    ['Columna vtm', 'Requerida — Principio activo (DCI)'],
+                    ['Tamaño máximo', '10 MB / 20.000 registros'],
+                  ].map(([k,v]) => (
+                    <div key={k} style={{ fontSize: 12 }}>
+                      <span style={{ fontWeight: 700, color: 'var(--tx2)' }}>{k}: </span>
+                      <span style={{ color: 'var(--tx3)' }}>{v}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Drop zone */}
+              <div style={{ border: '2px dashed var(--bdr2)', borderRadius: 'var(--rl)', padding: '40px 20px', textAlign: 'center', background: 'var(--bg2)', cursor: 'pointer' }}
+                onClick={() => document.getElementById('import-file')?.click()}>
+                <div style={{ fontSize: 32, marginBottom: 8 }}>📂</div>
+                <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--tx)', marginBottom: 4 }}>
+                  {importFile ? importFile.name : 'Arrastra tu archivo CSV aquí'}
+                </div>
+                <div style={{ fontSize: 12, color: 'var(--tx4-label, #64748B)' }}>
+                  {importFile ? `${(importFile.size/1024).toFixed(1)} KB` : 'o haz clic para seleccionar'}
+                </div>
+                <input id="import-file" type="file" accept=".csv,.json" style={{ display: 'none' }} onChange={handleImportFile} />
+              </div>
+
+              {/* Preview */}
+              {importPreview.length > 0 && (
+                <div style={{ background: 'var(--bg2)', border: '1.5px solid var(--bdr)', borderRadius: 'var(--r)', overflow: 'hidden' }}>
+                  <div style={{ padding: '10px 14px', background: 'var(--bg3)', fontSize: 11, fontWeight: 700, color: 'var(--tx3)', fontFamily: 'var(--mono)', letterSpacing: 1 }}>
+                    VISTA PREVIA (primeras filas)
+                  </div>
+                  <div style={{ overflowX: 'auto' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+                      <tbody>
+                        {importPreview.map((row, i) => (
+                          <tr key={i} style={{ borderTop: i > 0 ? '1px solid var(--bdr)' : 'none', background: i === 0 ? 'var(--bg3)' : 'var(--bg2)' }}>
+                            {row.map((cell: string, j: number) => (
+                              <td key={j} style={{ padding: '6px 12px', fontWeight: i === 0 ? 700 : 400, color: i === 0 ? 'var(--tx2)' : 'var(--tx3)', whiteSpace: 'nowrap' }}>{cell}</td>
+                            ))}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {importFile && isEditor && (
+                <button style={{ padding: '12px 32px', borderRadius: 'var(--r)', fontSize: 14, fontWeight: 700, background: 'var(--primary)', color: '#fff', border: 'none', cursor: 'pointer', width: 'fit-content' }}>
+                  ⬆ Procesar e importar {importFile.name}
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* ── FHIR R4 ── */}
+          {tab === 'fhir' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div style={{ background: 'var(--bg2)', border: '1.5px solid var(--bdr)', borderRadius: 'var(--rl)', padding: '20px 24px' }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--tx)', marginBottom: 6 }}>Intercambio FHIR R4</div>
+                <div style={{ fontSize: 13, color: 'var(--tx3)', marginBottom: 16, lineHeight: 1.6 }}>
+                  SIMI expone una API FHIR R4 completa para intercambio con sistemas HIS, EHR y plataformas regulatorias.
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
+                  {[
+                    { label: 'CapabilityStatement', desc: 'Declaración de capacidades FHIR del servidor', url: '/api/fhir/r4/metadata', badge: 'PÚBLICO' },
+                    { label: 'Medication Bundle', desc: 'Lista de medicamentos como FHIR Bundle', url: '/api/fhir/r4/Medication', badge: 'AUTH' },
+                    { label: 'Substance', desc: 'Principios activos como recursos FHIR', url: '/api/fhir/r4/Substance', badge: 'AUTH' },
+                    { label: 'Organization', desc: 'Laboratorios como recursos FHIR', url: '/api/fhir/r4/Organization', badge: 'AUTH' },
+                  ].map(e => (
+                    <a key={e.url} href={e.url} target="_blank" rel="noreferrer" style={{ display: 'block', padding: '14px 16px', borderRadius: 'var(--r)', border: '1.5px solid var(--bdr)', background: 'var(--bg)', textDecoration: 'none', transition: 'all .15s' }}
+                      onMouseEnter={ev => (ev.currentTarget as HTMLElement).style.borderColor = 'var(--primary)'}
+                      onMouseLeave={ev => (ev.currentTarget as HTMLElement).style.borderColor = 'var(--bdr)'}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                        <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--primary)', fontFamily: 'var(--mono)' }}>{e.label}</span>
+                        <span style={{ fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 3, background: e.badge === 'PÚBLICO' ? 'var(--estado-autorizado-bg)' : 'var(--blue-bg)', color: e.badge === 'PÚBLICO' ? 'var(--estado-autorizado)' : 'var(--primary)', fontFamily: 'var(--mono)' }}>{e.badge}</span>
+                      </div>
+                      <div style={{ fontSize: 12, color: 'var(--tx3)' }}>{e.desc}</div>
+                      <div style={{ fontSize: 10, color: 'var(--tx4)', fontFamily: 'var(--mono)', marginTop: 4 }}>{e.url} ↗</div>
+                    </a>
+                  ))}
+                </div>
+              </div>
+
+              <div style={{ background: 'var(--amber-bg)', border: '1.5px solid #FCD34D', borderRadius: 'var(--r)', padding: '12px 16px', fontSize: 12, color: 'var(--amber)' }}>
+                <strong>Autenticación:</strong> Endpoints marcados AUTH requieren Bearer Token Firebase JWT en el header Authorization.
               </div>
             </div>
-            <p style={{ fontSize: 11, color: 'var(--tx4)' }}>
-              Tip: para generar PDF, abre el HTML en el navegador → Archivo → Imprimir → Guardar como PDF
-            </p>
-          </div>
+          )}
 
         </div>
       </main>
     </div>
   );
 }
- 
