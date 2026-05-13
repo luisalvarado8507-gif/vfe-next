@@ -16,15 +16,16 @@ function buildE2B(rep: any): string {
   const reportId = `SIMI-EC-${Date.now()}`;
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE ichicsr SYSTEM "ich-icsr-v2-0.dtd">
-<ichicsr lang="es" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<!DOCTYPE ichicsr SYSTEM "ich-icsr-v3-0.dtd">
+<ichicsr lang="es" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:noNamespaceSchemaLocation="ich-icsr-v3-0.xsd">
   <ichicsrmessageheader>
     <messagetype>ichicsr</messagetype>
-    <messageformatversion>2.1</messageformatversion>
-    <messageformatrelease>2</messageformatrelease>
+    <messageformatversion>3.0</messageformatversion>
+    <messageformatrelease>1</messageformatrelease>
     <messagenumb>${escapeXml(reportId)}</messagenumb>
     <messagesenderidentifier>SIMI-ECUADOR</messagesenderidentifier>
-    <messagereceiveridentifier>CNFV-ARCSA-EC</messagereceiveridentifier>
+    <messagereceiveridentifier>WHO-VIGIBASE</messagereceiveridentifier>
     <messagedateformat>204</messagedateformat>
     <messagedate>${msgDate}</messagedate>
   </ichicsrmessageheader>
@@ -129,7 +130,7 @@ function buildE2B(rep: any): string {
       <!-- Evaluación de causalidad -->
       <summary>
         <narrativeincludeclinical>${escapeXml(rep.informacionAdicional || '')}</narrativeincludeclinical>
-        <sendercomment>Causalidad: ${escapeXml(rep.causalidad || '')}${rep.icd11Code ? ` | Diagnóstico ICD-11: ${escapeXml(rep.icd11Code)} ${escapeXml(rep.icd11Term)}` : ''} | Sistema: SIMI Ecuador v2 | Estándar: ICH E2B(R3) | MedDRA v24.1</sendercomment>
+        <sendercomment>Causalidad: ${escapeXml(rep.causalidad || '')}${rep.icd11Code ? ` | Diagnóstico ICD-11: ${escapeXml(rep.icd11Code)} ${escapeXml(rep.icd11Term)}` : ''} | Sistema: SIMI Ecuador v2 | Estándar: ICH E2B(R3) 2024 | MedDRA v27.0 | VigiBase WHO-UMC</sendercomment>
       </summary>
     </patient>
   </safetyreport>
