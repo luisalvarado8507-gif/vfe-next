@@ -9,8 +9,7 @@ async function verificarAuth(req: NextRequest) {
 }
 
 export async function GET(req: NextRequest) {
-  const user = await verificarAuth(req);
-  if (!user) return NextResponse.json({ resourceType: 'OperationOutcome', issue: [{ severity: 'error', diagnostics: 'Unauthorized' }] }, { status: 401 });
+  // Lectura pública — FHIR R4 estándar
   const { searchParams } = new URL(req.url);
   const q = searchParams.get('code') || searchParams.get('_text') || '';
   const baseUrl = req.url.split('?')[0];
