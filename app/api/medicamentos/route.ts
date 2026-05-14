@@ -30,7 +30,7 @@ function mapDoc(doc: FirebaseFirestore.QueryDocumentSnapshot) {
     id: data.id || doc.id,
     vtm: (data.esCombo && Array.isArray(data.comboData?.pas) && data.comboData.pas.length > 0) ? data.comboData.pas.join(' + ') : (data.vtm || d.vtm || ''),
     nombre: data.nombre || d.amp || '',
-    conc: (data.esCombo && Array.isArray(data.comboData?.concs) && data.comboData.concs.length > 0) ? data.comboData.concs.map((x,i) => x + ' ' + (data.comboData.units?.[i] || 'mg')).join(' + ') : (data.conc || ''),
+    conc: (data.esCombo && Array.isArray(data.comboData?.concs) && data.comboData.concs.length > 0) ? data.comboData.concs.map((x: string, i: number) => x + ' ' + (data.comboData.units?.[i] || 'mg')).join(' + ') : (data.conc || ''),
     ff: data.ff || '',
     via: data.via || '',
     vias: Array.isArray(data.vias) ? data.vias.join(', ') : (typeof data.vias === 'string' ? data.vias : (data.via || '')),
