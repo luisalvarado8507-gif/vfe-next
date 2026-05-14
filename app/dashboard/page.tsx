@@ -28,6 +28,12 @@ function getVtmLabel(m: any): string {
   if (m.esCombo && m.comboData?.pas?.length) return m.comboData.pas.join(' + ');
   return m.vtm || '';
 }
+function getConcLabel(m: any): string {
+  if (m.esCombo && m.comboData?.concs?.length) {
+    return m.comboData.concs.map((x: string, i: number) => x + ' ' + (m.comboData.units?.[i] || 'mg')).join(' + ');
+  }
+  return m.conc || '';
+}
 
 export default function Dashboard() {
   const [stats, setStats] = useState<Stats>({ total: 0, principiosActivos: 0, genericos: 0, cnmb: 0, eml: 0, arcsa_pendiente: 0 });
@@ -415,7 +421,7 @@ export default function Dashboard() {
                           {getVtmLabel(m) || <span style={{color:"var(--tx4)",fontStyle:"italic"}}>—</span>}
                         </td>
                         <td style={{ padding: '10px 16px', color: 'var(--tx3)', fontFamily: 'var(--mono)', fontSize: '12px', borderTop: '1px solid var(--bdr)' }}>
-                          {m.conc || '—'}
+                          {getConcLabel(m) || '—'}
                         </td>
                         <td style={{ padding: '10px 16px', color: 'var(--tx3)', fontSize: '12px', borderTop: '1px solid var(--bdr)' }}>
                           {m.laboratorio}
