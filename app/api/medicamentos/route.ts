@@ -28,7 +28,7 @@ function mapDoc(doc: FirebaseFirestore.QueryDocumentSnapshot) {
   return {
     docId: doc.id,
     id: data.id || doc.id,
-    vtm: data.vtm || d.vtm || '',
+    vtm: (data.esCombo && Array.isArray(data.comboData?.pas) && data.comboData.pas.length > 0) ? data.comboData.pas.join(' + ') : (data.vtm || d.vtm || ''),
     nombre: data.nombre || d.amp || '',
     conc: data.conc || '',
     ff: data.ff || '',
