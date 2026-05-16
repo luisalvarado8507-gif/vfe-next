@@ -363,7 +363,7 @@ export default function NuevoMedicamentoForm({ initialData, editId }: { initialD
                     background: tipoPA === t ? 'var(--green)' : 'var(--bg2)',
                     color: tipoPA === t ? '#fff' : 'var(--tx2)', cursor: 'pointer', fontWeight: 600, fontSize: 13,
                   }}>
-                    <input type="radio" name="tipo-pa" value={t} checked={tipoPA === t} onChange={() => setTipoPA(t)} style={{ display: 'none' }} />
+                    <input type="radio" name="tipo-pa" value={t} checked={tipoPA === t} onChange={() => { setTipoPA(t); setVtm(""); setConc(""); setFf(""); setVias([]); setLab(""); setAtc(""); setRs(""); setNombre(""); setGenerico(""); setCnmb(""); setChapId(""); setSubId(""); setUnits(""); setEnvase(""); setCum(""); setRsTitular(""); setRsFecha(""); setRsVence(""); setRsCondicion(""); setComboPAs([{vtm:"",conc:"",unit:"mg"},{vtm:"",conc:"",unit:"mg"}]); }} style={{ display: 'none' }} />
                     {t === 'mono' ? 'Monocomponente' : 'Combinación'}
                   </label>
                 ))}
