@@ -257,7 +257,7 @@ export default function NuevoMedicamentoForm({ initialData, editId }: { initialD
     }
 
     // Validar código ATC si se ingresó
-    if (atc && !/^[A-Z][0-9]{2}[A-Z]{2}[0-9]{2}$/.test(atc.trim())) {
+    if (atc && !/^[A-Z][0-9]{2}[A-Z]{2}([0-9]{2})?$/.test(atc.trim())) {
       validationErrors.push('El código ATC no tiene el formato correcto (ej: C07AB03)');
     }
 
