@@ -29,6 +29,9 @@ function calcCompletitud(m: Medicamento): number {
   const TRUNCADO = /\([^)]*$|eq\. a\s*$/i;
   const conc = String((m as any).conc||'').trim();
   const esCombo = (m as any).esCombo === true;
+  const atcValido = !!atc && /^[A-Z][0-9]{2}[A-Z]{2}([0-9]{2})?$/.test(atc);
+  const fp = (m as any).farmPrices;
+  const tienePrecio = !!(fp && typeof fp === 'object' && Object.values(fp).some((v: any) => typeof v === 'number' && v > 0));
   const checks = [
     !!vtm,
     !!vtm && !BASURA_TEXTO.test(vtm),
@@ -41,11 +44,12 @@ function calcCompletitud(m: Medicamento): number {
     !!(m as any).vias,
     !!(m as any).laboratorio,
     !!(m as any).rs,
-    !!atc && /^[A-Z][0-9]{2}[A-Z]{2}([0-9]{2})?$/.test(atc),
     !!atclbl && !/\b(therapy|agents|drugs|inhibitors|blockers|preparations)\b/i.test(atclbl),
     !!cnmb,
   ];
-  const score = Math.round((checks.filter(Boolean).length / checks.length) * 100);
+  const puntosObtenidos = checks.filter(Boolean).length + (atcValido ? 3 : 0) + (tienePrecio ? 5 : 0);
+  const puntosMaximos = checks.length + 3 + 5;
+  const score = Math.round((puntosObtenidos / puntosMaximos) * 100);
   return score;
 }
 
