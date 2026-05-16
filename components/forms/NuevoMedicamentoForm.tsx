@@ -377,7 +377,7 @@ export default function NuevoMedicamentoForm({ initialData, editId }: { initialD
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
                   <label style={lbl}>PRINCIPIOS ACTIVOS DE LA COMBINACIÓN <span style={{ color: 'red' }}>*</span></label>
                   <div style={{ display: 'flex', gap: 6 }}>
-                    {[2,3,4].map(n => (
+                    {[2,3,4,5,6].map(n => (
                       <button key={n} type="button"
                         onClick={() => setComboPAs(Array.from({ length: n }, (_, i) => comboPAs[i] || { vtm: '', conc: '', unit: 'mg' }))}
                         style={{ padding: '4px 12px', borderRadius: 6, fontSize: 12, fontWeight: 600, cursor: 'pointer',
