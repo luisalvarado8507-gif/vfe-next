@@ -25,15 +25,18 @@ function calcCompletitud(m: Medicamento): number {
   const atclbl = String((m as any).atclbl||'').trim();
   const cnmb = String((m as any).cnmb||'').trim();
   const SALES = /\b(fumarato|hemifumarato|maleato|besilato|cilexetilo|cilexetil|mesilato|tartrato|sulfato|clorhidrato|hidrocloruro|acetato|propionato|decanoato|enantato|pamoato|estearato|valerato|succinato|gluconato|lactato|citrato|nitrato|bromhidrato|tosilato|fosfato|monohidrato|dihidrato|trihidrato)\b/i;
-  const BASURA_TEXTO = /^\d|comprimido|tableta|cubierta|cada |\uFFFD/i;
+  const BASURA_TEXTO = /^\d|^[a-z]\)|^[a-z]\s|cada\s+(capsula|comprimido|tableta|ampolla|frasco|sobre)|comprimido\s+con|tableta\s+recubierta|cubierta\s+pelicular|\uFFFD/i;
   const TRUNCADO = /\([^)]*$|eq\. a\s*$/i;
+  const conc = String((m as any).conc||'').trim();
+  const esCombo = (m as any).esCombo === true;
   const checks = [
     !!vtm,
     !!vtm && !BASURA_TEXTO.test(vtm),
     !!vtm && !TRUNCADO.test(vtm),
     !!vtm && !SALES.test(vtm),
     !!vtm && vtm === vtm.toLowerCase(),
-    !!(m as any).conc,
+    !!conc,
+    !!conc && (!/[/+]/.test(conc) || esCombo),
     !!(m as any).ff,
     !!(m as any).vias,
     !!(m as any).laboratorio,
