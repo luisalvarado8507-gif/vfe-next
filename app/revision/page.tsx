@@ -20,7 +20,7 @@ const ESTADO_STYLES: Record<string, { bg: string; color: string; label: string }
 // Calcular score de completitud ISO IDMP por medicamento
 function calcCompletitud(m: Medicamento): number {
   const checks = [
-    (()=>{const v=String((m as any).vtm||"").trim();return !!v && !/^\\d|comprimido|tableta|cubierta|cada |\\uFFFD|fumarato|maleato|besilato|cilexetilo|hemifumarato|mesilato|tartrato|sulfato|clorhidrato|hidrocloruro/i.test(v);})(),
+    (()=>{const v=String((m as any).vtm||"").trim();return !!v && !/^\d|comprimido|tableta|cubierta|cada |\uFFFD|fumarato|maleato|besilato|cilexetilo|hemifumarato|mesilato|tartrato|sulfato|clorhidrato|hidrocloruro/i.test(v);})(),
     !!(m as any).conc,          // Concentración — obligatorio ISO IDMP
     !!(m as any).ff,            // Forma farmacéutica — obligatorio ISO 11239
     !!(m as any).vias,          // Vía administración — obligatorio ISO 11239
