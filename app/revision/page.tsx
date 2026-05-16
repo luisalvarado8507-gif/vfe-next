@@ -34,15 +34,13 @@ function calcCompletitud(m: Medicamento): number {
     !!vtm && !SALES.test(vtm),
     !!vtm && vtm === vtm.toLowerCase(),
     !!(m as any).conc,
-    !!ff && ff === ff.toLowerCase(),
+    !!(m as any).ff,
     !!(m as any).vias,
     !!(m as any).laboratorio,
     !!(m as any).rs,
     !!atc && /^[A-Z][0-9]{2}[A-Z]{2}([0-9]{2})?$/.test(atc),
     !!atclbl && !/\b(therapy|agents|drugs|inhibitors|blockers|preparations)\b/i.test(atclbl),
     !!cnmb,
-    !!(m as any).snomed_vtm_code,
-    !!(m as any).snomed_ff_code,
   ];
   const score = Math.round((checks.filter(Boolean).length / checks.length) * 100);
   return score;
