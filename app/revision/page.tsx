@@ -19,17 +19,30 @@ const ESTADO_STYLES: Record<string, { bg: string; color: string; label: string }
 
 // Calcular score de completitud ISO IDMP por medicamento
 function calcCompletitud(m: Medicamento): number {
+  const vtm = String((m as any).vtm||'').trim();
+  const ff = String((m as any).ff||'').trim();
+  const atc = String((m as any).atc||'').trim();
+  const atclbl = String((m as any).atclbl||'').trim();
+  const cnmb = String((m as any).cnmb||'').trim();
+  const SALES = /\b(fumarato|hemifumarato|maleato|besilato|cilexetilo|cilexetil|mesilato|tartrato|sulfato|clorhidrato|hidrocloruro|acetato|propionato|decanoato|enantato|pamoato|estearato|valerato|succinato|gluconato|lactato|citrato|nitrato|bromhidrato|tosilato|fosfato|monohidrato|dihidrato|trihidrato)\b/i;
+  const BASURA_TEXTO = /^\d|comprimido|tableta|cubierta|cada |\uFFFD/i;
+  const TRUNCADO = /\([^)]*$|eq\. a\s*$/i;
   const checks = [
-    (()=>{const v=String((m as any).vtm||"").trim();return !!v && !/^\d|comprimido|tableta|cubierta|cada |\uFFFD|fumarato|maleato|besilato|cilexetilo|hemifumarato|mesilato|tartrato|sulfato|clorhidrato|hidrocloruro/i.test(v);})(),
-    !!(m as any).conc,          // Concentración — obligatorio ISO IDMP
-    !!(m as any).ff,            // Forma farmacéutica — obligatorio ISO 11239
-    !!(m as any).vias,          // Vía administración — obligatorio ISO 11239
-    !!(m as any).laboratorio,   // Laboratorio — obligatorio ISO IDMP
-    !!(m as any).rs,            // Registro sanitario — obligatorio ARCSA
-    !!(m as any).cum,           // CUM — identificador ARCSA
-    !!(m as any).atc,           // Código ATC-WHO
-    !!(m as any).rsCondicion,   // Condición venta
-    !!(m as any).rsFecha,       // Fecha autorización
+    !!vtm,
+    !!vtm && !BASURA_TEXTO.test(vtm),
+    !!vtm && !TRUNCADO.test(vtm),
+    !!vtm && !SALES.test(vtm),
+    !!vtm && vtm === vtm.toLowerCase(),
+    !!(m as any).conc,
+    !!ff && ff === ff.toLowerCase(),
+    !!(m as any).vias,
+    !!(m as any).laboratorio,
+    !!(m as any).rs,
+    !!atc && /^[A-Z][0-9]{2}[A-Z]{2}([0-9]{2})?$/.test(atc),
+    !!atclbl && !/\b(therapy|agents|drugs|inhibitors|blockers|preparations)\b/i.test(atclbl),
+    !!cnmb,
+    !!(m as any).snomed_vtm_code,
+    !!(m as any).snomed_ff_code,
   ];
   const score = Math.round((checks.filter(Boolean).length / checks.length) * 100);
   return score;
