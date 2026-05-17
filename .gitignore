@@ -12,3 +12,8 @@ verify*.cjs
 check-doc.cjs
 test-export.cjs
 apply-fix.js
+
+# Backups locales
+*.bak
+*.bak2
+*.bak3

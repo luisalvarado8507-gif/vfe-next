@@ -289,7 +289,7 @@ function BaseDatosContent() {
       try {
         const token = await getToken();
         if (!token) return;
-        const res = await fetch(`/api/busqueda?q=${encodeURIComponent(busqueda)}&tipo=${tipoBusqueda}${capitulo ? `&capitulo=${capitulo}` : ''}`, {
+        const res = await fetch(`/api/busqueda?q=${encodeURIComponent(busqueda)}&tipo=${tipoBusqueda}&estado=autorizado${capitulo ? `&capitulo=${capitulo}` : ''}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         const data = await res.json();
