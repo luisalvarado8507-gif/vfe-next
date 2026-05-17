@@ -1,4 +1,5 @@
 'use client';
+import { buildPaquete } from '@/lib/spms-builder';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { useRouter } from 'next/navigation';
@@ -234,8 +235,8 @@ export default function NuevoMedicamentoForm({ initialData, editId }: { initialD
   const vmpLabel = vtmLabel && ff && concLabel ? `${vtmLabel} ${concLabel} ${ffShort}` : '';
   const ampLabel = vmpLabel && lab ? (nombre ? `${nombre} ${concLabel} ${ffShort} (${lab})` : `${vmpLabel} (${lab})`) : '';
   const vtmForSnomed = tipoPA === 'mono' ? vtm : comboPAs[0]?.vtm || '';
-  const vmppLabel = vmpLabel && units ? `${vmpLabel}, ${envase || ''} ${units}`.trim() : '';
-  const amppLabel = ampLabel && units ? `${ampLabel}, ${envase || ''} ${units}`.trim() : '';
+  const vmppLabel = vmpLabel ? buildPaquete(vmpLabel, units, envase, vol, volUnit) : '';
+  const amppLabel = ampLabel ? buildPaquete(ampLabel, units, envase, vol, volUnit) : '';
 
   const toggleVia = (v: string) => setVias(prev => prev.includes(v) ? prev.filter(x => x !== v) : [...prev, v]);
 

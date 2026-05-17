@@ -1,17 +1,11 @@
 'use client';
+import { buildPaquete } from '@/lib/spms-builder';
 
 interface Props {
   data: Record<string, string>;
 }
 
-function buildPaquete(base: string, units: string, envase: string, vol: string, volUnit: string): string {
-  const volStr = vol ? `${vol} ${volUnit || 'mL'}` : '';
-  if (volStr && envase) return `${base}, ${envase} ${volStr}`;
-  if (volStr) return `${base}, ${volStr}`;
-  if (units && envase) return `${base}, ${envase} ${units}`;
-  if (units) return `${base} ${units} unidades`;
-  return '';
-}
+
 
 export default function SPMSTable({ data }: Props) {
   const vtm = data.vtm?.trim() || '';
