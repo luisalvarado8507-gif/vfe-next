@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminDb, adminAuth } from '@/lib/firebase-admin';
+import { normalizarDCI } from '@/lib/dci-normalize';
 
 async function verificarAuth(req: NextRequest) {
   const token = req.headers.get('Authorization')?.replace('Bearer ', '');
@@ -19,8 +20,22 @@ export async function GET(req: NextRequest) {
       col.where('estado', '==', 'autorizado').where('data.eml', '==', true).count().get(),
       col.where('estado', '==', 'arcsa_pendiente').count().get(),
     ]);
-    const vtmSnap = await col.where('estado', '==', 'autorizado').select('vtm').get();
-    const pas = new Set(vtmSnap.docs.map(d => d.data().vtm).filter(Boolean)).size;
+    const vtmSnap = await col.where('estado', '==', 'autorizado').select('vtm', 'data.esCombo', 'data.comboData', 'data.vtm').get();
+    const pasSet = new Set<string>();
+    vtmSnap.docs.forEach(d => {
+      const raw = d.data();
+      const data = raw.data || {};
+      if (data.esCombo === true && Array.isArray(data.comboData?.pas)) {
+        data.comboData.pas.forEach((pa: string) => {
+          const norm = normalizarDCI((pa || '').toString());
+          if (norm) pasSet.add(norm);
+        });
+      } else {
+        const v = normalizarDCI((data.vtm || raw.vtm || '').toString());
+        if (v) pasSet.add(v);
+      }
+    });
+    const pas = pasSet.size;
     const capSnap = await col.where('estado', '==', 'autorizado').select('data.chapId').get();
     const porCapitulo: Record<string, number> = {};
     capSnap.docs.forEach(d => {
