@@ -111,7 +111,12 @@ export default function RevisionPage() {
     return (m.vtm||'').toLowerCase().includes(q)||(m.nombre||'').toLowerCase().includes(q)||(m.laboratorio||'').toLowerCase().includes(q)||(m.rs||'').toLowerCase().includes(q);
   });
 
-  const ordenados = [...filtrados].sort((a, b) => calcCompletitud(b as any) - calcCompletitud(a as any));
+  const ordenados = [...filtrados].sort((a, b) => {
+    const aCons = (a.docId || '').startsWith('cons_') ? 0 : 1;
+    const bCons = (b.docId || '').startsWith('cons_') ? 0 : 1;
+    if (aCons !== bCons) return aCons - bCons;
+    return calcCompletitud(b as any) - calcCompletitud(a as any);
+  });
   const totalPags = Math.max(1, Math.ceil(ordenados.length / PER_PAGE));
   const paginados = ordenados.slice((pagina-1)*PER_PAGE, pagina*PER_PAGE);
   const chip = (active: boolean) => ({ padding: '5px 14px', borderRadius: 20, fontSize: 12, fontWeight: 600, cursor: 'pointer', border: 'none', background: active ? 'var(--green)' : 'var(--bg2)', color: active ? '#fff' : 'var(--tx3)' } as React.CSSProperties);
